@@ -1,35 +1,37 @@
 /* =========================================================
    LOGO SIPFAS - GLOBAL
    Fungsi:
-   - Mengatur ukuran simbol logo.
-   - Mengatur jarak antara logo dan tulisan SIPFAS.
-   - Menyamakan identitas logo di semua halaman Admin.
-   - Tidak memberikan background tambahan pada gambar logo.
+   - Menyamakan identitas logo seluruh halaman Admin.
+   - Mengatur ukuran simbol dan tulisan.
+   - Memperbaiki jarak horizontal.
+   - Menyejajarkan logo dengan dua baris identitas.
 ========================================================= */
 
-/* Variabel global ukuran logo */
+/* Variabel ukuran logo */
 :root {
-  --logo-size: 32px;
-  --logo-gap: 8px;
+  --logo-size: 40px;
+  --logo-gap: 1px;
 }
 
-/* Pembungkus logo dan nama aplikasi */
+/* Area logo dan identitas */
 .sidebar-logo {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+
   gap: var(--logo-gap);
 
   width: 100%;
-  height: 54px;
-  padding: 0 12px;
+  height: 68px;
+
+  padding: 0 14px;
 
   box-sizing: border-box;
   text-decoration: none;
   flex-shrink: 0;
 }
 
-/* Gambar logo asli dengan background transparan */
+/* Simbol logo SIPFAS */
 .sidebar-logo img {
   display: block;
 
@@ -40,17 +42,22 @@
   object-position: center;
 
   flex-shrink: 0;
+
   background: transparent;
   border: none;
   border-radius: 0;
+
+  /* Sedikit penyesuaian posisi visual simbol */
+  transform: translateY(3px);
 }
 
-/* Pembungkus tulisan SIPFAS */
+/* Area tulisan identitas */
 .sidebar-brand {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 2px;
+
+  gap: 1px;
 
   min-width: 0;
   line-height: 1.2;
@@ -59,27 +66,31 @@
 /* Nama aplikasi */
 .sidebar-brand strong {
   color: #ffffff;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0;
+
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
 }
 
-/* Identitas institusi */
+/* Nama institusi */
 .sidebar-brand span {
   color: #b9cce2;
-  font-size: 6px;
+
+  font-size: 10px;
   font-weight: 400;
+
   white-space: nowrap;
 }
 
-/* Penyesuaian logo untuk layar kecil */
+/* Penyesuaian layar kecil */
 @media (max-width: 768px) {
   .sidebar-logo {
-    padding: 0 10px;
+    height: 62px;
+    padding: 0 12px;
   }
 
   :root {
-    --logo-size: 30px;
-    --logo-gap: 7px;
+    --logo-size: 36px;
+    --logo-gap: 1px;
   }
 }
