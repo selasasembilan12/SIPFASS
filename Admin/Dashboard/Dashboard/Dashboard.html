@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Dashboard Admin | SIPFAS</title>
+
+    <!-- =================================================
+         FONT GLOBAL
+         Seluruh teks Dashboard menggunakan font Inter.
+    ================================================== -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- =================================================
+         CSS LOGO GLOBAL
+         Digunakan bersama oleh seluruh halaman Admin.
+    ================================================== -->
+    <link rel="stylesheet" href="../../../assets/css/logo.css" />
+
+    <!-- CSS khusus halaman Dashboard -->
+    <link rel="stylesheet" href="Dashboard.css" />
+  </head>
+
+  <body>
+    <div class="app-layout">
+      <!-- =================================================
+         SIDEBAR NAVIGASI
+         Berisi identitas SIPFAS, menu utama, klasifikasi,
+         laporan, dan menu akun.
+    ================================================== -->
+      <aside class="sidebar">
+        <!-- LOGO SIPFAS TANPA BACKGROUND TAMBAHAN -->
+        <a href="Dashboard.html" class="sidebar-logo">
+          <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS" />
+
+          <div class="sidebar-brand">
+            <strong>SIPFAS</strong>
+            <span>Informatika UNKHAIR</span>
+          </div>
+        </a>
+
+        <!-- MENU UTAMA -->
+        <div class="nav-group">
+          <p class="nav-title">MENU UTAMA</p>
+
+          <a href="Dashboard.html" class="nav-link active">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+            </span>
+            <span>Dashboard</span>
+          </a>
+        </div>
+
+        <!-- MENU MANAJEMEN DATA -->
+        <div class="nav-group">
+          <p class="nav-title">MANAJEMEN DATA</p>
+
+          <a
+            href="../Manajemen-Pengguna/manajemen-pengguna.html"
+            class="nav-link"
+          >
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+                <circle cx="9.5" cy="7" r="3.5" />
+                <path d="M17 11a3.5 3.5 0 0 0 0-7" />
+                <path d="M21 21v-2a4 4 0 0 0-3-3.87" />
+              </svg>
+            </span>
+            <span>Manajemen Pengguna</span>
+          </a>
+
+          <a
+            href="../Kategori-Fasilitas/kategori-fasilitas.html"
+            class="nav-link"
+          >
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3L20 10H4L12 3Z" />
+                <rect x="3" y="14" width="6" height="6" />
+                <circle cx="17" cy="17" r="3" />
+              </svg>
+            </span>
+            <span>Kategori Fasilitas</span>
+          </a>
+
+          <a href="../Data-Fasilitas/data-fasilitas.html" class="nav-link">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="4" width="16" height="12" rx="1" />
+                <path d="M2 19H15" />
+                <rect x="15" y="12" width="7" height="9" rx="1" />
+              </svg>
+            </span>
+            <span>Data Fasilitas</span>
+          </a>
+        </div>
+
+        <!-- MENU KLASIFIKASI C4.5 -->
+        <div class="nav-group">
+          <p class="nav-title">KLASIFIKASI C4.5</p>
+
+          <a
+            href="../../Dashboard-Lanjutan/Dataset-C45/dataset-c45.html"
+            class="nav-link"
+          >
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M3 9h18M3 15h18M9 3v18" />
+              </svg>
+            </span>
+            <span>Dataset C4.5</span>
+          </a>
+
+          <a
+            href="../../Dashboard-Lanjutan/Pelatihan-C45/pelatihan-c45.html"
+            class="nav-link"
+          >
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M9 18h6M10 21h4" />
+                <path
+                  d="M12 2a7 7 0 0 0-5 11.9V16a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2.1A7 7 0 0 0 12 2z"
+                />
+                <path d="M12 14v-5m-2.5 2.5L12 9l2.5 2.5" />
+              </svg>
+            </span>
+            <span>Pelatihan C4.5</span>
+          </a>
+
+          <a
+            href="../../Dashboard-Lanjutan/Hasil-Pengujian/hasil-pengujian.html"
+            class="nav-link"
+          >
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="1" />
+                <path d="M7 16v-4M12 16V7M17 16v-7" />
+              </svg>
+            </span>
+            <span>Hasil Pengujian</span>
+          </a>
+        </div>
+
+        <!-- MENU LAPORAN -->
+        <div class="nav-group">
+          <p class="nav-title">LAPORAN</p>
+
+          <a
+            href="../../Dashboard-Lanjutan/Laporan-Pemeliharaan/laporan-pemeliharaan.html"
+            class="nav-link"
+          >
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M6 2.5h8l5 5V21H6z" />
+                <path d="M14 2.5V8h5M9 13h7M9 17h7" />
+              </svg>
+            </span>
+            <span>Laporan Pemeliharaan</span>
+          </a>
+        </div>
+
+        <!-- MENU AKUN DI BAGIAN BAWAH SIDEBAR -->
+        <div class="sidebar-bottom">
+          <p class="nav-title">AKUN</p>
+
+          <a href="../Profil-Saya/profil-saya.html" class="nav-link">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8.5" r="3.5" />
+                <path d="M5 20c.7-3 3.2-4.5 7-4.5s6.3 1.5 7 4.5" />
+              </svg>
+            </span>
+            <span>Profil Saya</span>
+          </a>
+
+          <a href="#" class="nav-link">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M10 7H6V17H10" />
+                <path d="M14 8L18 12L14 16M18 12H9" />
+              </svg>
+            </span>
+            <span>Keluar</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- =================================================
+         AREA KONTEN UTAMA
+         Menampung topbar dan seluruh konten Dashboard.
+    ================================================== -->
+      <div class="main-area">
+        <!-- TOPBAR / HEADER -->
+        <header class="topbar">
+          <!-- Identitas sistem -->
+          <div class="topbar-system">
+            <span class="topbar-dot"></span>
+            <span>SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS</span>
+          </div>
+
+          <!-- Informasi akun yang sedang login -->
+          <a href="../Profil-Saya/profil-saya.html" class="topbar-user">
+            <span class="topbar-user-name">Ahmad Fauzi, S.Kom.</span>
+
+            <span class="topbar-user-avatar">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8.5" r="3.5" />
+                <path d="M5 20c.7-3 3.2-4.5 7-4.5s6.3 1.5 7 4.5" />
+              </svg>
+            </span>
+          </a>
+        </header>
+
+        <!-- =================================================
+             KONTEN DASHBOARD
+             Berisi judul, statistik, tabel laporan, dan model.
+        ================================================== -->
+        <main class="content">
+          <!-- JUDUL HALAMAN DAN BREADCRUMB -->
+          <section class="page-header">
+            <div>
+              <div class="breadcrumb">
+                <span>Sistem Informasi Pemeliharaan Fasilitas</span>
+                <span>/</span>
+                <span class="breadcrumb-active">Dashboard Pemantauan</span>
+              </div>
+
+              <h1>Operasional &amp; Pemantauan</h1>
+            </div>
+
+            <!-- Tombol refresh halaman -->
+            <button
+              type="button"
+              class="refresh-btn"
+              onclick="window.location.reload()"
+            >
+              <svg viewBox="0 0 24 24">
+                <path d="M20 7v5h-5M4 17v-5h5" />
+                <path d="M5.6 9a7 7 0 0 1 12-2L20 12" />
+                <path d="M18.4 15a7 7 0 0 1-12 2L4 12" />
+              </svg>
+              <span>Segarkan Data</span>
+            </button>
+          </section>
+
+          <!-- =================================================
+                 KARTU STATISTIK
+                 Empat kartu informasi utama sistem.
+            ================================================== -->
+          <section class="summary-grid">
+            <!-- KARTU 1: TOTAL FASILITAS -->
+            <article class="summary-card">
+              <div class="summary-card-top">
+                <p>Total Fasilitas</p>
+
+                <span class="summary-card-icon summary-blue">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      d="M6 20V8.5C6 7.67 6.67 7 7.5 7H16.5C17.33 7 18 7.67 18 8.5V20"
+                    />
+                    <path d="M4.5 20H19.5" />
+                    <path d="M9 10H10.5V11.5H9V10Z" fill="currentColor" />
+                    <path d="M13.5 10H15V11.5H13.5V10Z" fill="currentColor" />
+                    <path d="M9 13.5H10.5V15H9V13.5Z" fill="currentColor" />
+                    <path d="M13.5 13.5H15V15H13.5V13.5Z" fill="currentColor" />
+                    <path d="M11.3 20V17H12.7V20" />
+                  </svg>
+                </span>
+              </div>
+
+              <div class="summary-number">48 <small>Unit</small></div>
+
+              <div class="summary-card-bottom">
+                <span class="summary-meta">
+                  <span class="meta-bullet blue"></span>
+                  Terbagi 9 Kategori
+                </span>
+                <strong>100% Aktif</strong>
+              </div>
+            </article>
+
+            <!-- KARTU 2: TOTAL PENGGUNA -->
+            <article class="summary-card">
+              <div class="summary-card-top">
+                <p>Total Pengguna</p>
+
+                <span class="summary-card-icon summary-blue-soft">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      d="M9 11C10.38 11 11.5 9.88 11.5 8.5C11.5 7.12 10.38 6 9 6C7.62 6 6.5 7.12 6.5 8.5C6.5 9.88 7.62 11 9 11Z"
+                    />
+                    <path
+                      d="M4.8 17C5.3 15.4 6.9 14.5 9 14.5C11.1 14.5 12.7 15.4 13.2 17"
+                    />
+                    <path
+                      d="M16.5 10.5C17.6 10.5 18.5 9.6 18.5 8.5C18.5 7.4 17.6 6.5 16.5 6.5C15.4 6.5 14.5 7.4 14.5 8.5C14.5 9.6 15.4 10.5 16.5 10.5Z"
+                    />
+                    <path
+                      d="M14.7 16.5C15.1 15.4 16.2 14.8 17.6 14.8C18.8 14.8 19.8 15.3 20.3 16.2"
+                    />
+                  </svg>
+                </span>
+              </div>
+
+              <div class="summary-number">48 <small>Akun</small></div>
+
+              <div class="mini-tags">
+                <span>3 Admin</span>
+                <span>10 Petugas</span>
+                <span>35 Pelapor</span>
+              </div>
+            </article>
+
+            <!-- KARTU 3: LAPORAN KERUSAKAN -->
+            <article class="summary-card">
+              <div class="summary-card-top">
+                <p>Laporan Kerusakan</p>
+
+                <span class="summary-card-icon summary-red">
+                  <svg viewBox="0 0 24 24">
+                    <rect x="7" y="4.5" width="10" height="15" rx="2" />
+                    <path d="M10 8H14M10 12H14" />
+                  </svg>
+                </span>
+              </div>
+
+              <div class="summary-number">76 <small>Total Kasus</small></div>
+
+              <!-- Rincian status laporan -->
+              <div class="report-stats">
+                <div>
+                  <strong>12</strong>
+                  <span>Menunggu</span>
+                </div>
+
+                <div>
+                  <strong class="blue-text">18</strong>
+                  <span>Diproses</span>
+                </div>
+
+                <div>
+                  <strong>46</strong>
+                  <span>Selesai</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- KARTU 4: MODEL KLASIFIKASI C4.5 -->
+            <article class="summary-card">
+              <div class="summary-card-top">
+                <p>Model Klasifikasi C4.5</p>
+
+                <span class="summary-card-icon summary-purple">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      d="M12 4.5C8.41 4.5 5.5 7.41 5.5 11C5.5 14.59 8.41 17.5 12 17.5C15.59 17.5 18.5 14.59 18.5 11C18.5 7.41 15.59 4.5 12 4.5Z"
+                    />
+                    <path d="M12 8V11L14 13M12 17.5V20" />
+                  </svg>
+                </span>
+              </div>
+
+              <div class="summary-number summary-accent">
+                85.00% <small>Akurasi</small>
+              </div>
+
+              <div class="summary-card-bottom">
+                <span class="summary-meta">
+                  <span class="meta-bullet solid"></span>
+                  Model Terlatih
+                </span>
+                <span>100 Data Uji</span>
+              </div>
+            </article>
+          </section>
+
+          <!-- =================================================
+                 TABEL LAPORAN KERUSAKAN TERBARU
+                 Menampilkan enam data laporan dan hasil C4.5.
+            ================================================== -->
+          <section class="panel">
+            <!-- Header tabel dan filter status -->
+            <div class="panel-head">
+              <h2>Laporan Kerusakan Terbaru</h2>
+
+              <button type="button" class="small-btn">
+                <span>Semua Status</span>
+                <svg viewBox="0 0 24 24">
+                  <path d="M6 9L12 15L18 9" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Isi tabel laporan -->
+            <div class="table-wrap">
+              <table class="report-table">
+                <thead>
+                  <tr>
+                    <th>ID LAPORAN</th>
+                    <th>FASILITAS</th>
+                    <th>LOKASI</th>
+                    <th>TANGGAL DIAJUKAN</th>
+                    <th>REKOMENDASI C4.5</th>
+                    <th>STATUS PENANGANAN</th>
+                    <th>DETAIL</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <!-- LAPORAN 1 -->
+                  <tr>
+                    <td><span class="report-id">LAP-2024-089</span></td>
+                    <td>
+                      <strong>AC Split Daikin 2 PK</strong>
+                      <small>Kode: AST-ELK-014</small>
+                    </td>
+                    <td>Lab Komputasi Dasar (Gedung B Lt. 2)</td>
+                    <td>24 Okt 2024</td>
+                    <td><span class="badge badge-high">● Tinggi</span></td>
+                    <td><span class="pill pill-wait">Menunggu</span></td>
+                    <td>
+                      <a href="#" class="eye-btn" aria-label="Lihat detail">
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            d="M2.5 12C4.4 8.9 7.7 7 12 7C16.3 7 19.6 8.9 21.5 12C19.6 15.1 16.3 17 12 17C7.7 17 4.4 15.1 2.5 12Z"
+                          />
+                          <circle cx="12" cy="12" r="2.5" />
+                        </svg>
+                      </a>
+                    </td>
+                  </tr>
+
+                  <!-- LAPORAN 2 -->
+                  <tr>
+                    <td><span class="report-id">LAP-2024-088</span></td>
+                    <td>
+                      <strong>Proyektor Epson EB-X400</strong>
+                      <small>Kode: AST-MTA-008</small>
+                    </td>
+                    <td>Ruang Kuliah TI-03 (Gedung A Lt. 1)</td>
+                    <td>23 Okt 2024</td>
+                    <td><span class="badge badge-medium">● Sedang</span></td>
+                    <td><span class="pill pill-progress">Diproses</span></td>
+                    <td>
+                      <a href="#" class="eye-btn" aria-label="Lihat detail">
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            d="M2.5 12C4.4 8.9 7.7 7 12 7C16.3 7 19.6 8.9 21.5 12C19.6 15.1 16.3 17 12 17C7.7 17 4.4 15.1 2.5 12Z"
+                          />
+                          <circle cx="12" cy="12" r="2.5" />
+                        </svg>
+                      </a>
+                    </td>
+                  </tr>
+
+                  <!-- LAPORAN 3 -->
+                  <tr>
+                    <td><span class="report-id">LAP-2024-087</span></td>
+                    <td>
+                      <strong>Kursi Kuliah Chitose (5 Unit)</strong>
+                      <small>Kode: AST-MBR-029</small>
+                    </td>
+                    <td>Ruang Kuliah TI-01 (Gedung A Lt. 1)</td>
+                    <td>22 Okt 2024</td>
+                    <td><span class="badge badge-low-green">● Rendah</span></td>
+                    <td><span class="pill pill-done">Selesai</span></td>
+                    <td>
+                      <a href="#" class="eye-btn" aria-label="Lihat detail">
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            d="M2.5 12C4.4 8.9 7.7 7 12 7C16.3 7 19.6 8.9 21.5 12C19.6 15.1 16.3 17 12 17C7.7 17 4.4 15.1 2.5 12Z"
+                          />
+                          <circle cx="12" cy="12" r="2.5" />
+                        </svg>
+                      </a>
+                    </td>
+                  </tr>
+
+                  <!-- LAPORAN 4 -->
+                  <tr>
+                    <td><span class="report-id">LAP-2024-086</span></td>
+                    <td>
+                      <strong>Switch Cisco Catalyst 24 Port</strong>
+                      <small>Kode: AST-JAR-003</small>
+                    </td>
+                    <td>Server Jaringan &amp; AI (Gedung B Lt. 3)</td>
+                    <td>22 Okt 2024</td>
+                    <td><span class="badge badge-high">● Tinggi</span></td>
+                    <td><span class="pill pill-progress">Diproses</span></td>
+                    <td>
+                      <a href="#" class="eye-btn" aria-label="Lihat detail">
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            d="M2.5 12C4.4 8.9 7.7 7 12 7C16.3 7 19.6 8.9 21.5 12C19.6 15.1 16.3 17 12 17C7.7 17 4.4 15.1 2.5 12Z"
+                          />
+                          <circle cx="12" cy="12" r="2.5" />
+                        </svg>
+                      </a>
+                    </td>
+                  </tr>
+
+                  <!-- LAPORAN 5 -->
+                  <tr>
+                    <td><span class="report-id">LAP-2024-085</span></td>
+                    <td>
+                      <strong>Papan Tulis Whiteboard Magnetik</strong>
+                      <small>Kode: AST-MTA-019</small>
+                    </td>
+                    <td>Ruang Sidang Skripsi (Gedung B Lt. 1)</td>
+                    <td>21 Okt 2024</td>
+                    <td><span class="badge badge-low-green">● Rendah</span></td>
+                    <td><span class="pill pill-done">Selesai</span></td>
+                    <td>
+                      <a href="#" class="eye-btn" aria-label="Lihat detail">
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            d="M2.5 12C4.4 8.9 7.7 7 12 7C16.3 7 19.6 8.9 21.5 12C19.6 15.1 16.3 17 12 17C7.7 17 4.4 15.1 2.5 12Z"
+                          />
+                          <circle cx="12" cy="12" r="2.5" />
+                        </svg>
+                      </a>
+                    </td>
+                  </tr>
+
+                  <!-- LAPORAN 6 -->
+                  <tr>
+                    <td><span class="report-id">LAP-2024-084</span></td>
+                    <td>
+                      <strong>PC All-in-One HP Core i5</strong>
+                      <small>Kode: AST-KMP-042</small>
+                    </td>
+                    <td>Lab Pemrograman Web (Gedung B Lt. 2)</td>
+                    <td>20 Okt 2024</td>
+                    <td><span class="badge badge-medium">● Sedang</span></td>
+                    <td><span class="pill pill-wait">Menunggu</span></td>
+                    <td>
+                      <a href="#" class="eye-btn" aria-label="Lihat detail">
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            d="M2.5 12C4.4 8.9 7.7 7 12 7C16.3 7 19.6 8.9 21.5 12C19.6 15.1 16.3 17 12 17C7.7 17 4.4 15.1 2.5 12Z"
+                          />
+                          <circle cx="12" cy="12" r="2.5" />
+                        </svg>
+                      </a>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Navigasi halaman tabel -->
+            <div class="panel-foot">
+              <div class="pagination">
+                <button type="button" aria-label="Sebelumnya">‹</button>
+                <button type="button" class="active">1</button>
+                <button type="button" aria-label="Selanjutnya">›</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- =================================================
+                 PANEL PEMERIKSAAN MODEL C4.5
+                 Menampilkan informasi dataset dan evaluasi model.
+            ================================================== -->
+          <section class="model-panel">
+            <!-- Judul dan status model -->
+            <div class="model-head">
+              <div>
+                <h2>Pemeriksaan Pohon Keputusan C4.5</h2>
+                <p>
+                  Evaluasi model C4.5 berdasarkan pembagian data dan pemeriksaan
+                  27 kombinasi atribut.
+                </p>
+              </div>
+
+              <span class="model-status">Aktif</span>
+            </div>
+
+            <!-- Rincian evaluasi model -->
+            <div class="model-box">
+              <div class="model-row">
+                <span>Dataset Latih Terakhir:</span>
+                <strong>100 Data Simulasi</strong>
+              </div>
+
+              <div class="model-row">
+                <span>Pembagian Data:</span>
+                <strong>Data Latih &amp; Data Uji</strong>
+              </div>
+
+              <div class="model-row">
+                <span>Metrik Evaluasi:</span>
+                <strong>Confusion Matrix &amp; Accuracy</strong>
+              </div>
+            </div>
+
+            <!-- Tombol menuju halaman pelatihan -->
+            <div class="model-action">
+              <a
+                href="../../Dashboard-Lanjutan/Pelatihan-C45/pelatihan-c45.html"
+                class="model-btn"
+              >
+                <span>Kelola Model &amp; Pohon Keputusan</span>
+                <svg viewBox="0 0 24 24">
+                  <path d="M5 12H19M14 7L19 12L14 17" />
+                </svg>
+              </a>
+            </div>
+          </section>
+
+          <!-- FOOTER DASHBOARD -->
+          <footer class="page-footer">
+            SIPFAS · Sistem Informasi Pengelolaan Pemeliharaan Fasilitas
+          </footer>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

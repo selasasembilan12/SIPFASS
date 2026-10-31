@@ -1,0 +1,85 @@
+/* =========================================================
+   LOGO SIPFAS - GLOBAL
+   Fungsi:
+   - Mengatur ukuran simbol logo.
+   - Mengatur jarak antara logo dan tulisan SIPFAS.
+   - Menyamakan identitas logo di semua halaman Admin.
+   - Tidak memberikan background tambahan pada gambar logo.
+========================================================= */
+
+/* Variabel global ukuran logo */
+:root {
+  --logo-size: 32px;
+  --logo-gap: 8px;
+}
+
+/* Pembungkus logo dan nama aplikasi */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--logo-gap);
+
+  width: 100%;
+  height: 54px;
+  padding: 0 12px;
+
+  box-sizing: border-box;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+/* Gambar logo asli dengan background transparan */
+.sidebar-logo img {
+  display: block;
+
+  width: var(--logo-size);
+  height: var(--logo-size);
+
+  object-fit: contain;
+  object-position: center;
+
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+/* Pembungkus tulisan SIPFAS */
+.sidebar-brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+
+  min-width: 0;
+  line-height: 1.2;
+}
+
+/* Nama aplikasi */
+.sidebar-brand strong {
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+/* Identitas institusi */
+.sidebar-brand span {
+  color: #b9cce2;
+  font-size: 6px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* Penyesuaian logo untuk layar kecil */
+@media (max-width: 768px) {
+  .sidebar-logo {
+    padding: 0 10px;
+  }
+
+  :root {
+    --logo-size: 30px;
+    --logo-gap: 7px;
+  }
+}

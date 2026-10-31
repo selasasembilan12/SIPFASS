@@ -1,0 +1,790 @@
+/* =====================================================
+   1. PENGATURAN GLOBAL
+   Mengatur warna, ukuran, font, dan bayangan halaman.
+===================================================== */
+
+:root {
+  /* Ukuran layout utama */
+  --sidebar-width: 172px;
+  --topbar-height: 50px;
+
+  /* Warna sidebar */
+  --sidebar-bg: #203f65;
+  --sidebar-text: #b8c9e0;
+  --sidebar-muted: #8fa4bf;
+  --sidebar-active: #0a5df0;
+
+  /* Warna halaman dan panel */
+  --page-bg: #f5f7fb;
+  --panel-bg: #ffffff;
+  --panel-border: #edf1f5;
+
+  /* Warna teks */
+  --text-main: #1e2530;
+  --text-soft: #697281;
+  --text-muted: #8d97a6;
+
+  /* Warna utama */
+  --blue: #0b5ff1;
+  --blue-soft: #dfe8ff;
+
+  /* Warna ikon aksi */
+  --edit-color: #61748a;
+  --delete-color: #8994a2;
+
+  /* Font utama seluruh halaman */
+  --font-family: "Inter", sans-serif;
+
+  /* Bayangan panel */
+  --shadow-soft: 0 1px 2px rgba(24, 39, 75, 0.02);
+}
+
+/* =====================================================
+   2. RESET DAN PENGATURAN DASAR
+   Menyamakan tampilan dasar elemen HTML.
+===================================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-width: 1280px;
+  min-height: 100%;
+  background: var(--page-bg);
+}
+
+body {
+  font-family: var(--font-family);
+  color: var(--text-main);
+  font-size: 12px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+svg {
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* =====================================================
+   3. LAYOUT UTAMA
+   Mengatur posisi sidebar dan area konten.
+===================================================== */
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: var(--sidebar-width);
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 50;
+}
+
+.main-area {
+  width: calc(100% - var(--sidebar-width));
+  margin-left: var(--sidebar-width);
+
+  min-height: 100vh;
+  background: var(--page-bg);
+}
+
+/* =====================================================
+   4. IDENTITAS SIPFAS
+   Mengatur logo dan nama aplikasi pada sidebar.
+===================================================== */
+
+.brand {
+  min-height: 50px;
+  padding: 7px 10px;
+
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.brand-logo {
+  width: 29px;
+  height: 29px;
+  flex: 0 0 29px;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+  border-radius: 7px;
+  background: #2864f0;
+}
+
+.brand-logo svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+
+  fill: #ffffff;
+  stroke: none;
+}
+
+.brand-text {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+
+  line-height: 1.15;
+}
+
+.brand-text strong {
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1px;
+}
+
+.brand-text small {
+  color: #a9c9ef;
+  font-size: 5.6px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* =====================================================
+   5. NAVIGASI SIDEBAR
+   Mengatur menu dan penanda halaman yang aktif.
+===================================================== */
+
+.sidebar-nav {
+  flex: 1;
+}
+
+.nav-group {
+  padding: 8px 10px 0;
+}
+
+.nav-title {
+  margin: 0 4px 7px;
+
+  color: var(--sidebar-muted);
+  font-size: 6.7px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.nav-link {
+  height: 25px;
+  padding: 0 8px;
+  margin-bottom: 4px;
+
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  border-radius: 5px;
+
+  color: var(--sidebar-text);
+  font-size: 8.7px;
+  font-weight: 600;
+
+  transition: 0.18s ease;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.nav-link.active {
+  background: var(--sidebar-active);
+  color: #ffffff;
+}
+
+.nav-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 8px 10px 10px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* =====================================================
+   6. TOPBAR
+   Menampilkan nama sistem dan identitas administrator.
+===================================================== */
+
+.topbar {
+  height: var(--topbar-height);
+  padding: 0 18px 0 17px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: #ffffff;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.topbar-system {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #5b6572;
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.25px;
+  text-transform: uppercase;
+}
+
+.topbar-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+
+  border-radius: 50%;
+  background: var(--blue);
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.topbar-user-name {
+  color: #202734;
+  font-size: 8.2px;
+  font-weight: 700;
+}
+
+.topbar-user-avatar {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #0957e8;
+  color: #ffffff;
+}
+
+.topbar-user-avatar svg {
+  width: 12px;
+  height: 12px;
+  stroke: #ffffff;
+}
+
+/* =====================================================
+   7. KONTEN HALAMAN
+   Mengatur jarak, breadcrumb, dan judul kategori.
+===================================================== */
+
+.content {
+  padding: 20px 23px 25px;
+}
+
+.page-header {
+  margin-bottom: 17px;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.breadcrumb {
+  margin-bottom: 5px;
+
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  color: #8a94a1;
+  font-size: 7.3px;
+}
+
+.breadcrumb-active {
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.page-header h1 {
+  color: #202733;
+  font-size: 17px;
+  line-height: 1.2;
+  font-weight: 800;
+}
+
+/* =====================================================
+   8. PANEL PENCARIAN DAN FILTER
+   Menampilkan pencarian kategori di kiri dan filter
+   status di sebelah kanan.
+===================================================== */
+
+.filter-panel {
+  min-height: 58px;
+  padding: 10px 17px 10px 12px;
+  margin-bottom: 17px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 9px;
+
+  box-shadow: var(--shadow-soft);
+}
+
+/* Kolom pencarian nama atau kode kategori */
+.search-box {
+  width: 238px;
+  height: 34px;
+  padding: 0 11px;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  background: #f1f3f6;
+  border: 1px solid #eef0f3;
+  border-radius: 6px;
+}
+
+.search-box svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+
+  stroke: #8993a0;
+}
+
+.search-box input {
+  width: 100%;
+  min-width: 0;
+
+  border: none;
+  outline: none;
+  background: transparent;
+
+  color: var(--text-main);
+  font-size: 9px;
+}
+
+.search-box input::placeholder {
+  color: #929ba7;
+}
+
+/* Posisi label dan pilihan filter status */
+.filter-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.filter-status label {
+  color: #68717d;
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.filter-status select {
+  width: 102px;
+  height: 33px;
+  padding: 0 10px;
+
+  border: 1px solid #eef0f3;
+  border-radius: 6px;
+  outline: none;
+
+  background: #f1f3f6;
+  color: #454e5a;
+
+  font-size: 8px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.filter-status select:focus {
+  border-color: #a8c2fa;
+}
+
+/* =====================================================
+   9. PANEL TABEL KATEGORI
+   Menjadi wadah tabel dan pagination.
+===================================================== */
+
+.category-panel {
+  overflow: hidden;
+
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+
+  box-shadow: var(--shadow-soft);
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* =====================================================
+   10. TABEL DATA KATEGORI
+   Mengatur lebar kolom, header, isi, dan jarak baris.
+===================================================== */
+
+.category-table {
+  width: 100%;
+  table-layout: fixed;
+
+  border-collapse: collapse;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Pembagian ruang setiap kolom mengikuti desain Figma */
+.col-no {
+  width: 2.2%;
+}
+
+.col-code {
+  width: 5.8%;
+}
+
+.col-name {
+  width: 8.5%;
+}
+
+.col-description {
+  width: auto;
+}
+
+.col-total {
+  width: 8%;
+}
+
+.col-status {
+  width: 5.5%;
+}
+
+.col-action {
+  width: 4.5%;
+}
+
+/* Header tabel dengan latar abu-abu muda */
+.category-table thead {
+  background: #f1f3f6;
+}
+
+.category-table th {
+  height: 33px;
+  padding: 8px 12px;
+
+  color: #626d7a;
+  font-size: 7px;
+  font-weight: 750;
+  letter-spacing: 0.1px;
+
+  vertical-align: middle;
+}
+
+/* Isi tabel kategori */
+.category-table td {
+  height: 46px;
+  padding: 9px 12px;
+
+  color: #535e6b;
+  font-size: 8px;
+
+  vertical-align: middle;
+  border-bottom: 1px solid transparent;
+}
+
+.category-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.category-table tbody tr:hover {
+  background: #fafbfd;
+}
+
+/* Kode kategori berwarna biru */
+.category-code {
+  color: var(--blue);
+  font-size: 8px;
+  font-weight: 700;
+}
+
+/* Nama kategori */
+.category-name {
+  color: #303945;
+  font-size: 8px;
+  font-weight: 600;
+}
+
+/* Deskripsi kategori dibuat lebih lembut */
+.category-table td:nth-child(4) {
+  color: #626b77;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Kolom jumlah fasilitas */
+.category-table td:nth-child(5) {
+  text-align: center;
+}
+
+/* Kolom status */
+.category-table td:nth-child(6) {
+  text-align: center;
+}
+
+/* Judul dan isi kolom aksi diratakan ke tengah */
+.category-table th:last-child,
+.category-table td:last-child {
+  text-align: center;
+}
+
+/* =====================================================
+   11. LABEL JUMLAH FASILITAS
+   Menampilkan jumlah fasilitas dengan ikon kecil.
+===================================================== */
+
+.facility-count {
+  min-height: 19px;
+  padding: 0 7px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  border-radius: 4px;
+  background: #eef0f2;
+
+  color: #39424d;
+  font-size: 7px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.facility-count svg {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 11px;
+
+  stroke: #52647a;
+  stroke-width: 1.9;
+}
+
+/* =====================================================
+   12. STATUS KATEGORI
+   Menampilkan status aktif dalam bentuk badge biru.
+===================================================== */
+
+.status-badge {
+  min-height: 17px;
+  padding: 0 7px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 20px;
+  background: #e4ecff;
+
+  color: #2455c4;
+  font-size: 7px;
+  font-weight: 700;
+}
+
+/* =====================================================
+   13. TOMBOL AKSI EDIT DAN HAPUS
+   Mengatur ikon pensil dan tempat sampah agar kecil,
+   berdekatan, dan sejajar di tengah kolom.
+===================================================== */
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.action-btn {
+  width: 17px;
+  height: 20px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 4px;
+  transition: 0.15s ease;
+}
+
+.action-btn svg {
+  width: 11px;
+  height: 11px;
+
+  display: block;
+  stroke: currentColor;
+  stroke-width: 1.9;
+}
+
+/* Warna ikon edit */
+.edit-btn {
+  color: var(--edit-color);
+}
+
+.edit-btn:hover {
+  color: var(--blue);
+  background: #eaf0ff;
+}
+
+/* Warna ikon hapus */
+.delete-btn {
+  color: var(--delete-color);
+}
+
+.delete-btn:hover {
+  color: #d24a43;
+  background: #fff0ef;
+}
+
+/* =====================================================
+   14. PAGINATION
+   Menampilkan tombol perpindahan halaman tabel.
+===================================================== */
+
+.panel-foot {
+  padding: 9px 12px 12px;
+}
+
+.pagination {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pagination button {
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 4px;
+  background: #f1f3f6;
+
+  color: #6a7481;
+  font-size: 9px;
+}
+
+.pagination button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.pagination button.active {
+  background: var(--blue);
+  color: #ffffff;
+}
+
+/* =====================================================
+   15. RESPONSIVE
+   Menyesuaikan ukuran konten pada layar lebih kecil.
+===================================================== */
+
+@media (max-width: 1366px) {
+  .content {
+    padding: 17px 15px;
+  }
+
+  .category-table {
+    min-width: 1050px;
+  }
+
+  .filter-panel {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .filter-panel {
+    flex-wrap: wrap;
+  }
+
+  .filter-status {
+    margin-left: auto;
+  }
+
+  .category-table {
+    min-width: 1050px;
+  }
+}

@@ -1,0 +1,54 @@
+
+# =========================================================
+# SIPFAS - GITIGNORE
+# Mengabaikan file rahasia, dependensi, dan file sementara.
+# =========================================================
+
+
+# ---------------------------------------------------------
+# 1. ENVIRONMENT DAN DATA RAHASIA
+# ---------------------------------------------------------
+
+.env
+.env.*
+!.env.example
+
+
+# ---------------------------------------------------------
+# 2. KONFIGURASI LOKAL YANG BERISI PASSWORD
+# ---------------------------------------------------------
+
+# Koneksi database lokal
+/koneksi.php
+
+# Konfigurasi Gmail SMTP dan App Password
+/config/mail.php
+
+
+# ---------------------------------------------------------
+# 3. DEPENDENSI PHP - COMPOSER
+# ---------------------------------------------------------
+
+# Folder library PHPMailer dan dependensi lainnya
+/vendor/
+
+
+# ---------------------------------------------------------
+# 4. LOG DAN FILE SEMENTARA
+# ---------------------------------------------------------
+
+*.log
+*.tmp
+*.temp
+
+.DS_Store
+Thumbs.db
+
+
+# ---------------------------------------------------------
+# 5. FILE BACKUP DAN TEMPORARY EDITOR
+# ---------------------------------------------------------
+
+*.bak
+*.old
+*~

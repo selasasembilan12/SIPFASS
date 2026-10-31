@@ -1,0 +1,835 @@
+/* =========================================================
+   1. GLOBAL VARIABLES
+   Mengatur warna, ukuran sidebar, topbar, dan identitas SIPFAS.
+   Bagian ini menjadi pusat pengaturan warna agar mudah diubah.
+========================================================= */
+:root {
+  --sidebar-width: 172px;
+  --topbar-height: 51px;
+
+  --sidebar-bg: #203f65;
+  --sidebar-text: #b8c9e0;
+  --sidebar-muted: #8fa4bf;
+  --sidebar-active: #075be8;
+
+  --page-bg: #f5f7fb;
+  --panel-bg: #ffffff;
+  --panel-border: #edf1f5;
+
+  --text-main: #1e2530;
+  --text-soft: #697281;
+  --text-muted: #8d97a6;
+
+  --blue: #0b5ff1;
+  --navy: #14395f;
+
+  --blue-soft: #dfe6ff;
+  --green-soft: #dff5e5;
+  --red-soft: #ffdedd;
+
+  --shadow-soft: 0 1px 2px rgba(24, 39, 75, 0.02);
+}
+
+/* =========================================================
+   2. RESET DAN PENGATURAN DASAR
+   Menyamakan margin, padding, ukuran elemen, dan font.
+========================================================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-width: 1100px;
+  min-height: 100%;
+  background: var(--page-bg);
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  color: var(--text-main);
+  font-size: 12px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+/* Semua ikon SVG menggunakan garis dengan warna mengikuti parent */
+svg {
+  display: block;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* =========================================================
+   3. LAYOUT UTAMA
+   Mengatur posisi sidebar dan area halaman utama.
+========================================================= */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: var(--sidebar-width);
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 50;
+}
+
+.main-area {
+  width: calc(100% - var(--sidebar-width));
+  min-height: 100vh;
+
+  margin-left: var(--sidebar-width);
+
+  background: var(--page-bg);
+}
+
+/* =========================================================
+   4. LOGO DAN IDENTITAS SIPFAS
+   Mengatur logo, nama aplikasi, dan identitas universitas.
+========================================================= */
+.brand {
+  min-height: 51px;
+  padding: 7px 10px;
+
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  flex-shrink: 0;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.brand-logo {
+  width: 29px;
+  height: 29px;
+  flex: 0 0 29px;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+  border-radius: 7px;
+
+  background: #2864f0;
+}
+
+.brand-logo svg {
+  width: 22px;
+  height: 22px;
+  fill: #ffffff;
+  stroke: none;
+}
+
+.brand-text {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+
+  line-height: 1.15;
+}
+
+.brand-text strong {
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.brand-text small {
+  color: #a9c9ef;
+  font-size: 5.6px;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   5. NAVIGASI SIDEBAR
+   Mengatur kelompok menu, ikon, tulisan, dan menu aktif.
+========================================================= */
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.nav-group {
+  padding: 8px 10px 0;
+}
+
+.nav-title {
+  margin: 0 4px 7px;
+
+  color: var(--sidebar-muted);
+  font-size: 6.7px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.nav-link {
+  height: 25px;
+  padding: 0 8px;
+  margin-bottom: 4px;
+
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  border-radius: 5px;
+
+  color: var(--sidebar-text);
+  font-size: 8.7px;
+  font-weight: 600;
+
+  transition: 0.18s ease;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.nav-link.active {
+  background: var(--sidebar-active);
+  color: #ffffff;
+}
+
+.nav-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 8px 10px 10px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* =========================================================
+   6. TOPBAR
+   Mengatur nama sistem dan informasi akun administrator.
+========================================================= */
+.topbar {
+  height: var(--topbar-height);
+  padding: 0 18px 0 17px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: #ffffff;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.topbar-system {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #5b6572;
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.25px;
+  text-transform: uppercase;
+}
+
+.topbar-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+
+  border-radius: 50%;
+  background: var(--blue);
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.topbar-user-name {
+  color: #202734;
+  font-size: 8.2px;
+  font-weight: 700;
+}
+
+.topbar-user-avatar {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #0957e8;
+  color: #ffffff;
+}
+
+.topbar-user-avatar svg {
+  width: 12px;
+  height: 12px;
+  stroke: #ffffff;
+}
+
+/* =========================================================
+   7. AREA KONTEN DAN JUDUL HALAMAN
+   Mengatur jarak konten dari sidebar dan topbar.
+========================================================= */
+.content {
+  padding: 20px 23px 25px;
+}
+
+.page-header {
+  margin-bottom: 14px;
+}
+
+.breadcrumb {
+  margin-bottom: 5px;
+
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  color: #8a94a1;
+  font-size: 7.3px;
+}
+
+.breadcrumb-active {
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.page-header h1 {
+  color: #202733;
+  font-size: 16px;
+  line-height: 1.2;
+  font-weight: 750;
+}
+
+/* =========================================================
+   8. KARTU INFORMASI PARAMETER C4.5
+   Menampilkan penjelasan atribut Frekuensi Penggunaan X3.
+========================================================= */
+.information-card {
+  min-height: 79px;
+  margin-bottom: 15px;
+  padding: 11px;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 9px;
+
+  box-shadow: var(--shadow-soft);
+}
+
+/* Kotak ikon informasi */
+.information-icon {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 7px;
+  background: #e3e9ff;
+  color: #17395f;
+}
+
+.information-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Teks penjelasan parameter */
+.information-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.information-content h2 {
+  margin-bottom: 2px;
+
+  color: #17395f;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.information-content p {
+  margin-bottom: 5px;
+
+  color: #596371;
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+/* Daftar legenda bobot frekuensi */
+.legend-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.legend-item {
+  min-height: 17px;
+  padding: 2px 6px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  border-radius: 4px;
+  background: #edf0f3;
+
+  color: #4e5865;
+  font-size: 7px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.legend-item strong {
+  color: #303945;
+  font-weight: 700;
+}
+
+/* Warna bulatan legenda mengikuti bobot X3 */
+.legend-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+}
+
+.dot-rare {
+  background: #0b5ff1;
+}
+
+.dot-medium {
+  background: #3975f5;
+}
+
+.dot-often {
+  background: #14395f;
+}
+
+/* =========================================================
+   9. PANEL MASTER DATA
+   Menjadi wadah pencarian, filter, dan tabel fasilitas.
+========================================================= */
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+/* =========================================================
+   10. FILTER DATA FASILITAS
+   Ukuran mengikuti proporsi desain Figma SIPFAS.
+========================================================= */
+
+/* Pembungkus search dan dropdown */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Kotak pencarian fasilitas */
+.search-box {
+  width: 248px;
+  height: 34px;
+  flex: 0 0 248px;
+  padding: 0 11px;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  background: #f1f3f6;
+  border: 1px solid #eef0f3;
+  border-radius: 6px;
+}
+
+/* Ikon pencarian */
+.search-box svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  stroke: #8993a0;
+}
+
+/* Input pencarian */
+.search-box input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+
+  color: var(--text-main);
+  font-family: "Inter", sans-serif;
+  font-size: 8px;
+}
+
+.search-box input::placeholder {
+  color: #929ba7;
+}
+
+/* Dropdown kategori */
+.category-filter {
+  width: 122px;
+  height: 34px;
+  flex: 0 0 122px;
+  padding: 0 10px;
+
+  border: 1px solid #eef0f3;
+  border-radius: 6px;
+  outline: none;
+
+  background: #f1f3f6;
+  color: #454e5a;
+
+  font-family: "Inter", sans-serif;
+  font-size: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.category-filter:focus {
+  border-color: #a8c2fa;
+}
+
+/* =========================================================
+   11. TABEL DATA FASILITAS
+   Mengatur lebar kolom, header, baris, dan garis pemisah.
+========================================================= */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.facility-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Lebar setiap kolom agar sesuai komposisi Figma */
+.col-number {
+  width: 3%;
+}
+
+.col-code {
+  width: 13%;
+}
+
+.col-name {
+  width: 20%;
+}
+
+.col-category {
+  width: 14%;
+}
+
+.col-location {
+  width: 23%;
+}
+
+.col-frequency {
+  width: 17%;
+}
+
+.col-action {
+  width: 10%;
+}
+
+/* Header tabel */
+.facility-table thead {
+  background: #f1f3f6;
+}
+
+.facility-table th {
+  height: 29px;
+  padding: 0 12px;
+
+  color: #626d7a;
+  font-size: 7px;
+  font-weight: 750;
+  letter-spacing: 0.1px;
+
+  vertical-align: middle;
+}
+
+/* Isi tabel */
+.facility-table td {
+  height: 43px;
+  padding: 0 12px;
+
+  border-bottom: 1px solid #f0f2f6;
+
+  color: #535e6b;
+  font-size: 8px;
+
+  vertical-align: middle;
+}
+
+.facility-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.facility-table tbody tr:hover {
+  background: #fafbfd;
+}
+
+/* Penegasan kode fasilitas */
+.facility-code {
+  color: #17395f;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+/* Nama fasilitas */
+.facility-name {
+  color: #303945;
+  font-size: 8px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   12. BADGE KATEGORI
+   Membedakan kategori fasilitas menggunakan warna lembut.
+========================================================= */
+.category-badge {
+  min-height: 17px;
+  padding: 0 7px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 3px;
+
+  font-size: 7px;
+  font-weight: 600;
+}
+
+.category-blue {
+  background: #dfe6ff;
+  color: #244477;
+}
+
+.category-gray {
+  background: #e9ebee;
+  color: #59616c;
+}
+
+/* =========================================================
+   13. BADGE FREKUENSI X3
+   Warna menunjukkan tingkat penggunaan fasilitas.
+========================================================= */
+.frequency-badge {
+  min-height: 20px;
+  padding: 0 7px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  border-radius: 4px;
+
+  color: #ffffff;
+  font-size: 7px;
+  font-weight: 700;
+}
+
+.frequency-badge svg {
+  width: 10px;
+  height: 10px;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+/* Sering: bobot 3 */
+.frequency-often {
+  background: #14395f;
+  color: #ffffff;
+}
+
+/* Sedang: bobot 2 */
+.frequency-medium {
+  background: #3975f5;
+  color: #ffffff;
+}
+
+/* Jarang: bobot 1 */
+.frequency-rare {
+  background: #e9ebee;
+  color: #626d7a;
+}
+
+/* =========================================================
+   14. TOMBOL AKSI EDIT DAN HAPUS
+   Mengatur ukuran, warna, dan jarak kedua ikon.
+========================================================= */
+.facility-table th:last-child {
+  text-align: center;
+}
+
+.facility-table td:last-child {
+  padding-left: 5px;
+  padding-right: 5px;
+  text-align: center;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+/* Tombol ikon tanpa background dan tanpa garis tambahan */
+.action-btn {
+  width: 17px;
+  height: 20px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 3px;
+  background: transparent;
+
+  transition: 0.15s ease;
+}
+
+/* Ukuran ikon pensil dan tempat sampah */
+.action-btn svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 1.8;
+}
+
+/* Warna pensil */
+.edit-btn {
+  color: #626c78;
+}
+
+/* Warna tempat sampah */
+.delete-btn {
+  color: #626c78;
+}
+
+.edit-btn:hover {
+  color: #0b5ff1;
+  background: #eaf0ff;
+}
+
+.delete-btn:hover {
+  color: #d64545;
+  background: #fff0f0;
+}
+
+/* =========================================================
+   15. RESPONSIVE
+   Menjaga halaman tetap dapat digunakan pada layar lebih kecil.
+========================================================= */
+@media (max-width: 1366px) {
+  .content {
+    padding: 17px 15px 22px;
+  }
+
+  .information-card {
+    margin-bottom: 13px;
+  }
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 150px;
+  }
+
+  .main-area {
+    width: calc(100% - 150px);
+    margin-left: 150px;
+  }
+
+  .content {
+    padding: 15px;
+  }
+
+  .facility-table {
+    min-width: 1050px;
+  }
+
+  .information-content p {
+    max-width: 100%;
+  }
+}

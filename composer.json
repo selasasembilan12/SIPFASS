@@ -1,0 +1,9 @@
+{
+  "name": "sipfas/sistem-informasi-pengelolaan-fasilitas",
+  "description": "Sistem Informasi Pengelolaan Pemeliharaan Fasilitas Kampus",
+  "type": "project",
+  "license": "proprietary",
+  "require": {
+    "phpmailer/phpmailer": "^7.1"
+  }
+}
