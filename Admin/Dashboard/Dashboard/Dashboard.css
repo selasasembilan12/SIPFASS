@@ -1,35 +1,52 @@
 /* =========================================================
    SIPFAS - DASHBOARD ADMIN
-   Fungsi:
-   Mengatur seluruh tampilan Dashboard Admin sesuai desain
-   Figma, mulai dari sidebar sampai footer.
+   File: Dashboard.css
+
+   Fungsi utama:
+   1. Mengatur keseluruhan tampilan Dashboard Admin.
+   2. Mengatur sidebar dan navigasi.
+   3. Mengatur topbar dan identitas pengguna.
+   4. Mengatur kartu statistik.
+   5. Mengatur tabel laporan kerusakan.
+   6. Mengatur informasi model klasifikasi C4.5.
+   7. Mengatur tampilan responsif.
+
+   Font utama: Inter
+   Warna utama: Navy dan Blue
 ========================================================= */
 
 /* =========================================================
    01. VARIABEL GLOBAL
-   Tempat mengatur warna, ukuran, dan font utama.
-   Jika ingin mengubah warna utama, ubah di bagian ini.
+   Fungsi:
+   Menyimpan warna, ukuran, dan radius yang digunakan
+   berulang kali agar mudah diperbarui.
 ========================================================= */
 
 :root {
   --font-main: "Inter", sans-serif;
 
+  /* Warna sidebar */
   --navy: #203f65;
   --navy-dark: #193858;
 
+  /* Warna tombol dan elemen aktif */
   --primary: #0758e8;
   --primary-hover: #064bc4;
 
+  /* Warna latar */
   --page-bg: #f4f7fb;
   --white: #ffffff;
 
+  /* Warna teks */
   --text-main: #20262d;
   --text-secondary: #68717c;
   --text-muted: #929ba7;
 
+  /* Garis dan tabel */
   --border: #edf0f4;
   --table-head: #f0f2f5;
 
+  /* Warna status */
   --blue-soft: #e1e7ff;
   --blue-text: #0758e8;
 
@@ -41,13 +58,19 @@
 
   --purple-soft: #e0e5ff;
 
+  /* Radius */
   --radius-card: 10px;
   --radius-panel: 11px;
+
+  /* Dimensi sidebar */
+  --sidebar-width: 190px;
 }
 
 /* =========================================================
    02. RESET DAN PENGATURAN DASAR
-   Menyamakan box sizing dan menghilangkan margin bawaan.
+   Fungsi:
+   Menyamakan perilaku elemen HTML agar tampilan
+   konsisten pada berbagai browser.
 ========================================================= */
 
 * {
@@ -64,8 +87,10 @@ body {
   font-family: var(--font-main);
   background: var(--page-bg);
   color: var(--text-main);
+
   font-size: 12px;
   line-height: 1.5;
+
   min-width: 320px;
 }
 
@@ -89,68 +114,99 @@ svg {
   display: block;
   width: 100%;
   height: 100%;
+
   fill: none;
   stroke: currentColor;
+
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 /* =========================================================
-   03. STRUKTUR LAYOUT UTAMA
-   Sidebar berada di kiri dan konten di sebelah kanan.
+   03. LAYOUT UTAMA
+   Fungsi:
+   Membagi halaman menjadi dua bagian:
+   sidebar di sebelah kiri dan konten di sebelah kanan.
 ========================================================= */
 
 .app-layout {
   display: flex;
+
   width: 100%;
   min-height: 100vh;
+
   overflow-x: hidden;
 }
 
 /* =========================================================
-   04. SIDEBAR
-   Mengatur lebar, warna, dan posisi navigasi sebelah kiri.
+   04. SIDEBAR NAVIGASI
+   Fungsi:
+   Mengatur area navigasi utama SIPFAS.
+   Sidebar menggunakan warna navy dan tinggi penuh.
 ========================================================= */
 
 .sidebar {
-  width: 190px;
-  min-width: 190px;
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+
   min-height: 100vh;
 
   display: flex;
   flex-direction: column;
 
-  background: var(--navy);
-  color: #dce7f5;
-
   position: relative;
   z-index: 10;
+
   flex-shrink: 0;
+
+  background: var(--navy);
+  color: #dce7f5;
 }
 
-/* Garis pemisah di sisi kanan sidebar */
+/* Garis pemisah sisi kanan sidebar */
 .sidebar::after {
   content: "";
+
   position: absolute;
   top: 0;
   right: 0;
-  height: 100%;
+
   width: 1px;
+  height: 100%;
+
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* Kelompok navigasi */
+.sidebar-brand-divider {
+  width: 100%;
+  height: 1px;
+
+  flex-shrink: 0;
+
+  margin: 0 0 5px 0;
+
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* =========================================================
+   05. KELOMPOK MENU SIDEBAR
+   Fungsi:
+   Mengatur jarak dan susunan kelompok navigasi.
+========================================================= */
+
 .nav-group {
   padding: 0 11px;
   margin-top: 8px;
 }
 
-/* Judul kelompok navigasi */
+/* Judul kelompok menu */
 .nav-title {
   color: #91aac7;
+
   font-size: 7px;
   font-weight: 700;
+
   letter-spacing: 0.45px;
 
   padding: 8px 5px 6px;
@@ -163,6 +219,7 @@ svg {
 
   display: flex;
   align-items: center;
+
   gap: 8px;
 
   padding: 5px 8px;
@@ -171,6 +228,7 @@ svg {
   border-radius: 6px;
 
   color: #d5e2f1;
+
   font-size: 9px;
   font-weight: 500;
 
@@ -179,20 +237,21 @@ svg {
     color 0.18s ease;
 }
 
-/* Hover navigasi */
+/* Efek ketika mouse diarahkan ke menu */
 .nav-link:hover {
   background: rgba(255, 255, 255, 0.09);
   color: #ffffff;
 }
 
-/* Navigasi yang sedang aktif */
+/* Menu yang sedang dibuka */
 .nav-link.active {
   background: var(--primary);
   color: #ffffff;
+
   font-weight: 700;
 }
 
-/* Ukuran ikon navigasi */
+/* Area ikon navigasi */
 .nav-icon {
   width: 13px;
   height: 13px;
@@ -207,12 +266,20 @@ svg {
 .nav-icon svg {
   width: 13px;
   height: 13px;
+
   stroke-width: 1.8;
 }
 
-/* Menu akun di bagian bawah sidebar */
+/* =========================================================
+   06. MENU AKUN SIDEBAR
+   Fungsi:
+   Menempatkan menu Profil Saya dan Keluar
+   pada bagian bawah sidebar.
+========================================================= */
+
 .sidebar-bottom {
   margin-top: auto;
+
   padding: 8px 11px 9px;
 
   border-top: 1px solid rgba(255, 255, 255, 0.09);
@@ -223,16 +290,25 @@ svg {
 }
 
 /* =========================================================
-   05. TOPBAR / HEADER
-   Bagian putih di atas konten utama.
+   07. AREA KONTEN UTAMA
+   Fungsi:
+   Menampung topbar dan seluruh konten Dashboard.
 ========================================================= */
 
 .main-area {
   flex: 1;
   min-width: 0;
+
   display: flex;
   flex-direction: column;
 }
+
+/* =========================================================
+   08. TOPBAR / HEADER
+   Fungsi:
+   Menampilkan identitas sistem di sebelah kiri
+   dan informasi akun di sebelah kanan.
+========================================================= */
 
 .topbar {
   height: 54px;
@@ -240,50 +316,58 @@ svg {
 
   padding: 0 20px;
 
-  background: var(--white);
-  border-bottom: 1px solid var(--border);
-
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
 }
 
-/* Identitas sistem pada topbar */
+/* Identitas sistem */
 .topbar-system {
   display: flex;
   align-items: center;
+
   gap: 8px;
 
   color: #58616c;
+
   font-size: 8px;
   font-weight: 500;
+
   letter-spacing: 0.15px;
 }
 
-/* Bulatan biru identitas sistem */
+/* Titik biru identitas sistem */
 .topbar-dot {
   width: 6px;
   height: 6px;
 
   border-radius: 50%;
+
   background: var(--primary);
+
   flex-shrink: 0;
 }
 
-/* Area nama pengguna */
+/* Area profil pengguna */
 .topbar-user {
   display: flex;
   align-items: center;
+
   gap: 8px;
 }
 
+/* Nama pengguna */
 .topbar-user-name {
   color: #25303c;
+
   font-size: 8px;
   font-weight: 600;
 }
 
-/* Lingkaran avatar */
+/* Avatar pengguna */
 .topbar-user-avatar {
   width: 23px;
   height: 23px;
@@ -293,8 +377,9 @@ svg {
   justify-content: center;
 
   border-radius: 50%;
+
   background: var(--primary);
-  color: white;
+  color: #ffffff;
 }
 
 .topbar-user-avatar svg {
@@ -304,21 +389,31 @@ svg {
 }
 
 /* =========================================================
-   06. AREA KONTEN
-   Mengatur jarak seluruh konten dari topbar dan sidebar.
+   09. AREA KONTEN DASHBOARD
+   Fungsi:
+   Mengatur jarak konten dari sidebar dan topbar.
 ========================================================= */
 
 .content {
   flex: 1;
-  padding: 17px 20px 12px;
   min-width: 0;
+
+  padding: 17px 20px 12px;
 }
 
-/* Header judul dan tombol refresh */
+/* =========================================================
+   10. HEADER HALAMAN
+   Fungsi:
+   Menampilkan breadcrumb, judul halaman,
+   dan tombol Segarkan Data.
+========================================================= */
+
 .page-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+
+  gap: 12px;
 
   margin-bottom: 15px;
 }
@@ -327,11 +422,13 @@ svg {
 .breadcrumb {
   display: flex;
   align-items: center;
+
   gap: 5px;
 
   margin-bottom: 3px;
 
   color: #7b8591;
+
   font-size: 7px;
   font-weight: 400;
 }
@@ -342,23 +439,27 @@ svg {
   font-weight: 600;
 }
 
-/* Judul halaman */
+/* Judul utama halaman */
 .page-header h1 {
   color: #152f4b;
+
   font-size: 17px;
   font-weight: 700;
+
   line-height: 1.3;
   letter-spacing: -0.35px;
 }
 
-/* Tombol segarkan data */
+/* Tombol Segarkan Data */
 .refresh-btn {
+  min-height: 29px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   gap: 6px;
 
-  min-height: 29px;
   padding: 0 12px;
 
   border: 1px solid var(--border);
@@ -383,19 +484,22 @@ svg {
 }
 
 /* =========================================================
-   07. GRID KARTU STATISTIK
-   Empat kartu ditampilkan dalam satu baris.
+   11. GRID KARTU STATISTIK
+   Fungsi:
+   Menampilkan empat kartu statistik dalam satu baris.
 ========================================================= */
 
 .summary-grid {
   display: grid;
+
   grid-template-columns: repeat(4, minmax(0, 1fr));
+
   gap: 10px;
 
   margin-bottom: 14px;
 }
 
-/* Bentuk dasar kartu */
+/* Struktur dasar kartu */
 .summary-card {
   min-width: 0;
   min-height: 114px;
@@ -407,26 +511,30 @@ svg {
   justify-content: space-between;
 
   background: var(--white);
+
   border: 1px solid #eef1f5;
   border-radius: var(--radius-card);
 }
 
-/* Baris judul dan ikon kartu */
+/* Bagian atas kartu */
 .summary-card-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+
   gap: 8px;
 }
 
 .summary-card-top p {
+  padding-top: 2px;
+
   color: #515b67;
+
   font-size: 8px;
   font-weight: 600;
-  padding-top: 2px;
 }
 
-/* Kotak ikon pada kartu */
+/* Kotak ikon kartu */
 .summary-card-icon {
   width: 23px;
   height: 23px;
@@ -436,6 +544,7 @@ svg {
   justify-content: center;
 
   border-radius: 5px;
+
   flex-shrink: 0;
 }
 
@@ -469,73 +578,81 @@ svg {
 .summary-number {
   display: flex;
   align-items: baseline;
+
   gap: 6px;
 
   color: #20262d;
+
   font-size: 19px;
   font-weight: 750;
+
   line-height: 1.15;
   letter-spacing: -0.4px;
 }
 
-/* Keterangan angka */
+/* Satuan angka */
 .summary-number small {
   color: #69727d;
+
   font-size: 8px;
   font-weight: 400;
+
   letter-spacing: 0;
 }
 
-/* Angka akurasi berwarna biru */
+/* Angka akurasi model */
 .summary-number.summary-accent {
   color: var(--primary);
 }
 
-/* Baris keterangan bagian bawah kartu */
+/* Bagian bawah kartu */
 .summary-card-bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 5px;
 
   color: #68727e;
+
   font-size: 7px;
   font-weight: 400;
 }
 
 .summary-card-bottom strong {
   color: var(--primary);
+
   font-size: 7px;
   font-weight: 600;
 }
 
-/* Keterangan dengan bulatan kecil */
+/* Indikator keterangan */
 .summary-meta {
   display: inline-flex;
   align-items: center;
+
   gap: 5px;
 }
 
-/* Bulatan indikator */
 .meta-bullet {
   width: 5px;
   height: 5px;
+
   border-radius: 50%;
+
   flex-shrink: 0;
 }
 
-.meta-bullet.blue {
+.meta-bullet.blue,
+.meta-bullet.solid {
   background: var(--primary);
 }
 
-.meta-bullet.solid {
-  background: #0758e8;
-}
-
-/* Label mini jumlah pengguna */
+/* Label jumlah pengguna */
 .mini-tags {
   display: flex;
   align-items: center;
+
   gap: 4px;
   flex-wrap: wrap;
 }
@@ -544,35 +661,41 @@ svg {
   padding: 2px 4px;
 
   border-radius: 3px;
-  background: #eff1f4;
 
+  background: #eff1f4;
   color: #606a75;
+
   font-size: 7px;
   font-weight: 600;
 }
 
-/* Rincian status laporan kerusakan */
+/* Statistik status laporan */
 .report-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+
   gap: 3px;
 }
 
 .report-stats div {
+  min-height: 25px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 
-  min-height: 25px;
   border-radius: 3px;
+
   background: #f0f2f5;
 }
 
 .report-stats strong {
   color: #313b46;
+
   font-size: 8px;
   font-weight: 700;
+
   line-height: 1.2;
 }
 
@@ -586,34 +709,40 @@ svg {
 }
 
 /* =========================================================
-   08. PANEL TABEL LAPORAN
-   Mengatur container putih, judul, dan filter tabel.
+   12. PANEL TABEL LAPORAN
+   Fungsi:
+   Membuat wadah putih untuk tabel laporan kerusakan.
 ========================================================= */
 
 .panel {
   width: 100%;
+
+  margin-bottom: 14px;
+
   background: var(--white);
 
   border: 1px solid #edf0f4;
   border-radius: var(--radius-panel);
-  overflow: hidden;
 
-  margin-bottom: 14px;
+  overflow: hidden;
 }
 
-/* Header panel */
+/* Bagian judul panel */
 .panel-head {
   min-height: 44px;
+
   padding: 0 14px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 10px;
 }
 
 .panel-head h2 {
   color: #2a3037;
+
   font-size: 10px;
   font-weight: 700;
 }
@@ -626,15 +755,18 @@ svg {
   display: flex;
   align-items: center;
   justify-content: center;
+
   gap: 8px;
 
   padding: 0 10px;
 
   background: #f1f3f6;
+
   border: 1px solid #edf0f4;
   border-radius: 5px;
 
   color: #454d57;
+
   font-size: 8px;
   font-weight: 500;
 }
@@ -649,8 +781,9 @@ svg {
 }
 
 /* =========================================================
-   09. TABEL LAPORAN
-   Mengatur lebar kolom, warna header, dan isi tabel.
+   13. TABEL LAPORAN KERUSAKAN
+   Fungsi:
+   Mengatur kolom, header, baris data, dan ukuran teks.
 ========================================================= */
 
 .table-wrap {
@@ -660,13 +793,15 @@ svg {
 
 .report-table {
   width: 100%;
+
   border-collapse: collapse;
   table-layout: fixed;
+
   text-align: left;
   white-space: nowrap;
 }
 
-/* Lebar masing-masing kolom */
+/* Pembagian lebar kolom */
 .report-table th:nth-child(1) {
   width: 11%;
 }
@@ -696,11 +831,14 @@ svg {
 
 .report-table th {
   height: 27px;
+
   padding: 0 13px;
 
   color: #58616b;
+
   font-size: 7px;
   font-weight: 750;
+
   letter-spacing: 0.1px;
   text-align: left;
 }
@@ -711,20 +849,23 @@ svg {
   text-align: center;
 }
 
-/* Isi tabel */
+/* Sel tabel */
 .report-table td {
   height: 40px;
+
   padding: 5px 13px;
 
   border-bottom: 1px solid #f0f2f6;
 
   color: #59636e;
+
   font-size: 8px;
   font-weight: 400;
+
   vertical-align: middle;
 }
 
-/* Menghilangkan garis di baris terakhir */
+/* Baris terakhir tanpa garis */
 .report-table tbody tr:last-child td {
   border-bottom: none;
 }
@@ -732,40 +873,48 @@ svg {
 /* Nama fasilitas */
 .report-table td strong {
   display: block;
+
   color: #303740;
+
   font-size: 8px;
   font-weight: 600;
+
   line-height: 1.35;
 }
 
 /* Kode fasilitas */
 .report-table td small {
   display: block;
+
   color: #929ba5;
+
   font-size: 7px;
   line-height: 1.35;
 }
 
-/* ID laporan */
+/* Nomor ID laporan */
 .report-id {
   color: #23466d;
+
   font-size: 8px;
   font-weight: 700;
 }
 
-/* Hover baris tabel */
+/* Efek hover baris */
 .report-table tbody tr:hover {
   background: #fafbfd;
 }
 
 /* =========================================================
-   10. BADGE REKOMENDASI C4.5
-   Warna menunjukkan tingkat prioritas hasil klasifikasi.
+   14. BADGE REKOMENDASI C4.5
+   Fungsi:
+   Membedakan hasil rekomendasi prioritas kerusakan.
 ========================================================= */
 
 .badge {
   display: inline-flex;
   align-items: center;
+
   gap: 3px;
 
   padding: 3px 6px;
@@ -795,8 +944,9 @@ svg {
 }
 
 /* =========================================================
-   11. PILL STATUS PENANGANAN
-   Menunjukkan kondisi proses laporan kerusakan.
+   15. STATUS PENANGANAN
+   Fungsi:
+   Menampilkan status laporan dalam bentuk pill.
 ========================================================= */
 
 .pill {
@@ -805,6 +955,7 @@ svg {
   justify-content: center;
 
   padding: 3px 7px;
+
   border-radius: 20px;
 
   font-size: 7px;
@@ -830,8 +981,9 @@ svg {
 }
 
 /* =========================================================
-   12. IKON DETAIL
-   Tombol untuk membuka detail laporan.
+   16. TOMBOL DETAIL LAPORAN
+   Fungsi:
+   Mengatur ikon mata untuk membuka detail laporan.
 ========================================================= */
 
 .eye-btn {
@@ -848,6 +1000,7 @@ svg {
 .eye-btn svg {
   width: 13px;
   height: 13px;
+
   stroke-width: 2;
 }
 
@@ -856,12 +1009,14 @@ svg {
 }
 
 /* =========================================================
-   13. PAGINATION
-   Navigasi halaman pada bagian bawah tabel.
+   17. PAGINATION
+   Fungsi:
+   Mengatur tombol navigasi halaman tabel.
 ========================================================= */
 
 .panel-foot {
   min-height: 34px;
+
   padding: 0 10px;
 
   display: flex;
@@ -873,6 +1028,7 @@ svg {
 .pagination {
   display: flex;
   align-items: center;
+
   gap: 3px;
 }
 
@@ -898,15 +1054,18 @@ svg {
   background: #e3eaf7;
 }
 
+/* Halaman aktif */
 .pagination button.active {
   background: var(--primary);
   color: #ffffff;
+
   font-weight: 700;
 }
 
 /* =========================================================
-   14. PANEL PEMERIKSAAN MODEL C4.5
-   Mengatur kartu informasi model di bawah tabel.
+   18. PANEL PEMERIKSAAN MODEL C4.5
+   Fungsi:
+   Menampilkan informasi dataset dan evaluasi model.
 ========================================================= */
 
 .model-panel {
@@ -915,93 +1074,112 @@ svg {
   padding: 14px;
 
   background: #ffffff;
+
   border: 1px solid #edf0f4;
   border-radius: var(--radius-panel);
 }
 
-/* Bagian judul model */
+/* Judul dan status model */
 .model-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+
   gap: 10px;
 
   margin-bottom: 11px;
 }
 
 .model-head h2 {
+  margin-bottom: 3px;
+
   color: #303740;
+
   font-size: 10px;
   font-weight: 700;
-  margin-bottom: 3px;
 }
 
 .model-head p {
   color: #68717c;
+
   font-size: 8px;
   line-height: 1.5;
 }
 
-/* Label aktif */
+/* Label status aktif */
 .model-status {
   padding: 3px 6px;
 
   border-radius: 3px;
-  background: #edf2ff;
 
+  background: #edf2ff;
   color: var(--primary);
+
   font-size: 7px;
   font-weight: 600;
+
   flex-shrink: 0;
 }
 
-/* Kotak informasi model */
+/* Kotak rincian model */
 .model-box {
   padding: 9px 10px;
+
   border-radius: 5px;
+
   background: #f0f2f5;
 }
 
-/* Baris informasi model */
+/* Baris informasi */
 .model-row {
+  min-height: 17px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 10px;
 
-  min-height: 17px;
-
   color: #5c6672;
+
   font-size: 8px;
 }
 
+/* Nilai informasi */
 .model-row strong {
   color: #354153;
+
   font-size: 8px;
   font-weight: 650;
+
   text-align: right;
 }
 
-/* Tombol pengelolaan model */
+/* Area tombol kelola model */
 .model-action {
   display: flex;
   justify-content: flex-end;
+
   margin-top: 10px;
 }
 
+/* Tombol kelola model */
 .model-btn {
   min-height: 27px;
+
   padding: 0 10px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   gap: 6px;
 
   border-radius: 5px;
-  background: #f0f2f5;
 
+  background: #f0f2f5;
   color: #424b55;
+
   font-size: 8px;
   font-weight: 600;
 
@@ -1018,21 +1196,25 @@ svg {
 }
 
 /* =========================================================
-   15. FOOTER
-   Keterangan singkat di bagian bawah halaman.
+   19. FOOTER DASHBOARD
+   Fungsi:
+   Menampilkan identitas SIPFAS pada bagian bawah halaman.
 ========================================================= */
 
 .page-footer {
   padding: 12px 0 2px;
 
   color: #a0a8b2;
+
   font-size: 7px;
   text-align: right;
 }
 
 /* =========================================================
-   16. RESPONSIVE TABLET
-   Mengatur grid dan ukuran sidebar pada layar menengah.
+   20. RESPONSIVE TABLET
+   Fungsi:
+   Menyesuaikan ukuran sidebar dan grid statistik
+   ketika layar lebih kecil.
 ========================================================= */
 
 @media (max-width: 1100px) {
@@ -1055,8 +1237,9 @@ svg {
 }
 
 /* =========================================================
-   17. RESPONSIVE MOBILE
-   Menyesuaikan tata letak pada layar kecil.
+   21. RESPONSIVE MOBILE
+   Fungsi:
+   Menyesuaikan susunan Dashboard untuk perangkat mobile.
 ========================================================= */
 
 @media (max-width: 700px) {
@@ -1072,7 +1255,7 @@ svg {
   }
 
   .sidebar-logo {
-    height: 54px;
+    height: 50px;
   }
 
   .nav-group,
@@ -1083,6 +1266,7 @@ svg {
   .topbar {
     height: 48px;
     min-height: 48px;
+
     padding: 0 12px;
   }
 
@@ -1116,10 +1300,6 @@ svg {
     min-height: 105px;
   }
 
-  .panel {
-    overflow: hidden;
-  }
-
   .panel-head {
     padding: 0 10px;
   }
@@ -1142,7 +1322,10 @@ svg {
 }
 
 /* =========================================================
-   18. RESPONSIVE LAYAR SANGAT KECIL
+   22. RESPONSIVE LAYAR SANGAT KECIL
+   Fungsi:
+   Menjaga teks dan tombol tetap proporsional
+   pada perangkat dengan lebar layar maksimal 380px.
 ========================================================= */
 
 @media (max-width: 380px) {
@@ -1159,11 +1342,38 @@ svg {
     font-size: 18px;
   }
 
-  .model-row {
-    font-size: 7px;
-  }
-
+  .model-row,
   .model-row strong {
     font-size: 7px;
   }
+}
+
+/* =========================================================
+   DROPDOWN FILTER STATUS
+   Fungsi:
+   Mengatur tampilan dropdown filter laporan kerusakan.
+========================================================= */
+
+.status-filter {
+  min-width: 110px;
+  min-height: 29px;
+  padding: 0 10px;
+  background-color: #f1f3f6;
+  border: 1px solid #edf0f4;
+  border-radius: 5px;
+  color: #454d57;
+  font-family: "Inter", sans-serif;
+  font-size: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+}
+
+.status-filter:hover {
+  background-color: #e9edf3;
+}
+
+.status-filter:focus {
+  border-color: #0758e8;
+  box-shadow: 0 0 0 2px rgba(7, 88, 232, 0.1);
 }

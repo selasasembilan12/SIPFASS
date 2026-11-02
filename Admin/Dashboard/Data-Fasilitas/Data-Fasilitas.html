@@ -1,166 +1,190 @@
 <!doctype html>
 <html lang="id">
   <head>
+    <!-- =====================================================
+       01. PENGATURAN DASAR HALAMAN
+       Mengatur karakter, ukuran layar, dan judul tab.
+  ====================================================== -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Data Fasilitas | SIPFAS</title>
 
-    <!-- Menggunakan font Inter sebagai standar seluruh halaman SIPFAS -->
+    <!-- =====================================================
+       02. FONT GLOBAL INTER
+       Menggunakan font yang sama dengan halaman Admin.
+  ====================================================== -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
 
-    <!-- Menghubungkan stylesheet khusus halaman Data Fasilitas -->
+    <!-- =====================================================
+       03. CSS LOGO GLOBAL
+       Menggunakan identitas logo SIPFAS yang sama.
+  ====================================================== -->
+    <link rel="stylesheet" href="../../../assets/css/logo.css" />
+
+    <!-- CSS khusus halaman Data Fasilitas -->
     <link rel="stylesheet" href="Data-Fasilitas.css" />
   </head>
 
   <body>
     <!-- =====================================================
-         1. LAYOUT UTAMA APLIKASI
-         Membagi halaman menjadi sidebar dan area konten.
-    ====================================================== -->
+       04. LAYOUT UTAMA APLIKASI
+       Membagi tampilan menjadi sidebar dan konten utama.
+  ====================================================== -->
     <div class="app-layout">
-      <!-- =================================================
-             2. SIDEBAR NAVIGASI
-             Berisi identitas SIPFAS dan seluruh menu admin.
-        ================================================== -->
+      <!-- ===================================================
+         05. SIDEBAR NAVIGASI ADMIN
+         Berisi logo dan seluruh menu navigasi Admin.
+    ==================================================== -->
       <aside class="sidebar">
-        <!-- Logo dan identitas aplikasi -->
-        <a href="../Dashboard/Dashboard.html" class="brand">
-          <span class="brand-logo">
-            <svg viewBox="0 0 32 32" fill="none">
-              <path d="M4 11.5L16 4L28 11.5V13H4V11.5Z" fill="white" />
-              <path d="M7.5 14.5H11.5V25H7.5V14.5Z" fill="white" />
-              <path d="M14 14.5H18V25H14V14.5Z" fill="white" />
-              <path d="M20.5 14.5H24.5V25H20.5V14.5Z" fill="white" />
-              <path d="M5 25H27V28H5V25Z" fill="white" />
-            </svg>
-          </span>
+        <!-- LOGO DAN IDENTITAS SIPFAS -->
+        <a href="../Dashboard/Dashboard.html" class="sidebar-logo">
+          <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS" />
 
-          <span class="brand-text">
+          <div class="sidebar-brand">
             <strong>SIPFAS</strong>
-            <small>Informatika UNKHAIR</small>
-          </span>
+            <span>Informatika UNKHAIR</span>
+          </div>
         </a>
 
-        <!-- Daftar menu navigasi utama -->
+        <!-- Garis putih pemisah area logo dan menu -->
+        <div class="sidebar-brand-divider"></div>
+
+        <!-- NAVIGASI SIDEBAR -->
         <nav class="sidebar-nav">
-          <!-- Menu utama -->
+          <!-- MENU UTAMA -->
           <div class="nav-group">
             <p class="nav-title">MENU UTAMA</p>
 
             <a href="../Dashboard/Dashboard.html" class="nav-link">
               <span class="nav-icon">
-                <svg viewBox="0 0 24 24" fill="none">
+                <svg viewBox="0 0 24 24">
                   <rect x="3" y="3" width="7" height="7" rx="1" />
                   <rect x="14" y="3" width="7" height="7" rx="1" />
                   <rect x="3" y="14" width="7" height="7" rx="1" />
                   <rect x="14" y="14" width="7" height="7" rx="1" />
                 </svg>
               </span>
+
               <span>Dashboard</span>
             </a>
           </div>
 
-          <!-- Manajemen data -->
+          <!-- MANAJEMEN DATA -->
           <div class="nav-group">
             <p class="nav-title">MANAJEMEN DATA</p>
 
+            <!-- Manajemen Pengguna -->
             <a
               href="../Manajemen-Pengguna/Manajemen-Pengguna.html"
               class="nav-link"
             >
               <span class="nav-icon">
-                <svg viewBox="0 0 24 24" fill="none">
+                <svg viewBox="0 0 24 24">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
                   <circle cx="9.5" cy="7" r="3.5" />
                   <path d="M17 11a3.5 3.5 0 0 0 0-7" />
                   <path d="M21 21v-2a4 4 0 0 0-3-3.87" />
                 </svg>
               </span>
+
               <span>Manajemen Pengguna</span>
             </a>
 
+            <!-- Kategori Fasilitas -->
             <a
-              href="../Kategori-Fasilitas/kategori-fasilitas.html"
+              href="../Kategori-Fasilitas/Kategori-Fasilitas.html"
               class="nav-link"
             >
               <span class="nav-icon">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M12 3L20 16H4L12 3Z" />
-                  <rect x="2.5" y="17.5" width="6" height="6" />
-                  <circle cx="18" cy="20.5" r="3" />
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 3L20 10H4L12 3Z" />
+                  <rect x="3" y="14" width="6" height="6" />
+                  <circle cx="17" cy="17" r="3" />
                 </svg>
               </span>
+
               <span>Kategori Fasilitas</span>
             </a>
 
-            <!-- Menu aktif pada halaman Data Fasilitas -->
-            <a href="data-fasilitas.html" class="nav-link active">
+            <!-- Data Fasilitas: MENU AKTIF -->
+            <a
+              href="Data-Fasilitas.html"
+              class="nav-link active"
+              aria-current="page"
+            >
               <span class="nav-icon">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="4" width="14" height="13" rx="1" />
-                  <path d="M7 20H21V8" />
-                  <path d="M7 17H3" />
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="4" width="16" height="12" rx="1" />
+                  <path d="M2 19H15" />
+                  <rect x="15" y="12" width="7" height="9" rx="1" />
                 </svg>
               </span>
+
               <span>Data Fasilitas</span>
             </a>
           </div>
 
-          <!-- Menu klasifikasi C4.5 -->
+          <!-- KLASIFIKASI C4.5 -->
           <div class="nav-group">
             <p class="nav-title">KLASIFIKASI C4.5</p>
 
+            <!-- Dataset C4.5 -->
             <a
               href="../../Dashboard-Lanjutan/Dataset-C45/dataset-c45.html"
               class="nav-link"
             >
               <span class="nav-icon">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="3" width="18" height="18" rx="1" />
-                  <path d="M8 3V21M16 3V21M3 8H21M3 16H21" />
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M3 9h18M3 15h18M9 3v18" />
                 </svg>
               </span>
+
               <span>Dataset C4.5</span>
             </a>
 
+            <!-- Pelatihan C4.5 -->
             <a
               href="../../Dashboard-Lanjutan/Pelatihan-C45/pelatihan-c45.html"
               class="nav-link"
             >
               <span class="nav-icon">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M12 3L15 6L12 9" />
-                  <path d="M15 6C19 8 21 12 19 17" />
-                  <path d="M5 17C3 12 5 8 9 6" />
-                  <path d="M8 21C4 18 4 12 8 9" />
-                  <path d="M16 21C20 18 20 12 16 9" />
-                  <circle cx="12" cy="15" r="3" />
+                <svg viewBox="0 0 24 24">
+                  <path d="M9 18h6M10 21h4" />
+                  <path
+                    d="M12 2a7 7 0 0 0-5 11.9V16a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2.1A7 7 0 0 0 12 2z"
+                  />
+                  <path d="M12 14v-5m-2.5 2.5L12 9l2.5 2.5" />
                 </svg>
               </span>
+
               <span>Pelatihan C4.5</span>
             </a>
 
+            <!-- Hasil Pengujian -->
             <a
               href="../../Dashboard-Lanjutan/Hasil-Pengujian/hasil-pengujian.html"
               class="nav-link"
             >
               <span class="nav-icon">
-                <svg viewBox="0 0 24 24" fill="none">
+                <svg viewBox="0 0 24 24">
                   <rect x="3" y="3" width="18" height="18" rx="1" />
-                  <path d="M8 17V12M12 17V7M16 17V10" />
+                  <path d="M7 16v-4M12 16V7M17 16v-7" />
                 </svg>
               </span>
+
               <span>Hasil Pengujian</span>
             </a>
           </div>
 
-          <!-- Menu laporan -->
+          <!-- LAPORAN -->
           <div class="nav-group">
             <p class="nav-title">LAPORAN</p>
 
@@ -169,95 +193,105 @@
               class="nav-link"
             >
               <span class="nav-icon">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M6 3H15L20 8V21H6Z" />
-                  <path d="M15 3V8H20" />
-                  <path d="M9 13H17M9 17H17" />
+                <svg viewBox="0 0 24 24">
+                  <path d="M6 2.5h8l5 5V21H6z" />
+                  <path d="M14 2.5V8h5M9 13h7M9 17h7" />
                 </svg>
               </span>
+
               <span>Laporan Pemeliharaan</span>
             </a>
           </div>
         </nav>
 
-        <!-- Menu akun di bagian bawah sidebar -->
+        <!-- MENU AKUN DI BAGIAN BAWAH SIDEBAR -->
         <div class="sidebar-bottom">
           <p class="nav-title">AKUN</p>
 
+          <!-- Profil Saya -->
           <a href="../Profil-Saya/profil-saya.html" class="nav-link">
             <span class="nav-icon">
-              <svg viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="8" r="3" />
-                <path d="M5 21V19A7 7 0 0 1 19 19V21" />
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8.5" r="3.5" />
+                <path d="M5 20c.7-3 3.2-4.5 7-4.5s6.3 1.5 7 4.5" />
               </svg>
             </span>
+
             <span>Profil Saya</span>
           </a>
 
+          <!-- Keluar -->
           <a href="#" class="nav-link">
             <span class="nav-icon">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M10 17L15 12L10 7" />
-                <path d="M15 12H3" />
-                <path d="M13 3H20V21H13" />
+              <svg viewBox="0 0 24 24">
+                <path d="M10 7H6V17H10" />
+                <path d="M14 8L18 12L14 16M18 12H9" />
               </svg>
             </span>
+
             <span>Keluar</span>
           </a>
         </div>
       </aside>
 
-      <!-- =================================================
-             3. AREA KONTEN UTAMA
-             Menampung topbar dan isi halaman.
-        ================================================== -->
+      <!-- ===================================================
+         06. AREA UTAMA
+         Menampung topbar dan konten halaman.
+    ==================================================== -->
       <div class="main-area">
-        <!-- Topbar identitas sistem dan akun administrator -->
+        <!-- =================================================
+           TOPBAR
+           Menampilkan nama sistem dan akun administrator.
+      ================================================== -->
         <header class="topbar">
+          <!-- Identitas sistem -->
           <div class="topbar-system">
             <span class="topbar-dot"></span>
-            <span>SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS</span>
+
+            <span> SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS </span>
           </div>
 
+          <!-- Informasi pengguna -->
           <a href="../Profil-Saya/profil-saya.html" class="topbar-user">
-            <span class="topbar-user-name">Ahmad Fauzi, S.Kom.</span>
+            <span class="topbar-user-name"> Ahmad Fauzi, S.Kom. </span>
 
             <span class="topbar-user-avatar">
-              <svg viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="8" r="3" />
-                <path d="M5 20C5 16 8 14 12 14C16 14 19 16 19 20" />
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8.5" r="3.5" />
+                <path d="M5 20c.7-3 3.2-4.5 7-4.5s6.3 1.5 7 4.5" />
               </svg>
             </span>
           </a>
         </header>
 
         <!-- =================================================
-                 4. KONTEN HALAMAN DATA FASILITAS
-                 Memuat breadcrumb, judul, informasi X3 dan tabel.
-            ================================================== -->
+           07. KONTEN HALAMAN DATA FASILITAS
+      ================================================== -->
         <main class="content">
-          <!-- Breadcrumb dan judul halaman -->
+          <!-- HEADER HALAMAN -->
           <section class="page-header">
+            <!-- Breadcrumb -->
             <div class="breadcrumb">
               <span>SIPFAS</span>
               <span>›</span>
               <span>Manajemen Data</span>
               <span>›</span>
-              <span class="breadcrumb-active">Data Fasilitas</span>
+
+              <span class="breadcrumb-active"> Data Fasilitas </span>
             </div>
 
+            <!-- Judul halaman -->
             <h1>Data Fasilitas Kampus</h1>
           </section>
 
           <!-- =================================================
-                     5. KARTU INFORMASI PARAMETER X3
-                     Menjelaskan kategori frekuensi penggunaan
-                     yang menjadi atribut klasifikasi C4.5.
-                ================================================== -->
+             08. INFORMASI PARAMETER KLASIFIKASI X3
+             Menjelaskan kategori frekuensi penggunaan fasilitas.
+        ================================================== -->
           <section class="information-card">
-            <!-- Ikon informasi klasifikasi -->
+            <!-- Ikon informasi -->
             <div class="information-icon">
-              <svg viewBox="0 0 24 24" fill="none">
+              <svg viewBox="0 0 24 24">
                 <path d="M9 18H15" />
                 <path d="M10 21H14" />
                 <path
@@ -268,7 +302,7 @@
               </svg>
             </div>
 
-            <!-- Judul dan penjelasan parameter -->
+            <!-- Penjelasan parameter X3 -->
             <div class="information-content">
               <h2>
                 Parameter Klasifikasi Pohon Keputusan C4.5: Atribut Frekuensi
@@ -281,122 +315,147 @@
                 pelapor membuat laporan insiden.
               </p>
 
-              <!-- Legenda kategori dan bobot frekuensi -->
+              <!-- Legenda kategori frekuensi -->
               <div class="legend-list">
                 <div class="legend-item">
                   <span class="legend-dot dot-rare"></span>
                   <strong>0 – 2 hari/mgg:</strong>
-                  Jarang (Bobot 1)
+                  <span>Jarang (Bobot 1)</span>
                 </div>
 
                 <div class="legend-item">
                   <span class="legend-dot dot-medium"></span>
                   <strong>3 – 4 hari/mgg:</strong>
-                  Sedang (Bobot 2)
+                  <span>Sedang (Bobot 2)</span>
                 </div>
 
                 <div class="legend-item">
                   <span class="legend-dot dot-often"></span>
                   <strong>5 – 7 hari/mgg:</strong>
-                  Sering (Bobot 3)
+                  <span>Sering (Bobot 3)</span>
                 </div>
               </div>
             </div>
           </section>
 
           <!-- =================================================
-                     6. PANEL MASTER DATA FASILITAS
-                     Menampung pencarian, filter kategori dan tabel.
-                ================================================== -->
+             09. PANEL DATA FASILITAS
+             Berisi pencarian, filter, dan tabel master data.
+        ================================================== -->
           <section class="panel">
-            <!-- Area pencarian dan filter kategori -->
+            <!-- PENCARIAN DAN FILTER KATEGORI -->
             <div class="filter-bar">
-              <!-- Input pencarian fasilitas -->
+              <!-- Kotak pencarian -->
               <label class="search-box">
-                <svg viewBox="0 0 24 24" fill="none">
+                <svg viewBox="0 0 24 24">
                   <circle cx="10.5" cy="10.5" r="6.5" />
                   <path d="M16 16L21 21" />
                 </svg>
 
                 <input
+                  id="facilitySearch"
                   type="search"
                   placeholder="Cari kode, nama, atau ruangan..."
+                  aria-label="Cari data fasilitas"
                 />
               </label>
 
-              <!-- Filter berdasarkan kategori fasilitas -->
-              <select class="category-filter">
-                <option>Semua Kategori</option>
-                <option>Laboratorium Komputer</option>
-                <option>Jaringan &amp; Server</option>
-                <option>Perangkat Multimedia</option>
-                <option>Sarana Ruang Kuliah</option>
+              <!-- Filter kategori -->
+              <select
+                class="category-filter"
+                id="categoryFilter"
+                aria-label="Filter kategori"
+              >
+                <option value="all">Semua Kategori</option>
+
+                <option value="Laboratorium Komputer">
+                  Laboratorium Komputer
+                </option>
+
+                <option value="Jaringan & Server">Jaringan &amp; Server</option>
+
+                <option value="Perangkat Multimedia">
+                  Perangkat Multimedia
+                </option>
+
+                <option value="Sarana Ruang Kuliah">Sarana Ruang Kuliah</option>
               </select>
             </div>
 
-            <!-- Pembungkus tabel agar dapat digulir horizontal -->
+            <!-- =================================================
+               TABEL MASTER DATA FASILITAS
+          ================================================== -->
             <div class="table-wrap">
               <table class="facility-table">
-                <!-- Kepala tabel -->
+                <!-- HEADER TABEL -->
                 <thead>
                   <tr>
-                    <th class="col-number">NO</th>
-                    <th class="col-code">KODE FASILITAS</th>
-                    <th class="col-name">NAMA FASILITAS</th>
-                    <th class="col-category">KATEGORI</th>
-                    <th class="col-location">LOKASI / RUANGAN</th>
-                    <th class="col-frequency">FREKUENSI (X3)</th>
-                    <th class="col-action">AKSI</th>
+                    <th>NO</th>
+                    <th>KODE FASILITAS</th>
+                    <th>NAMA FASILITAS</th>
+                    <th>KATEGORI</th>
+                    <th>LOKASI / RUANGAN</th>
+                    <th>FREKUENSI (X3)</th>
+                    <th>AKSI</th>
                   </tr>
                 </thead>
 
-                <!-- Isi tabel master fasilitas -->
-                <tbody>
-                  <!-- Data fasilitas 1 -->
-                  <tr>
+                <!-- ISI TABEL -->
+                <tbody id="facilityTableBody">
+                  <!-- DATA FASILITAS 1 -->
+                  <tr data-category="Laboratorium Komputer">
                     <td>1</td>
+
                     <td>
-                      <strong class="facility-code">FAS-INF-089</strong>
+                      <strong class="facility-code"> FAS-INF-089 </strong>
                     </td>
+
                     <td>
-                      <strong class="facility-name"
-                        >PC Workstation AI Lab</strong
-                      >
+                      <strong class="facility-name">
+                        PC Workstation AI Lab
+                      </strong>
                     </td>
+
                     <td>
                       <span class="category-badge category-blue">
                         Laboratorium Komputer
                       </span>
                     </td>
+
                     <td>Lab Kecerdasan Komputasional</td>
+
                     <td>
                       <span class="frequency-badge frequency-often">
-                        <svg viewBox="0 0 24 24" fill="none">
+                        <svg viewBox="0 0 24 24">
                           <path d="M13 2L5 13H11L10 22L19 10H13L13 2Z" />
                         </svg>
                         6 Hari · Sering
                       </span>
                     </td>
+
                     <td>
                       <div class="action-buttons">
                         <button
                           class="action-btn edit-btn"
                           type="button"
                           title="Edit fasilitas"
+                          aria-label="Edit PC Workstation AI Lab"
                         >
-                          <svg viewBox="0 0 24 24" fill="none">
+                          <svg viewBox="0 0 24 24">
                             <path d="M12 20H21" />
                             <path
                               d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"
                             />
                           </svg>
                         </button>
+
                         <button
                           class="action-btn delete-btn"
                           type="button"
                           title="Hapus fasilitas"
+                          aria-label="Hapus PC Workstation AI Lab"
                         >
-                          <svg viewBox="0 0 24 24" fill="none">
+                          <svg viewBox="0 0 24 24">
                             <path d="M4 7H20" />
                             <path d="M10 11V17M14 11V17" />
                             <path d="M5 7L6 21H18L19 7" />
@@ -407,31 +466,37 @@
                     </td>
                   </tr>
 
-                  <!-- Data fasilitas 2 -->
-                  <tr>
+                  <!-- DATA FASILITAS 2 -->
+                  <tr data-category="Jaringan & Server">
                     <td>2</td>
+
                     <td>
-                      <strong class="facility-code">FAS-INF-042</strong>
+                      <strong class="facility-code"> FAS-INF-042 </strong>
                     </td>
+
                     <td>
-                      <strong class="facility-name"
-                        >Server Virtualisasi Proxmox</strong
-                      >
+                      <strong class="facility-name">
+                        Server Virtualisasi Proxmox
+                      </strong>
                     </td>
+
                     <td>
                       <span class="category-badge category-gray">
                         Jaringan &amp; Server
                       </span>
                     </td>
+
                     <td>Ruang Server Gd. Informatika</td>
+
                     <td>
                       <span class="frequency-badge frequency-often">
-                        <svg viewBox="0 0 24 24" fill="none">
+                        <svg viewBox="0 0 24 24">
                           <path d="M13 2L5 13H11L10 22L19 10H13L13 2Z" />
                         </svg>
                         7 Hari · Sering
                       </span>
                     </td>
+
                     <td>
                       <div class="action-buttons">
                         <button
@@ -439,19 +504,20 @@
                           type="button"
                           title="Edit fasilitas"
                         >
-                          <svg viewBox="0 0 24 24" fill="none">
+                          <svg viewBox="0 0 24 24">
                             <path d="M12 20H21" />
                             <path
                               d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"
                             />
                           </svg>
                         </button>
+
                         <button
                           class="action-btn delete-btn"
                           type="button"
                           title="Hapus fasilitas"
                         >
-                          <svg viewBox="0 0 24 24" fill="none">
+                          <svg viewBox="0 0 24 24">
                             <path d="M4 7H20" />
                             <path d="M10 11V17M14 11V17" />
                             <path d="M5 7L6 21H18L19 7" />
@@ -462,32 +528,38 @@
                     </td>
                   </tr>
 
-                  <!-- Data fasilitas 3 -->
-                  <tr>
+                  <!-- DATA FASILITAS 3 -->
+                  <tr data-category="Perangkat Multimedia">
                     <td>3</td>
+
                     <td>
-                      <strong class="facility-code">FAS-INF-015</strong>
+                      <strong class="facility-code"> FAS-INF-015 </strong>
                     </td>
+
                     <td>
-                      <strong class="facility-name"
-                        >Proyektor Laser Epson 4K</strong
-                      >
+                      <strong class="facility-name">
+                        Proyektor Laser Epson 4K
+                      </strong>
                     </td>
+
                     <td>
                       <span class="category-badge category-blue">
                         Perangkat Multimedia
                       </span>
                     </td>
+
                     <td>Lab Rekayasa Perangkat Lunak</td>
+
                     <td>
                       <span class="frequency-badge frequency-medium">
-                        <svg viewBox="0 0 24 24" fill="none">
+                        <svg viewBox="0 0 24 24">
                           <circle cx="12" cy="12" r="9" />
                           <path d="M12 7V12L15 14" />
                         </svg>
                         4 Hari · Sedang
                       </span>
                     </td>
+
                     <td>
                       <div class="action-buttons">
                         <button
@@ -495,19 +567,20 @@
                           type="button"
                           title="Edit fasilitas"
                         >
-                          <svg viewBox="0 0 24 24" fill="none">
+                          <svg viewBox="0 0 24 24">
                             <path d="M12 20H21" />
                             <path
                               d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"
                             />
                           </svg>
                         </button>
+
                         <button
                           class="action-btn delete-btn"
                           type="button"
                           title="Hapus fasilitas"
                         >
-                          <svg viewBox="0 0 24 24" fill="none">
+                          <svg viewBox="0 0 24 24">
                             <path d="M4 7H20" />
                             <path d="M10 11V17M14 11V17" />
                             <path d="M5 7L6 21H18L19 7" />
@@ -518,32 +591,38 @@
                     </td>
                   </tr>
 
-                  <!-- Data fasilitas 4 -->
-                  <tr>
+                  <!-- DATA FASILITAS 4 -->
+                  <tr data-category="Sarana Ruang Kuliah">
                     <td>4</td>
+
                     <td>
-                      <strong class="facility-code">FAS-INF-102</strong>
+                      <strong class="facility-code"> FAS-INF-102 </strong>
                     </td>
+
                     <td>
-                      <strong class="facility-name"
-                        >AC Split Inverter 2 PK</strong
-                      >
+                      <strong class="facility-name">
+                        AC Split Inverter 2 PK
+                      </strong>
                     </td>
+
                     <td>
                       <span class="category-badge category-gray">
                         Sarana Ruang Kuliah
                       </span>
                     </td>
+
                     <td>R. Kuliah INF 3.1</td>
+
                     <td>
                       <span class="frequency-badge frequency-medium">
-                        <svg viewBox="0 0 24 24" fill="none">
+                        <svg viewBox="0 0 24 24">
                           <circle cx="12" cy="12" r="9" />
                           <path d="M12 7V12L15 14" />
                         </svg>
                         3 Hari · Sedang
                       </span>
                     </td>
+
                     <td>
                       <div class="action-buttons">
                         <button
@@ -551,19 +630,20 @@
                           type="button"
                           title="Edit fasilitas"
                         >
-                          <svg viewBox="0 0 24 24" fill="none">
+                          <svg viewBox="0 0 24 24">
                             <path d="M12 20H21" />
                             <path
                               d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"
                             />
                           </svg>
                         </button>
+
                         <button
                           class="action-btn delete-btn"
                           type="button"
                           title="Hapus fasilitas"
                         >
-                          <svg viewBox="0 0 24 24" fill="none">
+                          <svg viewBox="0 0 24 24">
                             <path d="M4 7H20" />
                             <path d="M10 11V17M14 11V17" />
                             <path d="M5 7L6 21H18L19 7" />
@@ -574,32 +654,38 @@
                     </td>
                   </tr>
 
-                  <!-- Data fasilitas 5 -->
-                  <tr>
+                  <!-- DATA FASILITAS 5 -->
+                  <tr data-category="Perangkat Multimedia">
                     <td>5</td>
+
                     <td>
-                      <strong class="facility-code">FAS-INF-055</strong>
+                      <strong class="facility-code"> FAS-INF-055 </strong>
                     </td>
+
                     <td>
-                      <strong class="facility-name"
-                        >Interactive Smart Board 65 inch</strong
-                      >
+                      <strong class="facility-name">
+                        Interactive Smart Board 65 inch
+                      </strong>
                     </td>
+
                     <td>
                       <span class="category-badge category-blue">
                         Perangkat Multimedia
                       </span>
                     </td>
+
                     <td>Ruang Rapat Jurusan</td>
+
                     <td>
                       <span class="frequency-badge frequency-rare">
-                        <svg viewBox="0 0 24 24" fill="none">
+                        <svg viewBox="0 0 24 24">
                           <circle cx="12" cy="12" r="9" />
                           <path d="M12 7V12L15 14" />
                         </svg>
                         1 Hari · Jarang
                       </span>
                     </td>
+
                     <td>
                       <div class="action-buttons">
                         <button
@@ -607,19 +693,20 @@
                           type="button"
                           title="Edit fasilitas"
                         >
-                          <svg viewBox="0 0 24 24" fill="none">
+                          <svg viewBox="0 0 24 24">
                             <path d="M12 20H21" />
                             <path
                               d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"
                             />
                           </svg>
                         </button>
+
                         <button
                           class="action-btn delete-btn"
                           type="button"
                           title="Hapus fasilitas"
                         >
-                          <svg viewBox="0 0 24 24" fill="none">
+                          <svg viewBox="0 0 24 24">
                             <path d="M4 7H20" />
                             <path d="M10 11V17M14 11V17" />
                             <path d="M5 7L6 21H18L19 7" />
@@ -633,10 +720,77 @@
               </table>
             </div>
 
-            <!-- Pagination tidak ditampilkan karena data contoh hanya 5 baris -->
+            <!-- Pesan jika data tidak ditemukan -->
+            <p class="empty-state" id="emptyState" hidden>
+              Data fasilitas tidak ditemukan.
+            </p>
           </section>
         </main>
       </div>
     </div>
+
+    <!-- =====================================================
+       10. JAVASCRIPT PENCARIAN DAN FILTER
+       Memungkinkan pencarian berdasarkan kode, nama,
+       lokasi, dan penyaringan berdasarkan kategori.
+  ====================================================== -->
+    <script>
+      // Mengambil elemen pencarian dan filter
+      const searchInput = document.getElementById("facilitySearch");
+      const categoryFilter = document.getElementById("categoryFilter");
+      const tableBody = document.getElementById("facilityTableBody");
+      const emptyState = document.getElementById("emptyState");
+
+      // Fungsi untuk menyaring data fasilitas
+      function filterFacilities() {
+        const keyword = searchInput.value.trim().toLowerCase();
+        const selectedCategory = categoryFilter.value;
+
+        const rows = Array.from(tableBody.querySelectorAll("tr"));
+
+        let visibleCount = 0;
+
+        rows.forEach((row) => {
+          const rowText = row.textContent.toLowerCase();
+          const rowCategory = row.dataset.category;
+
+          const matchesKeyword = rowText.includes(keyword);
+
+          const matchesCategory =
+            selectedCategory === "all" || rowCategory === selectedCategory;
+
+          const isVisible = matchesKeyword && matchesCategory;
+
+          row.hidden = !isVisible;
+
+          if (isVisible) {
+            visibleCount++;
+          }
+        });
+
+        // Menampilkan pesan jika tidak ada hasil pencarian
+        emptyState.hidden = visibleCount !== 0;
+      }
+
+      // Menjalankan pencarian saat pengguna mengetik
+      searchInput.addEventListener("input", filterFacilities);
+
+      // Menjalankan filter saat kategori berubah
+      categoryFilter.addEventListener("change", filterFacilities);
+
+      // Tombol edit masih berupa antarmuka awal
+      document.querySelectorAll(".edit-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+          alert("Fitur edit akan dihubungkan dengan modul pengelolaan data.");
+        });
+      });
+
+      // Tombol hapus masih berupa antarmuka awal
+      document.querySelectorAll(".delete-btn").forEach((button) => {
+        button.addEventListener("click", () => {
+          alert("Fitur hapus akan dihubungkan dengan modul pengelolaan data.");
+        });
+      });
+    </script>
   </body>
 </html>
