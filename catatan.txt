@@ -1,0 +1,39 @@
+API/
+Tempat proses komunikasi antara halaman aplikasi dengan server, misalnya pengiriman OTP dan verifikasi akun.
+File yang terlihat: forgot-password.php, reset-password.php, send-otp.php, verify-otp.php.
+
+
+assets/
+simpan logo
+
+
+auth/
+Mengelola halaman akses akun pengguna.
+Forgot-Password/ → halaman lupa password.
+Login/ → halaman login.
+Register/ → halaman pendaftaran.
+Reset-Password/ → halaman penggantian password.
+Verify-OTP/ → halaman verifikasi OTP.
+
+
+config/
+Menyimpan konfigurasi aplikasi. Saat ini terlihat mail.php, kemungkinan untuk konfigurasi pengiriman email.
+
+
+vendor/
+Tempat library PHP dari Composer, termasuk PHPMailer untuk pengiriman email.
+
+file:
+.gitignore : Mengatur file yang tidak ikut masuk Git
+composer.json : Daftar library dan dependensi PHP
+composer.lock : Mengunci versi dependensi
+koneksi.php : konfigurasi koneksi database
+test-email.php : Pengujian pengiriman email
+test-koneksi.php : Pengujian koneksi database
+
+
+Bagaimana semua folder tersebut saling berhubungan?
+1. SIPFAS
+2. Auth (Login & Register) & API (Proses backend)
+3. Admin (Kelola sistem), Petugas (Tindak lanjut), Pelapor (Input laporan)
+4. Database MySQL (Penyimpanan data SIPFAS)

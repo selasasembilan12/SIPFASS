@@ -3,10 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <title>Manajemen Pengguna | SIPFAS</title>
 
-    <!-- FONT GLOBAL SIPFAS -->
+    <!-- FONT INTER -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -14,35 +13,32 @@
       rel="stylesheet"
     />
 
-    <!-- LOGO GLOBAL SIPFAS -->
+    <!-- LOGO GLOBAL DAN CSS HALAMAN -->
     <link rel="stylesheet" href="../../../assets/css/logo.css" />
-
-    <!-- CSS HALAMAN MANAJEMEN PENGGUNA -->
     <link rel="stylesheet" href="Manajemen-Pengguna.css" />
   </head>
 
   <body>
-    <div class="app-layout">
-      <!-- =====================================================
-         SIDEBAR NAVIGASI
-    ====================================================== -->
+    <!-- KONTROL MODAL -->
+    <input type="checkbox" id="add-user-modal" class="modal-toggle" />
+    <input type="checkbox" id="edit-user-modal" class="action-modal-toggle" />
+    <input type="checkbox" id="delete-user-modal" class="action-modal-toggle" />
 
+    <div class="app-layout">
+      <!-- SIDEBAR -->
       <aside class="sidebar">
-        <!-- LOGO DAN IDENTITAS SIPFAS -->
         <a href="../Dashboard/Dashboard.html" class="sidebar-logo">
           <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS" />
-
           <div class="sidebar-brand">
             <strong>SIPFAS</strong>
             <span>Informatika UNKHAIR</span>
           </div>
         </a>
 
-        <!-- GARIS PUTIH DI BAWAH LOGO -->
         <div class="sidebar-brand-divider"></div>
 
-        <!-- MENU UTAMA -->
         <nav class="sidebar-nav">
+          <!-- MENU UTAMA -->
           <div class="nav-group">
             <p class="nav-title">MENU UTAMA</p>
 
@@ -55,7 +51,6 @@
                   <rect x="14" y="14" width="7" height="7" rx="1" />
                 </svg>
               </span>
-
               <span>Dashboard</span>
             </a>
           </div>
@@ -64,7 +59,6 @@
           <div class="nav-group">
             <p class="nav-title">MANAJEMEN DATA</p>
 
-            <!-- MANAJEMEN PENGGUNA AKTIF -->
             <a href="Manajemen-Pengguna.html" class="nav-link active">
               <span class="nav-icon">
                 <svg viewBox="0 0 24 24">
@@ -74,11 +68,9 @@
                   <path d="M21 21v-2a4 4 0 0 0-3-3.87" />
                 </svg>
               </span>
-
               <span>Manajemen Pengguna</span>
             </a>
 
-            <!-- KATEGORI FASILITAS -->
             <a
               href="../Kategori-Fasilitas/Kategori-Fasilitas.html"
               class="nav-link"
@@ -90,11 +82,9 @@
                   <circle cx="17" cy="17" r="3" />
                 </svg>
               </span>
-
               <span>Kategori Fasilitas</span>
             </a>
 
-            <!-- DATA FASILITAS -->
             <a href="../Data-Fasilitas/Data-Fasilitas.html" class="nav-link">
               <span class="nav-icon">
                 <svg viewBox="0 0 24 24">
@@ -103,7 +93,6 @@
                   <rect x="15" y="12" width="7" height="9" rx="1" />
                 </svg>
               </span>
-
               <span>Data Fasilitas</span>
             </a>
           </div>
@@ -112,7 +101,6 @@
           <div class="nav-group">
             <p class="nav-title">KLASIFIKASI C4.5</p>
 
-            <!-- DATASET -->
             <a
               href="../../Dashboard-Lanjutan/Dataset-C45/dataset-c45.html"
               class="nav-link"
@@ -123,11 +111,9 @@
                   <path d="M3 9h18M3 15h18M9 3v18" />
                 </svg>
               </span>
-
               <span>Dataset C4.5</span>
             </a>
 
-            <!-- PELATIHAN -->
             <a
               href="../../Dashboard-Lanjutan/Pelatihan-C45/pelatihan-c45.html"
               class="nav-link"
@@ -136,16 +122,14 @@
                 <svg viewBox="0 0 24 24">
                   <path d="M9 18h6M10 21h4" />
                   <path
-                    d="M12 2a7 7 0 0 0-5 11.9V16a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2.1A7 7 0 0 0 12 2z"
+                    d="M12 2a7 7 0 0 0-5 11.9V16a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2.1A7 7 0 0 0 12 2Z"
                   />
                   <path d="M12 14v-5m-2.5 2.5L12 9l2.5 2.5" />
                 </svg>
               </span>
-
               <span>Pelatihan C4.5</span>
             </a>
 
-            <!-- HASIL PENGUJIAN -->
             <a
               href="../../Dashboard-Lanjutan/Hasil-Pengujian/hasil-pengujian.html"
               class="nav-link"
@@ -156,7 +140,6 @@
                   <path d="M7 16v-4M12 16V7M17 16v-7" />
                 </svg>
               </span>
-
               <span>Hasil Pengujian</span>
             </a>
           </div>
@@ -175,20 +158,15 @@
                   <path d="M14 2.5V8h5M9 13h7M9 17h7" />
                 </svg>
               </span>
-
               <span>Laporan Pemeliharaan</span>
             </a>
           </div>
         </nav>
 
-        <!-- =====================================================
-           MENU AKUN
-      ====================================================== -->
-
+        <!-- MENU AKUN -->
         <div class="sidebar-bottom">
           <p class="nav-title">AKUN</p>
 
-          <!-- PROFIL -->
           <a href="../Profil-Saya/profil-saya.html" class="nav-link">
             <span class="nav-icon">
               <svg viewBox="0 0 24 24">
@@ -196,11 +174,9 @@
                 <path d="M5 20c.7-3 3.2-4.5 7-4.5s6.3 1.5 7 4.5" />
               </svg>
             </span>
-
             <span>Profil Saya</span>
           </a>
 
-          <!-- KELUAR -->
           <a href="#" class="nav-link">
             <span class="nav-icon">
               <svg viewBox="0 0 24 24">
@@ -208,29 +184,22 @@
                 <path d="M14 8L18 12L14 16M18 12H9" />
               </svg>
             </span>
-
             <span>Keluar</span>
           </a>
         </div>
       </aside>
 
-      <!-- =====================================================
-         MAIN AREA
-    ====================================================== -->
-
+      <!-- AREA KONTEN -->
       <div class="main-area">
         <!-- TOPBAR -->
         <header class="topbar">
           <div class="topbar-system">
             <span class="topbar-dot"></span>
-
-            <span> SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS </span>
+            <span>SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS</span>
           </div>
 
-          <!-- IDENTITAS ADMIN -->
           <a href="../Profil-Saya/profil-saya.html" class="topbar-user">
-            <span class="topbar-user-name"> Ahmad Fauzi, S.Kom. </span>
-
+            <span class="topbar-user-name">Ahmad Fauzi, S.Kom.</span>
             <span class="topbar-user-avatar">
               <svg viewBox="0 0 24 24">
                 <circle cx="12" cy="8.5" r="3.5" />
@@ -240,10 +209,7 @@
           </a>
         </header>
 
-        <!-- =====================================================
-           KONTEN UTAMA
-      ====================================================== -->
-
+        <!-- KONTEN UTAMA -->
         <main class="content">
           <!-- HEADER HALAMAN -->
           <section class="page-header">
@@ -253,24 +219,26 @@
                 <span>›</span>
                 <span>Manajemen Data</span>
                 <span>›</span>
-
-                <span class="breadcrumb-active"> Manajemen Pengguna </span>
+                <span class="breadcrumb-active">Manajemen Pengguna</span>
               </div>
-
               <h1>Manajemen Pengguna</h1>
             </div>
+
+            <label for="add-user-modal" class="add-user-btn">
+              <svg viewBox="0 0 24 24">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+                <circle cx="9.5" cy="7" r="3.5" />
+                <path d="M19 8v6M16 11h6" />
+              </svg>
+              Tambah Pengguna
+            </label>
           </section>
 
-          <!-- =====================================================
-             RINGKASAN PENGGUNA
-        ====================================================== -->
-
+          <!-- RINGKASAN PENGGUNA -->
           <section class="summary-grid">
-            <!-- TOTAL PENGGUNA -->
             <article class="summary-card">
               <div class="summary-card-top">
                 <p>Total Pengguna</p>
-
                 <span class="summary-card-icon">
                   <svg viewBox="0 0 24 24">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
@@ -280,23 +248,16 @@
                   </svg>
                 </span>
               </div>
-
-              <div class="summary-number">
-                48
-                <small>Akun Terdaftar</small>
-              </div>
-
+              <div class="summary-number">48 <small>Akun Terdaftar</small></div>
               <div class="summary-card-bottom">
                 <i class="meta-bullet"></i>
                 Database Pengguna
               </div>
             </article>
 
-            <!-- PETUGAS SARPRAS -->
             <article class="summary-card">
               <div class="summary-card-top">
                 <p>Petugas Sarpras</p>
-
                 <span class="summary-card-icon">
                   <svg viewBox="0 0 24 24">
                     <circle cx="9" cy="7" r="3" />
@@ -305,23 +266,16 @@
                   </svg>
                 </span>
               </div>
-
-              <div class="summary-number">
-                10
-                <small>Teknisi / Staf</small>
-              </div>
-
+              <div class="summary-number">10 <small>Teknisi / Staf</small></div>
               <div class="summary-card-bottom">
                 <i class="meta-bullet"></i>
                 Verifikator &amp; Pelaksana
               </div>
             </article>
 
-            <!-- PELAPOR -->
             <article class="summary-card">
               <div class="summary-card-top">
                 <p>Pelapor</p>
-
                 <span class="summary-card-icon">
                   <svg viewBox="0 0 24 24">
                     <path d="M3 10v4h4l5 4V6l-5 4H3z" />
@@ -330,12 +284,7 @@
                   </svg>
                 </span>
               </div>
-
-              <div class="summary-number">
-                35
-                <small>Orang</small>
-              </div>
-
+              <div class="summary-number">35 <small>Orang</small></div>
               <div class="summary-card-bottom">
                 <i class="meta-bullet"></i>
                 Input Kerusakan
@@ -343,27 +292,20 @@
             </article>
           </section>
 
-          <!-- =====================================================
-             PANEL TABEL PENGGUNA
-        ====================================================== -->
-
+          <!-- PANEL TABEL PENGGUNA -->
           <section class="user-panel">
-            <!-- SEARCH DAN FILTER -->
             <div class="filter-bar">
-              <!-- PENCARIAN -->
               <label class="search-box">
                 <svg viewBox="0 0 24 24">
                   <circle cx="10.5" cy="10.5" r="6.5" />
                   <path d="M16 16l5 5" />
                 </svg>
-
                 <input
                   type="search"
                   placeholder="Cari nama lengkap, NIM, NIP, atau email..."
                 />
               </label>
 
-              <!-- FILTER PENGGUNA -->
               <div class="filter-actions">
                 <select>
                   <option>Semua Peran (48)</option>
@@ -380,13 +322,9 @@
               </div>
             </div>
 
-            <!-- =================================================
-               TABEL DATA PENGGUNA
-          ================================================== -->
-
+            <!-- TABEL DATA PENGGUNA -->
             <div class="table-wrap">
               <table class="user-table">
-                <!-- LEBAR KOLOM -->
                 <colgroup>
                   <col class="col-no" />
                   <col class="col-name" />
@@ -397,7 +335,6 @@
                   <col class="col-action" />
                 </colgroup>
 
-                <!-- HEADER TABEL -->
                 <thead>
                   <tr>
                     <th>NO</th>
@@ -410,215 +347,212 @@
                   </tr>
                 </thead>
 
-                <!-- ISI TABEL -->
                 <tbody>
-                  <!-- DATA 1 -->
+                  <!-- PENGGUNA 1 -->
                   <tr>
                     <td>1</td>
-
-                    <td>
-                      <strong>Ahmad Fauzi, S.Kom., M.Cs.</strong>
-                    </td>
-
+                    <td><strong>Ahmad Fauzi, S.Kom., M.Cs.</strong></td>
                     <td class="identity">198804122019031008</td>
-
                     <td>ahmad.fauzi@unkhair.ac.id</td>
-
                     <td>
-                      <span class="role-badge role-admin"> Administrator </span>
+                      <span class="role-badge role-admin">Administrator</span>
                     </td>
-
                     <td>
-                      <span class="status-badge status-active"> Aktif </span>
+                      <span class="status-badge status-active">Aktif</span>
                     </td>
-
                     <td>
                       <div class="action-buttons">
-                        <button class="action-btn" title="Edit">
+                        <label
+                          for="edit-user-modal"
+                          class="action-btn"
+                          title="Edit"
+                        >
                           <svg viewBox="0 0 24 24">
                             <path
                               d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4z"
                             />
                           </svg>
-                        </button>
+                        </label>
 
-                        <button class="action-btn delete-btn" title="Hapus">
+                        <label
+                          for="delete-user-modal"
+                          class="action-btn delete-btn"
+                          title="Hapus"
+                        >
                           <svg viewBox="0 0 24 24">
                             <path
                               d="M4 7h16M10 11v6m4-6v6M5 7l1 14h12l1-14M9 7V4h6v3"
                             />
                           </svg>
-                        </button>
+                        </label>
                       </div>
                     </td>
                   </tr>
 
-                  <!-- DATA 2 -->
+                  <!-- PENGGUNA 2 -->
                   <tr>
                     <td>2</td>
-
-                    <td>
-                      <strong>Irwan Halim, A.Md.T.</strong>
-                    </td>
-
+                    <td><strong>Irwan Halim, A.Md.T.</strong></td>
                     <td class="identity">199208152022011002</td>
-
                     <td>irwan.teknisi@unkhair.ac.id</td>
-
                     <td>
-                      <span class="role-badge role-petugas">
-                        Petugas Sarpras
-                      </span>
+                      <span class="role-badge role-petugas"
+                        >Petugas Sarpras</span
+                      >
                     </td>
-
                     <td>
-                      <span class="status-badge status-active"> Aktif </span>
+                      <span class="status-badge status-active">Aktif</span>
                     </td>
-
                     <td>
                       <div class="action-buttons">
-                        <button class="action-btn" title="Edit">
+                        <label
+                          for="edit-user-modal"
+                          class="action-btn"
+                          title="Edit"
+                        >
                           <svg viewBox="0 0 24 24">
                             <path
                               d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4z"
                             />
                           </svg>
-                        </button>
+                        </label>
 
-                        <button class="action-btn delete-btn" title="Hapus">
+                        <label
+                          for="delete-user-modal"
+                          class="action-btn delete-btn"
+                          title="Hapus"
+                        >
                           <svg viewBox="0 0 24 24">
                             <path
                               d="M4 7h16M10 11v6m4-6v6M5 7l1 14h12l1-14M9 7V4h6v3"
                             />
                           </svg>
-                        </button>
+                        </label>
                       </div>
                     </td>
                   </tr>
 
-                  <!-- DATA 3 -->
+                  <!-- PENGGUNA 3 -->
                   <tr>
                     <td>3</td>
-
-                    <td>
-                      <strong>Dr. Nurul Syafitri, M.T.</strong>
-                    </td>
-
+                    <td><strong>Dr. Nurul Syafitri, M.T.</strong></td>
                     <td class="identity">198203102008122001</td>
-
                     <td>nurul.syafitri@unkhair.ac.id</td>
-
                     <td>
-                      <span class="role-badge role-pelapor"> Pelapor </span>
+                      <span class="role-badge role-pelapor">Pelapor</span>
                     </td>
-
                     <td>
-                      <span class="status-badge status-active"> Aktif </span>
+                      <span class="status-badge status-active">Aktif</span>
                     </td>
-
                     <td>
                       <div class="action-buttons">
-                        <button class="action-btn" title="Edit">
+                        <label
+                          for="edit-user-modal"
+                          class="action-btn"
+                          title="Edit"
+                        >
                           <svg viewBox="0 0 24 24">
                             <path
                               d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4z"
                             />
                           </svg>
-                        </button>
+                        </label>
 
-                        <button class="action-btn delete-btn" title="Hapus">
+                        <label
+                          for="delete-user-modal"
+                          class="action-btn delete-btn"
+                          title="Hapus"
+                        >
                           <svg viewBox="0 0 24 24">
                             <path
                               d="M4 7h16M10 11v6m4-6v6M5 7l1 14h12l1-14M9 7V4h6v3"
                             />
                           </svg>
-                        </button>
+                        </label>
                       </div>
                     </td>
                   </tr>
 
-                  <!-- DATA 4 -->
+                  <!-- PENGGUNA 4 -->
                   <tr>
                     <td>4</td>
-
-                    <td>
-                      <strong>Muhammad Rizky Pratama</strong>
-                    </td>
-
+                    <td><strong>Muhammad Rizky Pratama</strong></td>
                     <td class="identity">07352011045</td>
-
                     <td>m.rizky0735@student.unkhair.ac.id</td>
-
                     <td>
-                      <span class="role-badge role-pelapor"> Pelapor </span>
+                      <span class="role-badge role-pelapor">Pelapor</span>
                     </td>
-
                     <td>
-                      <span class="status-badge status-active"> Aktif </span>
+                      <span class="status-badge status-active">Aktif</span>
                     </td>
-
                     <td>
                       <div class="action-buttons">
-                        <button class="action-btn" title="Edit">
+                        <label
+                          for="edit-user-modal"
+                          class="action-btn"
+                          title="Edit"
+                        >
                           <svg viewBox="0 0 24 24">
                             <path
                               d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4z"
                             />
                           </svg>
-                        </button>
+                        </label>
 
-                        <button class="action-btn delete-btn" title="Hapus">
+                        <label
+                          for="delete-user-modal"
+                          class="action-btn delete-btn"
+                          title="Hapus"
+                        >
                           <svg viewBox="0 0 24 24">
                             <path
                               d="M4 7h16M10 11v6m4-6v6M5 7l1 14h12l1-14M9 7V4h6v3"
                             />
                           </svg>
-                        </button>
+                        </label>
                       </div>
                     </td>
                   </tr>
 
-                  <!-- DATA 5 -->
+                  <!-- PENGGUNA 5 -->
                   <tr>
                     <td>5</td>
-
-                    <td>
-                      <strong>Fajar Kurniawan, S.T.</strong>
-                    </td>
-
+                    <td><strong>Fajar Kurniawan, S.T.</strong></td>
                     <td class="identity">198906202021021004</td>
-
                     <td>fajar.k@unkhair.ac.id</td>
-
                     <td>
-                      <span class="role-badge role-petugas">
-                        Petugas Sarpras
-                      </span>
+                      <span class="role-badge role-petugas"
+                        >Petugas Sarpras</span
+                      >
                     </td>
-
                     <td>
-                      <span class="status-badge status-inactive">
-                        Nonaktif
-                      </span>
+                      <span class="status-badge status-inactive">Nonaktif</span>
                     </td>
-
                     <td>
                       <div class="action-buttons">
-                        <button class="action-btn" title="Edit">
+                        <label
+                          for="edit-user-modal"
+                          class="action-btn"
+                          title="Edit"
+                        >
                           <svg viewBox="0 0 24 24">
                             <path
                               d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4z"
                             />
                           </svg>
-                        </button>
+                        </label>
 
-                        <button class="action-btn delete-btn" title="Hapus">
+                        <label
+                          for="delete-user-modal"
+                          class="action-btn delete-btn"
+                          title="Hapus"
+                        >
                           <svg viewBox="0 0 24 24">
                             <path
                               d="M4 7h16M10 11v6m4-6v6M5 7l1 14h12l1-14M9 7V4h6v3"
                             />
                           </svg>
-                        </button>
+                        </label>
                       </div>
                     </td>
                   </tr>
@@ -626,30 +560,252 @@
               </table>
             </div>
 
-            <!-- =================================================
-               PAGINATION
-          ================================================== -->
-
+            <!-- PAGINATION -->
             <div class="panel-foot">
               <div class="pagination">
-                <button disabled>‹</button>
-
-                <button class="active">1</button>
-
-                <button>2</button>
-
-                <button>3</button>
-
+                <button type="button" disabled>‹</button>
+                <button type="button" class="active">1</button>
+                <button type="button">2</button>
+                <button type="button">3</button>
                 <span>...</span>
-
-                <button>10</button>
-
-                <button>›</button>
+                <button type="button">10</button>
+                <button type="button">›</button>
               </div>
             </div>
           </section>
         </main>
       </div>
+    </div>
+
+    <!-- ================================= -->
+    <!-- MODAL TAMBAH PENGGUNA -->
+    <!-- ================================= -->
+
+    <div class="modal-overlay">
+      <label for="add-user-modal" class="modal-backdrop"></label>
+
+      <section class="modal-card">
+        <div class="modal-header">
+          <div>
+            <h2>Tambah Pengguna</h2>
+            <p>Masukkan informasi pengguna baru SIPFAS.</p>
+          </div>
+
+          <label for="add-user-modal" class="modal-close" title="Tutup">
+            &times;
+          </label>
+        </div>
+
+        <div class="modal-body">
+          <form class="user-form">
+            <div class="form-group">
+              <label for="nama">Nama Lengkap <span>*</span></label>
+              <input
+                type="text"
+                id="nama"
+                placeholder="Masukkan nama lengkap"
+                required
+              />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="identity">NIM / NIP <span>*</span></label>
+                <input
+                  type="text"
+                  id="identity"
+                  placeholder="Masukkan NIM / NIP"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="username">Username <span>*</span></label>
+                <input
+                  type="text"
+                  id="username"
+                  placeholder="Buat username"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Alamat Email <span>*</span></label>
+              <input
+                type="email"
+                id="email"
+                placeholder="nama@email.com"
+                required
+              />
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="password">Password <span>*</span></label>
+                <input
+                  type="password"
+                  id="password"
+                  placeholder="Masukkan password"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="role">Peran Pengguna <span>*</span></label>
+                <select id="role" required>
+                  <option value="">Pilih peran</option>
+                  <option value="Administrator">Administrator</option>
+                  <option value="Petugas Sarpras">Petugas Sarpras</option>
+                  <option value="Pelapor">Pelapor</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="status">Status Akun</label>
+              <select id="status">
+                <option value="Aktif">Aktif</option>
+                <option value="Nonaktif">Nonaktif</option>
+              </select>
+            </div>
+
+            <div class="modal-footer">
+              <label for="add-user-modal" class="cancel-btn">Batal</label>
+              <button type="button" class="save-btn">Simpan Pengguna</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================================= -->
+    <!-- MODAL EDIT PENGGUNA -->
+    <!-- ================================= -->
+
+    <div class="action-modal edit-modal">
+      <label for="edit-user-modal" class="action-modal-backdrop"></label>
+
+      <section class="action-modal-card">
+        <div class="action-modal-header">
+          <div>
+            <h2>Edit Pengguna</h2>
+            <p>Perbarui informasi akun pengguna SIPFAS.</p>
+          </div>
+
+          <label for="edit-user-modal" class="action-modal-close" title="Tutup">
+            &times;
+          </label>
+        </div>
+
+        <div class="action-modal-body">
+          <form class="edit-user-form">
+            <div class="edit-form-group">
+              <label for="edit-nama">Nama Lengkap <span>*</span></label>
+              <input
+                type="text"
+                id="edit-nama"
+                placeholder="Masukkan nama lengkap"
+                required
+              />
+            </div>
+
+            <div class="edit-form-row">
+              <div class="edit-form-group">
+                <label for="edit-identity">NIM / NIP <span>*</span></label>
+                <input
+                  type="text"
+                  id="edit-identity"
+                  placeholder="Masukkan NIM / NIP"
+                  required
+                />
+              </div>
+
+              <div class="edit-form-group">
+                <label for="edit-username">Username <span>*</span></label>
+                <input
+                  type="text"
+                  id="edit-username"
+                  placeholder="Masukkan username"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="edit-form-group">
+              <label for="edit-email">Alamat Email <span>*</span></label>
+              <input
+                type="email"
+                id="edit-email"
+                placeholder="nama@email.com"
+                required
+              />
+            </div>
+
+            <div class="edit-form-row">
+              <div class="edit-form-group">
+                <label for="edit-role">Peran Pengguna <span>*</span></label>
+                <select id="edit-role" required>
+                  <option value="Administrator">Administrator</option>
+                  <option value="Petugas Sarpras">Petugas Sarpras</option>
+                  <option value="Pelapor">Pelapor</option>
+                </select>
+              </div>
+
+              <div class="edit-form-group">
+                <label for="edit-status">Status Akun</label>
+                <select id="edit-status">
+                  <option value="Aktif">Aktif</option>
+                  <option value="Nonaktif">Nonaktif</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="action-modal-footer">
+              <label for="edit-user-modal" class="action-cancel-btn">
+                Batal
+              </label>
+
+              <button type="button" class="action-save-btn">
+                Simpan Perubahan
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================================= -->
+    <!-- MODAL KONFIRMASI HAPUS -->
+    <!-- ================================= -->
+
+    <div class="action-modal delete-modal">
+      <label for="delete-user-modal" class="action-modal-backdrop"></label>
+
+      <section class="delete-modal-card">
+        <div class="delete-warning-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3L22 20H2L12 3Z" />
+            <path d="M12 9v5" />
+            <circle cx="12" cy="17" r=".7" />
+          </svg>
+        </div>
+
+        <h2>Hapus Pengguna?</h2>
+
+        <p>
+          Apakah Anda yakin ingin menghapus pengguna ini? Data pengguna yang
+          dihapus tidak dapat dikembalikan.
+        </p>
+
+        <div class="delete-modal-footer">
+          <label for="delete-user-modal" class="action-cancel-btn">
+            Batal
+          </label>
+
+          <button type="button" class="action-delete-confirm">Ya, Hapus</button>
+        </div>
+      </section>
     </div>
   </body>
 </html>

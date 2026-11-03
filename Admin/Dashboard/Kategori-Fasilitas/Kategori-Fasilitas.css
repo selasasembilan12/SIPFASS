@@ -1063,3 +1063,434 @@ svg {
     font-size: 6px;
   }
 }
+
+/* =========================================================
+   23. MODAL EDIT DAN HAPUS KATEGORI
+========================================================= */
+
+/* KONTROL CHECKBOX */
+
+.modal-toggle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* OVERLAY MODAL */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(20, 37, 58, 0.48);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease;
+}
+
+/* MODAL MUNCUL KETIKA CHECKBOX AKTIF */
+
+#edit-category-modal:checked ~ .edit-modal-overlay,
+#delete-category-modal:checked ~ .delete-modal-overlay {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* BACKDROP */
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+/* KARTU MODAL */
+
+.modal-card {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  max-width: 530px;
+  max-height: 90vh;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border: 1px solid rgba(230, 235, 243, 0.9);
+  border-radius: 12px;
+
+  box-shadow: 0 20px 60px rgba(15, 35, 60, 0.2);
+
+  transform: translateY(12px) scale(0.98);
+
+  transition: transform 0.25s ease;
+}
+
+#edit-category-modal:checked ~ .edit-modal-overlay .modal-card,
+#delete-category-modal:checked ~ .delete-modal-overlay .modal-card {
+  transform: translateY(0) scale(1);
+}
+
+/* HEADER MODAL */
+
+.modal-header {
+  min-height: 72px;
+
+  padding: 17px 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  border-bottom: 1px solid #edf0f4;
+}
+
+.modal-header h2 {
+  color: #193858;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  letter-spacing: -0.2px;
+}
+
+.modal-header p {
+  margin-top: 3px;
+
+  color: #7c8795;
+
+  font-size: 9px;
+  font-weight: 400;
+}
+
+/* TOMBOL TUTUP */
+
+.modal-close {
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 6px;
+
+  color: #7b8490;
+
+  font-size: 22px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.modal-close:hover {
+  background: #f0f2f5;
+  color: #dc3545;
+}
+
+/* BODY MODAL */
+
+.modal-body {
+  padding: 20px 22px 18px;
+
+  overflow-y: auto;
+}
+
+/* FORM */
+
+.category-form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  min-width: 0;
+}
+
+.form-group label {
+  color: #354153;
+
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.form-group label span {
+  color: #e5484d;
+}
+
+/* INPUT DAN SELECT */
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  min-height: 37px;
+
+  padding: 9px 11px;
+
+  border: 1px solid #dfe5ed;
+  border-radius: 6px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: #354153;
+
+  font-family: inherit;
+  font-size: 9px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.form-group textarea {
+  min-height: 75px;
+
+  resize: vertical;
+
+  line-height: 1.6;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--primary);
+
+  box-shadow: 0 0 0 3px rgba(7, 88, 232, 0.08);
+}
+
+.form-group input[readonly] {
+  background: #f3f5f8;
+
+  color: #758092;
+
+  cursor: not-allowed;
+}
+
+.form-group small {
+  color: #8993a0;
+
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+/* FORM DUA KOLOM */
+
+.form-row {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+/* FOOTER MODAL */
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 8px;
+
+  padding-top: 15px;
+
+  margin-top: 3px;
+
+  border-top: 1px solid #edf0f4;
+}
+
+/* TOMBOL BATAL */
+
+.cancel-btn {
+  min-width: 62px;
+  height: 34px;
+
+  padding: 0 13px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #dfe5ed;
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  color: #657181;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: #f3f5f8;
+
+  border-color: #cbd3df;
+
+  color: #354153;
+}
+
+/* TOMBOL SIMPAN */
+
+.save-btn {
+  min-width: 115px;
+  height: 34px;
+
+  padding: 0 14px;
+
+  border-radius: 6px;
+
+  background: var(--primary);
+
+  color: #ffffff;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  transition: background 0.2s ease;
+}
+
+.save-btn:hover {
+  background: var(--primary-hover);
+}
+
+/* =========================================================
+   24. MODAL KONFIRMASI HAPUS
+========================================================= */
+
+.delete-confirm-card {
+  max-width: 420px;
+}
+
+.delete-confirm-text {
+  color: #465160;
+
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.delete-confirm-text strong {
+  color: #203f65;
+  font-weight: 700;
+}
+
+.delete-warning {
+  margin-top: 14px;
+
+  padding: 11px 12px;
+
+  border: 1px solid #f5dfb5;
+  border-radius: 6px;
+
+  background: #fff9ed;
+
+  color: #91651b;
+
+  font-size: 9px;
+  line-height: 1.7;
+}
+
+/* TOMBOL KONFIRMASI HAPUS */
+
+.confirm-delete-btn {
+  min-width: 90px;
+  height: 34px;
+
+  padding: 0 13px;
+
+  border-radius: 6px;
+
+  background: #dc3545;
+
+  color: #ffffff;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  transition: background 0.2s ease;
+}
+
+.confirm-delete-btn:hover {
+  background: #bd2635;
+}
+
+/* =========================================================
+   25. RESPONSIVE MODAL
+========================================================= */
+
+@media (max-width: 600px) {
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal-card {
+    max-width: 100%;
+    max-height: 92vh;
+
+    border-radius: 10px;
+  }
+
+  .modal-header {
+    padding: 15px;
+  }
+
+  .modal-body {
+    padding: 16px 15px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-header h2 {
+    font-size: 14px;
+  }
+
+  .modal-footer {
+    flex-wrap: wrap;
+  }
+}

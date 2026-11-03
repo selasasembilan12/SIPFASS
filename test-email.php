@@ -35,7 +35,7 @@ try {
     );
 
     // GANTI dengan alamat email penerima untuk pengujian
-    $mail->addAddress('acamochsal5@gmail.com');
+    $mail->addAddress('putryazzahra120@gmail.com');
 
     // Isi email pengujian
     $mail->isHTML(true);
@@ -43,10 +43,7 @@ try {
     $mail->Subject = 'Pengujian Email SIPFAS';
 
     $mail->Body = '
-        <h2>Halo!</h2>
-        <p>Email pengujian dari sistem SIPFAS berhasil dikirim.</p>
-        <p>Konfigurasi SMTP dan PHPMailer berhasil terhubung.</p>
-        <b>SIPFAS - Sistem Informasi Pengelolaan Pemeliharaan Fasilitas</b>
+        <h2>YAYYYYYYYYYYYY BERHASIL!</h2>
     ';
 
     $mail->AltBody = 'Email pengujian dari SIPFAS berhasil dikirim.';
