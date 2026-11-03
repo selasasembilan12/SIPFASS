@@ -1,0 +1,1315 @@
+/* =========================================================
+   SIPFAS - DATASET C4.5 ADMIN
+   File: dataset-c45.css
+
+   Fungsi utama:
+   1. Mengatur keseluruhan tampilan halaman Dataset C4.5.
+   2. Mengatur sidebar dan navigasi (sama dengan Dashboard).
+   3. Mengatur topbar dan identitas pengguna.
+   4. Mengatur kartu statistik dataset.
+   5. Mengatur panel pedoman pembobotan matematis.
+   6. Mengatur pencarian, filter, dan tabel dataset.
+   7. Mengatur tampilan responsif.
+
+   Font utama: Inter
+   Warna utama: Navy dan Blue
+========================================================= */
+
+/* =========================================================
+   01. VARIABEL GLOBAL
+   Fungsi:
+   Menyimpan warna, ukuran, dan radius yang digunakan
+   berulang kali. Nilainya sama dengan Dashboard.css.
+========================================================= */
+
+:root {
+  --font-main: "Inter", sans-serif;
+
+  /* Warna sidebar */
+  --navy: #203f65;
+  --navy-dark: #193858;
+
+  /* Warna tombol dan elemen aktif */
+  --primary: #0758e8;
+  --primary-hover: #064bc4;
+
+  /* Warna latar */
+  --page-bg: #f4f7fb;
+  --white: #ffffff;
+
+  /* Warna teks */
+  --text-main: #20262d;
+  --text-secondary: #68717c;
+  --text-muted: #929ba7;
+
+  /* Garis dan tabel */
+  --border: #edf0f4;
+  --table-head: #f0f2f5;
+  --field-bg: #f1f3f6;
+
+  /* Warna status */
+  --blue-soft: #dfe5ff;
+  --red-soft: #ffe1df;
+  --red-text: #d92d35;
+  --green-soft: #d3f6e8;
+  --green-text: #15845b;
+
+  /* Radius */
+  --radius-card: 10px;
+  --radius-panel: 11px;
+
+  /* Dimensi sidebar */
+  --sidebar-width: 190px;
+}
+
+/* =========================================================
+   02. RESET DAN PENGATURAN DASAR
+========================================================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-main);
+  background: var(--page-bg);
+  color: var(--text-main);
+
+  font-size: 12px;
+  line-height: 1.5;
+
+  min-width: 320px;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  fill: none;
+  stroke: currentColor;
+
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* =========================================================
+   03. LAYOUT UTAMA
+========================================================= */
+
+.app-layout {
+  display: flex;
+
+  width: 100%;
+  min-height: 100vh;
+
+  overflow-x: hidden;
+}
+
+/* =========================================================
+   04. SIDEBAR NAVIGASI
+========================================================= */
+
+.sidebar {
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  position: relative;
+  z-index: 10;
+
+  flex-shrink: 0;
+
+  background: var(--navy);
+  color: #dce7f5;
+}
+
+.sidebar::after {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  width: 1px;
+  height: 100%;
+
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-brand-divider {
+  width: 100%;
+  height: 1px;
+
+  flex-shrink: 0;
+
+  margin: 0 0 5px 0;
+
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* =========================================================
+   05. KELOMPOK MENU SIDEBAR
+========================================================= */
+
+.nav-group {
+  padding: 0 11px;
+  margin-top: 8px;
+}
+
+.nav-title {
+  color: #91aac7;
+
+  font-size: 7px;
+  font-weight: 700;
+
+  letter-spacing: 0.45px;
+
+  padding: 8px 5px 6px;
+}
+
+.nav-link {
+  width: 100%;
+  min-height: 26px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 5px 8px;
+  margin-bottom: 2px;
+
+  border-radius: 6px;
+
+  color: #d5e2f1;
+
+  font-size: 9px;
+  font-weight: 500;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: #ffffff;
+}
+
+/* Menu yang sedang dibuka */
+.nav-link.active {
+  background: var(--primary);
+  color: #ffffff;
+
+  font-weight: 700;
+}
+
+.nav-icon {
+  width: 13px;
+  height: 13px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+}
+
+.nav-icon svg {
+  width: 13px;
+  height: 13px;
+
+  stroke-width: 1.8;
+}
+
+/* =========================================================
+   06. MENU AKUN SIDEBAR
+========================================================= */
+
+.sidebar-bottom {
+  margin-top: auto;
+
+  padding: 8px 11px 9px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.sidebar-bottom .nav-title {
+  padding-top: 0;
+}
+
+/* =========================================================
+   07. AREA KONTEN UTAMA
+========================================================= */
+
+.main-area {
+  flex: 1;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================================================
+   08. TOPBAR / HEADER
+========================================================= */
+
+.topbar {
+  height: 54px;
+  min-height: 54px;
+
+  padding: 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-system {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  color: #58616c;
+
+  font-size: 8px;
+  font-weight: 500;
+
+  letter-spacing: 0.15px;
+}
+
+.topbar-dot {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: var(--primary);
+
+  flex-shrink: 0;
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+}
+
+.topbar-user-name {
+  color: #25303c;
+
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.topbar-user-avatar {
+  width: 23px;
+  height: 23px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.topbar-user-avatar svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 1.8;
+}
+
+/* =========================================================
+   09. AREA KONTEN DATASET
+   Fungsi:
+   Mengatur jarak konten dari sidebar dan topbar.
+========================================================= */
+
+.content {
+  flex: 1;
+  min-width: 0;
+
+  padding: 18px 24px 24px;
+}
+
+/* =========================================================
+   10. HEADER HALAMAN
+   Fungsi:
+   Menampilkan breadcrumb, judul halaman,
+   dan tombol Tambah Data Simulasi.
+========================================================= */
+
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 18px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  margin-bottom: 3px;
+
+  color: #7b8591;
+
+  font-size: 7px;
+  font-weight: 400;
+}
+
+.breadcrumb-active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.page-header h1 {
+  color: #152f4b;
+
+  font-size: 17px;
+  font-weight: 700;
+
+  line-height: 1.3;
+  letter-spacing: -0.35px;
+}
+
+/* Tombol Tambah Data Simulasi */
+.add-btn {
+  min-height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding: 0 16px;
+
+  border: 0;
+  border-radius: 6px;
+
+  background: var(--primary);
+  color: #ffffff;
+
+  font-size: 8px;
+  font-weight: 600;
+
+  transition: background 0.2s ease;
+}
+
+.add-btn:hover {
+  background: var(--primary-hover);
+}
+
+.add-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* =========================================================
+   11. GRID KARTU STATISTIK
+   Fungsi:
+   Menampilkan empat kartu statistik dalam satu baris.
+========================================================= */
+
+.summary-grid {
+  display: grid;
+
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  gap: 14px;
+
+  margin-bottom: 18px;
+}
+
+.summary-card {
+  min-width: 0;
+  min-height: 114px;
+
+  padding: 15px 16px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  background: var(--white);
+
+  border: 1px solid #eef1f5;
+  border-radius: var(--radius-card);
+}
+
+.summary-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 8px;
+}
+
+.summary-card-top p {
+  padding-top: 2px;
+
+  color: #515b67;
+
+  font-size: 8px;
+  font-weight: 600;
+}
+
+/* Judul kartu berwarna */
+.summary-card-top p.title-red {
+  color: var(--red-text);
+}
+
+.summary-card-top p.title-blue {
+  color: var(--primary);
+}
+
+/* Kotak ikon kartu */
+.summary-card-icon {
+  width: 23px;
+  height: 23px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 5px;
+
+  flex-shrink: 0;
+}
+
+.summary-card-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Variasi warna ikon */
+.summary-blue {
+  background: #dce5ff;
+  color: #1457e9;
+}
+
+.summary-red {
+  background: #ffe1e1;
+  color: #e34a53;
+}
+
+.summary-purple {
+  background: #dce2ff;
+  color: #203f75;
+}
+
+/* Angka utama kartu */
+.summary-number {
+  display: flex;
+  align-items: baseline;
+
+  gap: 6px;
+
+  color: #20262d;
+
+  font-size: 19px;
+  font-weight: 750;
+
+  line-height: 1.15;
+  letter-spacing: -0.4px;
+}
+
+.summary-number small {
+  color: #69727d;
+
+  font-size: 8px;
+  font-weight: 400;
+
+  letter-spacing: 0;
+}
+
+.summary-number.number-red {
+  color: var(--red-text);
+}
+
+/* Bar persentase pada bagian bawah kartu */
+.progress {
+  width: 100%;
+  height: 3px;
+
+  border-radius: 3px;
+
+  background: #e7eaee;
+
+  overflow: hidden;
+}
+
+.progress-bar {
+  display: block;
+
+  height: 100%;
+
+  border-radius: 3px;
+}
+
+.bar-navy {
+  background: #152f4b;
+}
+
+.bar-red {
+  background: var(--red-text);
+}
+
+.bar-blue {
+  background: var(--primary);
+}
+
+.bar-gray {
+  background: #6f7782;
+}
+
+/* Lebar bar sesuai persentase */
+.bar-w100 {
+  width: 100%;
+}
+
+.bar-w32 {
+  width: 32%;
+}
+
+.bar-w45 {
+  width: 45%;
+}
+
+.bar-w23 {
+  width: 23%;
+}
+
+/* =========================================================
+   12. PANEL PEDOMAN PEMBOBOTAN MATEMATIS
+   Fungsi:
+   Menampilkan formula skor dan aturan kategori
+   label prioritas (Y).
+========================================================= */
+
+.guide-panel {
+  margin-bottom: 18px;
+
+  padding: 14px;
+
+  background: #e9eefb;
+
+  border: 1px solid #dde5f6;
+  border-radius: var(--radius-panel);
+}
+
+.guide-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 11px;
+}
+
+.guide-title {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+}
+
+/* Kotak ikon sigma */
+.guide-icon {
+  width: 23px;
+  height: 23px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 5px;
+
+  background: #152f4b;
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  flex-shrink: 0;
+}
+
+.guide-title h2 {
+  color: #152f4b;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  line-height: 1.3;
+  letter-spacing: -0.2px;
+}
+
+.guide-title p {
+  color: #5f6b79;
+
+  font-size: 7px;
+  line-height: 1.4;
+}
+
+/* Tombol Dataset Penelitian */
+.guide-btn {
+  padding: 4px 10px;
+
+  border: 1px solid #e0e6f3;
+  border-radius: 4px;
+
+  background: #ffffff;
+  color: #3b4450;
+
+  font-size: 7px;
+  font-weight: 500;
+
+  white-space: nowrap;
+}
+
+.guide-btn:hover {
+  background: #f4f7fd;
+}
+
+.guide-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 11px;
+}
+
+.guide-card {
+  min-height: 92px;
+
+  padding: 12px 14px 8px;
+
+  background: #ffffff;
+
+  border: 1px solid #e3e9f6;
+  border-radius: 5px;
+}
+
+.guide-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 8px;
+
+  color: #3d4652;
+
+  font-size: 7px;
+  font-weight: 700;
+
+  letter-spacing: 0.2px;
+}
+
+.guide-card-icon {
+  width: 11px;
+  height: 11px;
+
+  display: flex;
+
+  color: var(--primary);
+}
+
+.guide-card-icon svg {
+  width: 11px;
+  height: 11px;
+}
+
+.formula {
+  margin-bottom: 14px;
+
+  color: #20262d;
+
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.formula-note {
+  color: #7b8591;
+
+  font-size: 7px;
+}
+
+.rule-row {
+  min-height: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  color: #59636e;
+
+  font-size: 7px;
+}
+
+/* =========================================================
+   13. LABEL PRIORITAS (Y)
+   Fungsi:
+   Membedakan label Rendah, Sedang, dan Tinggi.
+========================================================= */
+
+.priority {
+  min-width: 38px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 3px 7px;
+
+  border-radius: 3px;
+
+  font-size: 7px;
+  font-weight: 700;
+}
+
+.priority-high {
+  background: var(--red-soft);
+  color: var(--red-text);
+}
+
+.priority-medium {
+  background: var(--blue-soft);
+  color: #244fc5;
+}
+
+.priority-low {
+  background: var(--green-soft);
+  color: var(--green-text);
+}
+
+/* =========================================================
+   14. PANEL TABEL DATASET
+   Fungsi:
+   Membuat wadah putih untuk pencarian, filter, dan tabel.
+========================================================= */
+
+.panel {
+  width: 100%;
+
+  padding: 14px 14px 12px;
+
+  background: var(--white);
+
+  border: 1px solid #edf0f4;
+  border-radius: var(--radius-panel);
+
+  overflow: hidden;
+}
+
+/* Baris pencarian dan filter */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 12px;
+}
+
+.search-box {
+  width: 330px;
+  max-width: 100%;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 0 12px;
+
+  border-radius: 6px;
+
+  background: var(--field-bg);
+  color: #8a929c;
+}
+
+.search-box svg {
+  width: 12px;
+  height: 12px;
+
+  flex-shrink: 0;
+}
+
+.search-box input {
+  flex: 1;
+  min-width: 0;
+
+  border: 0;
+  outline: none;
+
+  background: transparent;
+  color: var(--text-main);
+
+  font-size: 8px;
+}
+
+.search-box input::placeholder {
+  color: #7b8591;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+}
+
+/* Dropdown filter */
+.dataset-filter {
+  width: 146px;
+  height: 32px;
+
+  padding: 0 10px;
+
+  border: 1px solid transparent;
+  border-radius: 6px;
+  outline: none;
+
+  background-color: var(--field-bg);
+  color: #4a525c;
+
+  font-size: 8px;
+  font-weight: 500;
+
+  text-align: center;
+  text-align-last: center;
+
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.dataset-filter:hover {
+  background-color: #e9edf3;
+}
+
+.dataset-filter:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(7, 88, 232, 0.1);
+}
+
+/* =========================================================
+   15. TABEL DATASET
+   Fungsi:
+   Mengatur kolom, header, baris data, dan ukuran teks.
+========================================================= */
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.dataset-table {
+  width: 100%;
+
+  border-collapse: collapse;
+  table-layout: fixed;
+
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Pembagian lebar kolom */
+.dataset-table th:nth-child(1) {
+  width: 8%;
+}
+.dataset-table th:nth-child(2) {
+  width: 24%;
+}
+.dataset-table th:nth-child(3) {
+  width: 12%;
+}
+.dataset-table th:nth-child(4) {
+  width: 10%;
+}
+.dataset-table th:nth-child(5) {
+  width: 12%;
+}
+.dataset-table th:nth-child(6) {
+  width: 12%;
+}
+.dataset-table th:nth-child(7) {
+  width: 14%;
+}
+.dataset-table th:nth-child(8) {
+  width: 8%;
+}
+
+.dataset-table thead {
+  background: var(--table-head);
+}
+
+.dataset-table th {
+  height: 27px;
+
+  padding: 0 13px;
+
+  color: #58616b;
+
+  font-size: 7px;
+  font-weight: 750;
+
+  letter-spacing: 0.1px;
+  text-align: left;
+}
+
+/* Kolom nilai, skor, label, dan aksi berada di tengah */
+.dataset-table th:nth-child(n + 3),
+.dataset-table td.center {
+  text-align: center;
+}
+
+.dataset-table td {
+  height: 42px;
+
+  padding: 5px 13px;
+
+  border-bottom: 1px solid #f0f2f6;
+
+  color: #59636e;
+
+  font-size: 8px;
+  font-weight: 400;
+
+  vertical-align: middle;
+}
+
+.dataset-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.dataset-table tbody tr:hover {
+  background: #fafbfd;
+}
+
+/* ID kasus */
+.case-id {
+  color: var(--primary);
+
+  font-family: "Courier New", monospace;
+  font-size: 7px;
+  font-weight: 700;
+}
+
+/* Jenis fasilitas */
+.dataset-table td.facility {
+  color: #303740;
+
+  font-size: 8px;
+  font-weight: 600;
+}
+
+/* Chip nilai X1, X2, dan X3 */
+.chip {
+  display: inline-block;
+
+  padding: 3px 8px;
+
+  border-radius: 3px;
+
+  background: #eceef1;
+  color: #3e4650;
+
+  font-size: 7px;
+  font-weight: 500;
+}
+
+/* Skor matematis */
+.score {
+  color: #20262d;
+
+  font-family: "Courier New", monospace;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+/* =========================================================
+   16. TOMBOL AKSI
+   Fungsi:
+   Mengatur ikon mata (detail) dan tempat sampah (hapus).
+========================================================= */
+
+.action-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+}
+
+.eye-btn,
+.trash-btn {
+  width: 13px;
+  height: 13px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #5b6570;
+}
+
+.eye-btn svg,
+.trash-btn svg {
+  width: 13px;
+  height: 13px;
+
+  stroke-width: 2;
+}
+
+.eye-btn:hover {
+  color: var(--primary);
+}
+
+.trash-btn:hover {
+  color: var(--red-text);
+}
+
+/* =========================================================
+   17. PAGINATION
+   Fungsi:
+   Mengatur tombol navigasi halaman tabel.
+========================================================= */
+
+.panel-foot {
+  min-height: 34px;
+
+  padding-top: 12px;
+
+  display: flex;
+  align-items: center;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+
+  gap: 3px;
+}
+
+.pagination button {
+  width: 20px;
+  height: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 4px;
+
+  background: #f0f2f5;
+  color: #66717c;
+
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.pagination button:hover {
+  background: #e3eaf7;
+}
+
+.pagination button.active {
+  background: var(--primary);
+  color: #ffffff;
+
+  font-weight: 700;
+}
+
+.pagination button:disabled {
+  color: #b3bac3;
+
+  cursor: default;
+}
+
+.pagination button:disabled:hover {
+  background: #f0f2f5;
+}
+
+.pagination-dots {
+  padding: 0 2px;
+
+  color: #8a929c;
+
+  font-size: 8px;
+}
+
+/* =========================================================
+   18. RESPONSIVE TABLET
+========================================================= */
+
+@media (max-width: 1100px) {
+  .sidebar {
+    width: 175px;
+    min-width: 175px;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .content {
+    padding: 15px;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .filter-group {
+    flex-wrap: wrap;
+  }
+
+  .dataset-table {
+    min-width: 900px;
+  }
+}
+
+/* =========================================================
+   19. RESPONSIVE MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+  .app-layout {
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: 0;
+    min-height: auto;
+  }
+
+  .sidebar-logo {
+    height: 50px;
+  }
+
+  .nav-group,
+  .sidebar-bottom {
+    display: none;
+  }
+
+  .topbar {
+    height: 48px;
+    min-height: 48px;
+
+    padding: 0 12px;
+  }
+
+  .topbar-system {
+    font-size: 7px;
+  }
+
+  .topbar-user-name {
+    display: none;
+  }
+
+  .content {
+    padding: 14px 12px;
+  }
+
+  .page-header {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .page-header h1 {
+    font-size: 16px;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .summary-card {
+    min-height: 105px;
+  }
+
+  .guide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .guide-head {
+    flex-direction: column;
+  }
+
+  .dataset-table {
+    min-width: 900px;
+  }
+}
+
+/* =========================================================
+   20. RESPONSIVE LAYAR SANGAT KECIL
+========================================================= */
+
+@media (max-width: 380px) {
+  .add-btn {
+    padding: 0 9px;
+    font-size: 7px;
+  }
+
+  .breadcrumb {
+    font-size: 6px;
+  }
+
+  .summary-number {
+    font-size: 18px;
+  }
+}
