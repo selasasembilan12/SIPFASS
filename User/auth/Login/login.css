@@ -1,0 +1,500 @@
+/* =====================================
+   SIPFAS - LOGIN PAGE
+===================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+}
+
+body {
+    min-height: 100vh;
+    background: #ffffff;
+    color: #26364b;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+
+/* =====================================
+   HALAMAN UTAMA
+===================================== */
+
+.page {
+    min-height: 100vh;
+    padding: 11px 20px 19px;
+}
+
+.page-title {
+    height: 18px;
+    margin: 0;
+    color: #1684d8;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+}
+
+
+/* =====================================
+   AREA LOGIN
+===================================== */
+
+.login-stage {
+    width: 100%;
+    min-height: 360px;
+    height: calc(100vh - 48px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 2px dotted #1598f4;
+    background: #f0f4f9;
+}
+
+
+/* =====================================
+   CARD LOGIN
+===================================== */
+
+.login-card {
+    width: 320px;
+    min-height: 382px;
+
+    padding: 27px 28px 25px;
+
+    border-radius: 11px;
+    background: #ffffff;
+
+    box-shadow: 0 5px 18px rgba(31, 52, 79, 0.10);
+}
+
+
+/* =====================================
+   LOGO DAN IDENTITAS SIPFAS
+===================================== */
+
+.brand {
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+    margin: 0 auto 24px;
+}
+
+.brand-logo {
+    display: block;
+
+    width: 32px;
+    height: 32px;
+
+    object-fit: contain;
+}
+
+.brand-name {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    line-height: 1.15;
+    white-space: nowrap;
+}
+
+.brand-name strong {
+    color: #24364f;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.brand-name span {
+    color: #78869a;
+
+    font-size: 8px;
+    font-weight: 400;
+
+    margin-top: 2px;
+}
+
+
+/* =====================================
+   JUDUL SELAMAT DATANG
+===================================== */
+
+.welcome {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.welcome h1 {
+    margin: 0 0 5px;
+
+    color: #263448;
+
+    font-size: 18px;
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+.welcome p {
+    margin: 0;
+
+    color: #8995a6;
+    font-size: 10px;
+}
+
+
+/* =====================================
+   FORM LOGIN
+===================================== */
+
+.form-group {
+    margin-bottom: 13px;
+}
+
+.form-group label {
+    display: block;
+
+    margin: 0 0 7px;
+
+    color: #344257;
+
+    font-size: 9px;
+    font-weight: 700;
+}
+
+
+/* =====================================
+   INPUT BOX
+===================================== */
+
+.input-box {
+    width: 100%;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+
+    position: relative;
+
+    border: 1px solid #dce4ef;
+    border-radius: 6px;
+
+    background: #ffffff;
+
+    transition: border-color 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+.input-box:focus-within {
+    border-color: #8eafff;
+    box-shadow: 0 0 0 2px rgba(40, 96, 232, 0.08);
+}
+
+
+/* =====================================
+   IKON INPUT
+===================================== */
+
+.input-icon {
+    width: 22px;
+    height: 22px;
+
+    margin-left: 9px;
+
+    flex-shrink: 0;
+
+    color: #858b98;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+
+/* =====================================
+   IKON NAMA PENGGUNA - REVISI
+===================================== */
+
+.user-icon {
+    width: 20px;
+    height: 20px;
+
+    margin-left: 9px;
+
+    flex-shrink: 0;
+
+    color: #858b98;
+
+    fill: none;
+
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+
+/* =====================================
+   IKON KATA SANDI
+===================================== */
+
+.lock-icon {
+    width: 21px;
+    height: 21px;
+    stroke-width: 1.8;
+}
+
+
+/* =====================================
+   TEKS INPUT
+===================================== */
+
+.input-box input {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+
+    padding: 0 9px;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+
+    color: #344257;
+
+    font-family: inherit;
+    font-size: 9px;
+}
+
+.input-box input::placeholder {
+    color: #aab5c3;
+    opacity: 1;
+}
+
+
+/* =====================================
+   IKON MATA PASSWORD
+===================================== */
+
+.eye-button {
+    width: 31px;
+    height: 32px;
+
+    padding: 0;
+
+    flex-shrink: 0;
+
+    display: grid;
+    place-items: center;
+
+    border: none;
+    background: transparent;
+
+    color: #8995a8;
+
+    cursor: pointer;
+}
+
+.eye-button svg {
+    width: 15px;
+    height: 15px;
+
+    fill: none;
+    stroke: currentColor;
+
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.eye-button:hover {
+    color: #52647c;
+}
+
+
+/* =====================================
+   PESAN ERROR
+===================================== */
+
+.error {
+    display: block;
+
+    color: #dc4545;
+
+    font-size: 9px;
+    line-height: 12px;
+}
+
+
+/* =====================================
+   LUPA KATA SANDI
+===================================== */
+
+.forgot-row {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-top: -1px;
+    margin-bottom: 17px;
+}
+
+.forgot-row a,
+.register-text a {
+    color: #2860e8;
+
+    font-size: 9px;
+    font-weight: 600;
+
+    text-decoration: none;
+}
+
+.forgot-row a:hover,
+.register-text a:hover {
+    text-decoration: underline;
+}
+
+
+/* =====================================
+   TOMBOL MASUK
+===================================== */
+
+.login-button {
+    width: 100%;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    border: none;
+    border-radius: 6px;
+
+    background: #2860e8;
+    color: #ffffff;
+
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: background 0.2s ease,
+                transform 0.2s ease;
+}
+
+.login-button:hover {
+    background: #1f53d2;
+}
+
+.login-button:active {
+    transform: translateY(1px);
+}
+
+.login-button svg {
+    width: 12px;
+    height: 12px;
+
+    fill: none;
+    stroke: currentColor;
+
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+
+/* =====================================
+   PESAN FORM
+===================================== */
+
+.form-message {
+    min-height: 0;
+
+    margin: 0;
+
+    color: #d14a4a;
+
+    text-align: center;
+
+    font-size: 9px;
+    line-height: 1.35;
+}
+
+.form-message:not(:empty) {
+    margin-top: 8px;
+}
+
+
+/* =====================================
+   GARIS PEMISAH
+===================================== */
+
+.separator {
+    height: 1px;
+
+    margin: 14px 0 17px;
+
+    background: #edf0f5;
+}
+
+
+/* =====================================
+   DAFTAR AKUN
+===================================== */
+
+.register-text {
+    margin: 0;
+
+    color: #8995a6;
+
+    text-align: center;
+
+    font-size: 9px;
+}
+
+.register-text a {
+    margin-left: 3px;
+}
+
+
+/* =====================================
+   RESPONSIVE
+===================================== */
+
+@media (max-width: 380px) {
+
+    .page {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 320px;
+
+        padding-right: 24px;
+        padding-left: 24px;
+    }
+
+}
+
+@media (max-height: 450px) {
+
+    .login-stage {
+        height: auto;
+        min-height: 400px;
+        padding: 20px 0;
+    }
+
+}

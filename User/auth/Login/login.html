@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login - SIPFAS</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="./login.css">
+</head>
+
+<body>
+
+    <main class="page">
+
+        <!-- Judul halaman -->
+        <div class="page-title">
+            Login - SIPFAS
+        </div>
+
+        <!-- Area login -->
+        <section class="login-stage">
+
+            <div class="login-card">
+
+                <!-- Logo dan identitas -->
+                <div class="brand">
+
+                    <img
+                        src="../../../assets/images/logo-sipfas.png"
+                        alt="Logo SIPFAS"
+                        class="brand-logo"
+                    >
+
+                    <div class="brand-name">
+                        <strong>SIPFAS</strong>
+                        <span>Informatika UNKHAIR</span>
+                    </div>
+
+                </div>
+
+                <!-- Sambutan -->
+                <header class="welcome">
+
+                    <h1>Selamat Datang</h1>
+
+                    <p>
+                        Silakan masuk untuk mengakses sistem
+                    </p>
+
+                </header>
+
+                <!-- Form login -->
+                <form id="loginForm" novalidate>
+
+                    <!-- Nama pengguna -->
+                    <div class="form-group">
+
+                        <label for="username">
+                            Nama Pengguna
+                        </label>
+
+                        <div class="input-box">
+
+                            <!-- Ikon Nama Pengguna - ID Card -->
+                            <svg
+                                class="input-icon user-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                aria-hidden="true"
+                            >
+
+                                <!-- Pengait melengkung -->
+                                <path
+                                    d="M9.5 6V4.5C9.5 3.7 10.2 3 11 3H13C13.8 3 14.5 3.7 14.5 4.5V6"
+                                    stroke="currentColor"
+                                    stroke-width="1.6"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+
+                                <!-- Bingkai kartu -->
+                                <rect
+                                    x="4"
+                                    y="6"
+                                    width="16"
+                                    height="14"
+                                    rx="1.5"
+                                    stroke="currentColor"
+                                    stroke-width="1.6"
+                                />
+
+                                <!-- Kepala orang -->
+                                <circle
+                                    cx="9"
+                                    cy="11"
+                                    r="1.6"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                />
+
+                                <!-- Bahu orang melengkung -->
+                                <path
+                                    d="M6.5 16.5C6.5 15.1 7.6 14.2 9 14.2C10.4 14.2 11.5 15.1 11.5 16.5"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                />
+
+                                <!-- Garis informasi pertama -->
+                                <path
+                                    d="M14 11H17.5"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    stroke-linecap="round"
+                                />
+
+                                <!-- Garis informasi kedua -->
+                                <path
+                                    d="M14 14.5H17.5"
+                                    stroke="currentColor"
+                                    stroke-width="1.5"
+                                    stroke-linecap="round"
+                                />
+
+                            </svg>
+
+                            <input
+                                type="text"
+                                id="username"
+                                name="username"
+                                placeholder="Masukkan nama pengguna"
+                                autocomplete="username"
+                            >
+
+                        </div>
+
+                        <small
+                            class="error"
+                            id="usernameError"
+                        ></small>
+
+                    </div>
+
+                    <!-- Kata sandi -->
+                    <div class="form-group password-group">
+
+                        <label for="password">
+                            Kata Sandi
+                        </label>
+
+                        <div class="input-box">
+
+                            <!-- Ikon gembok -->
+                            <svg
+                                class="input-icon lock-icon"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                aria-hidden="true"
+                            >
+
+                                <rect
+                                    x="5"
+                                    y="10"
+                                    width="14"
+                                    height="11"
+                                    rx="2"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                />
+
+                                <path
+                                    d="M8 10V7C8 4.8 9.8 3 12 3C14.2 3 16 4.8 16 7V10"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                />
+
+                                <circle
+                                    cx="12"
+                                    cy="15"
+                                    r="1"
+                                    fill="currentColor"
+                                />
+
+                                <path
+                                    d="M12 16V18"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                />
+
+                            </svg>
+
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Masukkan kata sandi"
+                                autocomplete="current-password"
+                            >
+
+                            <!-- Tombol mata -->
+                            <button
+                                type="button"
+                                class="eye-button"
+                                id="togglePassword"
+                                aria-label="Tampilkan kata sandi"
+                                title="Tampilkan kata sandi"
+                            >
+
+                                <svg
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    aria-hidden="true"
+                                >
+
+                                    <path
+                                        d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    />
+
+                                    <circle
+                                        cx="12"
+                                        cy="12"
+                                        r="3"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                    />
+
+                                </svg>
+
+                            </button>
+
+                        </div>
+
+                        <small
+                            class="error"
+                            id="passwordError"
+                        ></small>
+
+                    </div>
+
+                    <!-- Lupa kata sandi -->
+                    <div class="forgot-row">
+
+                        <a href="../lupa-password/lupa-password.html">
+                            Lupa Kata Sandi?
+                        </a>
+
+                    </div>
+
+                    <!-- Tombol masuk -->
+                    <button
+                        type="submit"
+                        class="login-button"
+                    >
+
+                        <span>Masuk</span>
+
+                        <svg
+                            viewBox="0 0 20 20"
+                            aria-hidden="true"
+                        >
+                            <path d="M4 10H15M10 5L15 10L10 15"/>
+                        </svg>
+
+                    </button>
+
+                    <!-- Pesan validasi -->
+                    <p
+                        class="form-message"
+                        id="formMessage"
+                        role="status"
+                        aria-live="polite"
+                    ></p>
+
+                </form>
+
+                <!-- Garis pemisah -->
+                <div class="separator"></div>
+
+                <!-- Pendaftaran -->
+                <p class="register-text">
+
+                    Belum punya akun?
+
+                    <a href="#" id="registerLink">
+                        Daftar Sekarang
+                    </a>
+
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- JavaScript -->
+    <script src="./login.js"></script>
+
+</body>
+</html>
