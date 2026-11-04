@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Akun | SIPFAS</title>
+
+    <!-- FONT UTAMA: menggunakan Inter agar konsisten dengan halaman Login dan Dashboard SIPFAS. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- CSS KHUSUS HALAMAN REGISTRASI. -->
+    <link rel="stylesheet" href="registrasi.css">
+</head>
+<body>
+
+    <!-- PEMBUNGKUS HALAMAN: memusatkan kartu registrasi di tengah layar. -->
+    <main class="register-page">
+
+        <!-- KARTU REGISTRASI: kotak putih utama yang menampung seluruh formulir. -->
+        <section class="register-card">
+
+            <!-- IDENTITAS SIPFAS: menggunakan logo resmi dari folder assets. -->
+            <div class="brand">
+                <img src="../assets/images/logo-sipfas.png" alt="Logo SIPFAS" class="brand-logo">
+                <div class="brand-text">
+                    <strong>SIPFAS</strong>
+                    <span>Informatika UNKHAIR</span>
+                </div>
+            </div>
+
+            <!-- JUDUL HALAMAN REGISTRASI. -->
+            <header class="register-heading">
+                <h1>DAFTAR AKUN</h1>
+            </header>
+
+            <!-- FORM REGISTRASI: berisi identitas, akun, dan kata sandi pengguna. -->
+            <form id="registerForm" novalidate>
+
+                <!-- INPUT NAMA LENGKAP. -->
+                <div class="form-group">
+                    <label for="fullName">Nama Lengkap <span>*</span></label>
+                    <div class="input-box">
+                        <input type="text" id="fullName" name="fullName"
+                               placeholder="cth. Ahmad Fauzi" autocomplete="name">
+                        <svg class="field-icon identity-icon" viewBox="0 0 24 24"
+                             fill="none" aria-hidden="true">
+                            <path d="M9 4H15V6H9V4Z" stroke="currentColor"
+                                  stroke-width="1.7" stroke-linejoin="round"/>
+                            <rect x="4" y="6" width="16" height="14" rx="1.5"
+                                  stroke="currentColor" stroke-width="1.7"/>
+                            <circle cx="9" cy="11" r="1.6" stroke="currentColor"
+                                    stroke-width="1.5"/>
+                            <path d="M6.5 16C6.9 14.4 7.8 13.7 9 13.7
+                                     C10.2 13.7 11.1 14.4 11.5 16
+                                     M13.5 11H17 M13.5 14H17"
+                                  stroke="currentColor" stroke-width="1.5"
+                                  stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <small class="field-error" id="fullNameError"></small>
+                </div>
+
+                <!-- INPUT NIM DAN NAMA PENGGUNA: dua kolom sejajar. -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nim">NIM <span>*</span></label>
+                        <div class="input-box">
+                            <input type="text" id="nim" name="nim"
+                                   placeholder="cth. 07352011045" inputmode="numeric">
+                            <!-- IKON NIM: kotak angka 123 sesuai desain referensi. -->
+                            <svg class="field-icon number-icon" viewBox="0 0 24 24"
+                                 fill="none" aria-hidden="true">
+                                 <!-- Bingkai kotak angka. -->
+                                 <rect x="2.5" y="5.5" width="19" height="13"
+                                       rx="1.5"
+                                       stroke="currentColor"
+                                       stroke-width="2"/>
+                                 <!-- Angka 123 di bagian tengah kotak. -->
+                                 <text x="12" y="14.5"
+                                 text-anchor="middle"
+                                 fill="currentColor"
+                                 stroke="none"
+                                 font-family="Arial, sans-serif"
+                                 font-size="8"
+                                 font-weight="700">123</text>
+                            </svg>
+                        </div>
+                        <small class="field-error" id="nimError"></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username">Nama Pengguna <span>*</span></label>
+                        <div class="input-box">
+                            <input type="text" id="username" name="username"
+                                   placeholder="cth. ahmad.fauzi" autocomplete="username">
+                            <!-- IKON NAMA PENGGUNA: simbol @ sesuai referensi. -->
+                            <svg class="field-icon at-icon" viewBox="0 0 24 24"
+                                 fill="none" aria-hidden="true">
+                                <path d="M16.9 16.7
+                                         C15.7 18 14 18.7 12 18.7
+                                         C8.1 18.7 5.2 15.8 5.2 12
+                                         C5.2 8.2 8.2 5.3 12 5.3
+                                         C15.8 5.3 18.8 8.2 18.8 12
+                                         V13
+                                         C18.8 14.2 18.1 15 17.1 15
+                                         C16.1 15 15.5 14.3 15.5 13.2
+                                         V10.8
+                                         C15.5 9.3 14.3 8.2 12.8 8.2
+                                         C10.8 8.2 9.3 9.8 9.3 12
+                                         C9.3 14.1 10.7 15.5 12.5 15.5
+                                         C13.7 15.5 14.8 14.8 15.2 13.7"
+                                      stroke="currentColor"
+                                      stroke-width="1.8"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <small class="field-error" id="usernameError"></small>
+                    </div>
+                </div>
+
+                <!-- INPUT EMAIL. -->
+                <div class="form-group">
+                    <label for="email">Email <span>*</span></label>
+                    <div class="input-box">
+                        <input type="email" id="email" name="email"
+                               placeholder="cth. ahmad@unkhair.ac.id" autocomplete="email">
+                        <svg class="field-icon" viewBox="0 0 24 24"
+                             fill="none" aria-hidden="true">
+                            <rect x="3" y="5" width="18" height="14" rx="2"
+                                  stroke="currentColor" stroke-width="1.7"/>
+                            <path d="M4 7L12 13L20 7" stroke="currentColor"
+                                  stroke-width="1.7" stroke-linecap="round"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <small class="field-error" id="emailError"></small>
+                </div>
+
+                <!-- INPUT KATA SANDI DENGAN TOMBOL TAMPILKAN. -->
+                <div class="form-group">
+                    <label for="password">Kata Sandi <span>*</span></label>
+                    <div class="input-box">
+                        <input type="password" id="password" name="password"
+                               placeholder="Minimal 8 karakter" autocomplete="new-password">
+                        <button type="button" class="eye-button" id="togglePassword"
+                                aria-label="Tampilkan kata sandi">
+                            <svg class="eye-icon" viewBox="0 0 24 24"
+                                 fill="none" aria-hidden="true">
+                                <path d="M2 12C4.2 7.8 7.7 5.5 12 5.5
+                                         C16.3 5.5 19.8 7.8 22 12
+                                         C19.8 16.2 16.3 18.5 12 18.5
+                                         C7.7 18.5 4.2 16.2 2 12Z"
+                                      stroke="currentColor" stroke-width="1.7"/>
+                                <circle cx="12" cy="12" r="3" stroke="currentColor"
+                                        stroke-width="1.7"/>
+                                <path d="M3 3L21 21" stroke="currentColor"
+                                      stroke-width="1.7" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <small class="field-error" id="passwordError"></small>
+                </div>
+
+                <!-- INPUT KONFIRMASI KATA SANDI. -->
+                <div class="form-group">
+                    <label for="confirmPassword">Konfirmasi Kata Sandi <span>*</span></label>
+                    <div class="input-box">
+                        <input type="password" id="confirmPassword" name="confirmPassword"
+                               placeholder="Ulangi kata sandi" autocomplete="new-password">
+                        <button type="button" class="eye-button" id="toggleConfirmPassword"
+                                aria-label="Tampilkan kata sandi">
+                            <svg class="eye-icon" viewBox="0 0 24 24"
+                                 fill="none" aria-hidden="true">
+                                <path d="M2 12C4.2 7.8 7.7 5.5 12 5.5
+                                         C16.3 5.5 19.8 7.8 22 12
+                                         C19.8 16.2 16.3 18.5 12 18.5
+                                         C7.7 18.5 4.2 16.2 2 12Z"
+                                      stroke="currentColor" stroke-width="1.7"/>
+                                <circle cx="12" cy="12" r="3" stroke="currentColor"
+                                        stroke-width="1.7"/>
+                                <path d="M3 3L21 21" stroke="currentColor"
+                                      stroke-width="1.7" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <small class="field-error" id="confirmPasswordError"></small>
+                </div>
+
+                <!-- PESAN HASIL VALIDASI FORM. -->
+                <p class="form-message" id="formMessage" role="status"
+                   aria-live="polite"></p>
+
+                <!-- TOMBOL DAFTAR AKUN. -->
+                <button type="submit" class="register-button">
+                    <span>Daftar Akun</span>
+                    <svg class="arrow-icon" viewBox="0 0 24 24"
+                         fill="none" aria-hidden="true">
+                        <path d="M4 12H19M13 6L19 12L13 18"
+                              stroke="currentColor" stroke-width="1.8"
+                              stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </form>
+
+            <!-- TAUTAN KEMBALI KE HALAMAN LOGIN. -->
+            <p class="login-text">
+                <span>Sudah punya akun?</span>
+                <a href="login.html">
+                    Masuk
+                    <svg class="login-arrow" viewBox="0 0 24 24"
+                         fill="none" aria-hidden="true">
+                        <path d="M17 4H20V20H17M3 12H16M11 7L16 12L11 17"
+                              stroke="currentColor" stroke-width="1.8"
+                              stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+            </p>
+
+        </section>
+    </main>
+
+    <!-- JAVASCRIPT: validasi kolom dan interaksi ikon mata. -->
+    <script src="register.js"></script>
+</body>
+</html>

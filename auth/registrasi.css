@@ -1,0 +1,432 @@
+/* =========================================================
+   HALAMAN REGISTRASI SIPFAS
+   Diselaraskan dengan tampilan Login, Verifikasi, Admin,
+   dan Petugas SIPFAS.
+========================================================= */
+
+/* PALET WARNA UTAMA: mengikuti warna biru dan navy SIPFAS. */
+:root {
+    --blue: #2864f0;
+    --blue-hover: #1f56dc;
+    --text: #20252c;
+    --label: #26364b;
+    --muted: #687d9d;
+    --placeholder: #91a3bf;
+    --border: #dce4ef;
+    --page-bg: #f1f5f9;
+    --error: #d93636;
+}
+
+/* PENGATURAN DASAR: menyamakan perhitungan ukuran seluruh elemen. */
+* {
+    box-sizing: border-box;
+}
+
+/* LATAR HALAMAN: memenuhi layar dengan warna latar SIPFAS. */
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+}
+
+body {
+    min-height: 100vh;
+    background: var(--page-bg);
+    color: var(--text);
+    font-family: 'Inter', Arial, sans-serif;
+}
+
+/* PEMBUNGKUS REGISTRASI: memusatkan kartu secara horizontal dan vertikal. */
+.register-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 35px 20px;
+}
+
+/* KARTU PUTIH: ukuran dan jarak dalam disesuaikan dengan gambar referensi. */
+.register-card {
+    width: 100%;
+    max-width: 520px;
+    padding: 38px 40px 42px;
+    background: #ffffff;
+    border: 1px solid #e0e7f0;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(31, 50, 76, 0.09);
+}
+
+/* =========================
+   LOGO DAN IDENTITAS SIPFAS
+========================= */
+
+/* AREA BRAND: menempatkan logo dan identitas di tengah kartu. */
+.brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 24px;
+}
+
+/* LOGO SIPFAS: mengambil gambar logo asli dari folder assets. */
+.brand-logo {
+    display: block;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+/* TEKS BRAND: menyusun nama aplikasi dan institusi secara vertikal. */
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
+    line-height: 1.2;
+}
+
+/* NAMA APLIKASI SIPFAS. */
+.brand-text strong {
+    color: #1d3b60;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+/* NAMA INSTITUSI. */
+.brand-text span {
+    color: #1d3b60;
+    font-size: 13px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+/* =========================
+   JUDUL REGISTRASI
+========================= */
+
+/* AREA JUDUL: memberi jarak dengan brand dan formulir. */
+.register-heading {
+    margin-bottom: 23px;
+    text-align: center;
+}
+
+/* JUDUL DAFTAR AKUN. */
+.register-heading h1 {
+    margin: 0;
+    color: #20252c;
+    font-size: 28px;
+    line-height: 1.25;
+    font-weight: 700;
+    letter-spacing: -0.7px;
+}
+
+/* FORM REGISTRASI: menggunakan seluruh lebar bagian dalam kartu. */
+#registerForm {
+    width: 100%;
+}
+
+/* KELOMPOK INPUT: mengatur jarak label, kotak, dan kelompok berikutnya. */
+.form-group {
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 17px;
+}
+
+/* LABEL INPUT: nama lengkap, NIM, username, email, dan kata sandi. */
+.form-group label {
+    display: block;
+    margin: 0 0 8px;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.25;
+    font-weight: 600;
+}
+
+/* TANDA BINTANG: menandakan kolom wajib diisi. */
+.form-group label span {
+    color: #d93636;
+}
+
+/* BARIS NIM DAN USERNAME: dua kolom dengan lebar seimbang. */
+.form-row {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+/* KOTAK INPUT: bingkai putih dengan ikon di sisi kanan. */
+.input-box {
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* EFEK FOKUS: garis biru lembut ketika kolom dipilih. */
+.input-box:focus-within {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(40, 100, 240, 0.09);
+}
+
+/* KOLOM TEKS: mengisi ruang yang tersedia di dalam kotak input. */
+.input-box input {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--label);
+    font-family: inherit;
+    font-size: 13px;
+}
+
+/* TEKS PETUNJUK DI DALAM INPUT. */
+.input-box input::placeholder {
+    color: var(--placeholder);
+    opacity: 1;
+}
+
+/* IKON IDENTITAS, NIM, EMAIL, DAN USERNAME. */
+.field-icon {
+    display: block;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: #a1a6ad;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.identity-icon {
+    width: 19px;
+    height: 19px;
+}
+
+/* IKON NIM: ukuran kotak angka 123. */
+.number-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
+/* IKON USERNAME: ukuran tetap seperti sebelumnya. */
+.at-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    color: #a8adb5;
+}
+
+/* TOMBOL IKON MATA: berada di sisi kanan input kata sandi. */
+.eye-button {
+    width: 24px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #737b88;
+    cursor: pointer;
+}
+
+/* UKURAN DAN GARIS IKON MATA. */
+.eye-icon {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.eye-button:hover {
+    color: var(--blue);
+}
+
+/* PESAN ERROR: muncul di bawah kolom jika validasi gagal. */
+.field-error {
+    display: block;
+    color: var(--error);
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+.field-error:not(:empty) {
+    margin-top: 5px;
+}
+
+/* PESAN STATUS FORM: menampilkan hasil validasi. */
+.form-message {
+    min-height: 0;
+    margin: 0;
+    color: #28734a;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.form-message:not(:empty) {
+    margin: -2px 0 12px;
+}
+
+/* =========================
+   TOMBOL DAFTAR AKUN
+========================= */
+
+/* TOMBOL UTAMA: warna biru sesuai tombol Masuk di halaman Login. */
+.register-button {
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 6px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.register-button:hover {
+    background: var(--blue-hover);
+}
+
+.register-button:active {
+    transform: translateY(1px);
+}
+
+/* IKON PANAH PADA TOMBOL DAFTAR. */
+.arrow-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+/* =========================
+   TAUTAN KEMBALI KE LOGIN
+========================= */
+
+/* TEKS SUDAH PUNYA AKUN: diletakkan di bawah tombol daftar. */
+.login-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin: 20px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+/* TAUTAN MASUK: menggunakan warna biru aksen SIPFAS. */
+.login-text a {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    color: #0054d6;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.login-text a:hover {
+    color: var(--blue-hover);
+    text-decoration: underline;
+}
+
+/* IKON PANAH MASUK KE LOGIN. */
+.login-arrow {
+    display: block;
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+/* =========================
+   RESPONSIVE / LAYAR KECIL
+========================= */
+
+/* PENYESUAIAN UNTUK TABLET DAN PONSEL. */
+@media (max-width: 560px) {
+    .register-page {
+        padding: 22px 15px;
+    }
+
+    .register-card {
+        max-width: 100%;
+        padding: 30px 25px 32px;
+        border-radius: 14px;
+    }
+
+    .brand {
+        margin-bottom: 22px;
+    }
+
+    .register-heading {
+        margin-bottom: 21px;
+    }
+
+    .register-heading h1 {
+        font-size: 24px;
+    }
+
+    .form-row {
+        gap: 10px;
+    }
+
+    .form-group label {
+        font-size: 12px;
+    }
+
+    .input-box input {
+        font-size: 12px;
+    }
+}
+
+/* PONSEL SEMPIT: susun NIM dan username menjadi satu kolom. */
+@media (max-width: 390px) {
+    .register-card {
+        padding-left: 19px;
+        padding-right: 19px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+}
+
+/* LAYAR PENDEK: izinkan halaman digulir agar formulir tidak terpotong. */
+@media (max-height: 760px) {
+    .register-page {
+        align-items: flex-start;
+    }
+}
