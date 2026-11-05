@@ -1,498 +1,560 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Detail Verifikasi Laporan | SIPFAS</title>
     <!-- CSS LOGO GLOBAL SIPFAS -->
-<link rel="stylesheet" href="../../../assets/CSS/logo.css">
+    <link rel="stylesheet" href="../../../assets/css/logo.css" />
 
-<!-- CSS KHUSUS DASHBOARD PETUGAS -->
-<link rel="stylesheet" href="Detail-Verifikasi-Laporan.css">
-</head>
-<body>
+    <!-- CSS KHUSUS DASHBOARD PETUGAS -->
+    <link rel="stylesheet" href="Detail-Verifikasi-Laporan.css" />
+  </head>
+  <body>
+    <!-- Pembungkus utama halaman Detail Verifikasi Petugas -->
+    <div class="app">
+      <!-- SIDEBAR -->
+      <!-- Sidebar: logo SIPFAS dan menu navigasi petugas -->
+      <aside class="sidebar" id="sidebar">
+        <!-- LOGO SIPFAS GLOBAL -->
+        <div class="sidebar-logo">
+          <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS" />
 
-<!-- Pembungkus utama halaman Detail Verifikasi Petugas -->
-<div class="app">
-
-    <!-- SIDEBAR -->
-    <!-- Sidebar: logo SIPFAS dan menu navigasi petugas -->
-<aside class="sidebar" id="sidebar">
-
-        
-
-<!-- LOGO SIPFAS GLOBAL -->
-<div class="sidebar-logo">
-    <img src="../../../assets/images/logo-sipfas.png"
-         alt="Logo SIPFAS">
-
-    <div class="brand-text">
-        <strong>SIPFAS</strong>
-        <span>Informatika UNKHAIR</span>
-    </div>
-</div>
-
-
+          <div class="brand-text">
+            <strong>SIPFAS</strong>
+            <span>Informatika UNKHAIR</span>
+          </div>
+        </div>
 
         <!-- MENU NAVIGASI -->
         <!-- Menu navigasi ke halaman-halaman petugas -->
-<nav class="nav-menu">
+        <nav class="nav-menu">
+          <a href="../Dashboard/Dashboard.html" class="nav-link">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <!-- Kotak kiri atas -->
+              <rect x="2" y="2" width="8" height="9" rx="0.3" />
 
-            
+              <!-- Kotak kanan atas -->
+              <rect x="14" y="2" width="8" height="7" rx="0.3" />
 
-<a href="../Dashboard/Dashboard.html" class="nav-link">
-    <svg viewBox="0 0 24 24"
-         xmlns="http://www.w3.org/2000/svg">
+              <!-- Kotak kiri bawah -->
+              <rect x="2" y="15" width="8" height="7" rx="0.3" />
 
-        <!-- Kotak kiri atas -->
-        <rect x="2" y="2"
-              width="8" height="9"
-              rx="0.3"/>
+              <!-- Kotak kanan bawah -->
+              <rect x="14" y="12" width="8" height="10" rx="0.3" />
+            </svg>
 
-        <!-- Kotak kanan atas -->
-        <rect x="14" y="2"
-              width="8" height="7"
-              rx="0.3"/>
+            <span>Dashboard</span>
+          </a>
 
-        <!-- Kotak kiri bawah -->
-        <rect x="2" y="15"
-              width="8" height="7"
-              rx="0.3"/>
+          <a
+            href="../Verifikasi-Laporan/Verifikasi-Laporan.html"
+            class="nav-link active"
+          >
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <!-- Kotak utama -->
+              <rect x="3" y="3" width="18" height="18" rx="1.5" />
 
-        <!-- Kotak kanan bawah -->
-        <rect x="14" y="12"
-              width="8" height="10"
-              rx="0.3"/>
+              <!-- Tiga garis daftar -->
+              <path d="M6.5 8H10" />
+              <path d="M6.5 12H10" />
+              <path d="M6.5 16H10" />
 
-    </svg>
+              <!-- Tanda centang di sebelah kanan -->
+              <path d="M13 12.5L15.5 15L19.5 10.5" />
+            </svg>
 
-    <span>Dashboard</span>
-</a>
+            <span>Verifikasi Laporan</span>
+          </a>
 
-
-
-            
-
-<a href="../Verifikasi-Laporan/Verifikasi-Laporan.html"
-   class="nav-link active">
-
-    <svg viewBox="0 0 24 24"
-         xmlns="http://www.w3.org/2000/svg">
-
-        <!-- Kotak utama -->
-        <rect x="3" y="3"
-              width="18" height="18"
-              rx="1.5"/>
-
-        <!-- Tiga garis daftar -->
-        <path d="M6.5 8H10"/>
-        <path d="M6.5 12H10"/>
-        <path d="M6.5 16H10"/>
-
-        <!-- Tanda centang di sebelah kanan -->
-        <path d="M13 12.5L15.5 15L19.5 10.5"/>
-
-    </svg>
-
-    <span>Verifikasi Laporan</span>
-</a>
-
-
-
-            
-<a href="../Penanganan/Penanganan.html" class="nav-link">
-    <svg viewBox="0 0 24 24"
-         xmlns="http://www.w3.org/2000/svg">
-        <g transform="translate(24 0) scale(-1 1)">
-            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.1-3.1a6 6 0 0 1-7.9 7.9l-6.4 6.4a2 2 0 0 1-2.8-2.8l6.4-6.4a6 6 0 0 1 7.9-7.9z"
+          <a href="../Penanganan/Penanganan.html" class="nav-link">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <g transform="translate(24 0) scale(-1 1)">
+                <path
+                  d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.1-3.1a6 6 0 0 1-7.9 7.9l-6.4 6.4a2 2 0 0 1-2.8-2.8l6.4-6.4a6 6 0 0 1 7.9-7.9z"
                   fill="none"
                   stroke="currentColor"
                   stroke-width="1.8"
                   stroke-linecap="round"
-                  stroke-linejoin="round"/>
-        </g>
-    </svg>
-    <span>Penanganan</span>
-</a>
+                  stroke-linejoin="round"
+                />
+              </g>
+            </svg>
+            <span>Penanganan</span>
+          </a>
 
+          <a href="../Riwayat-Laporan/Riwayat-Laporan.html" class="nav-link">
+            <svg viewBox="0 0 24 24">
+              <path d="M3.5 12a8.5 8.5 0 1 0 2.2-5.7L3.5 8" />
+              <path d="M3.5 3.5V8H8" />
+              <path d="M12 7v5l3 2" />
+            </svg>
+            <span>Riwayat Perbaikan</span>
+          </a>
 
-            <a href="../Riwayat-Laporan/Riwayat-Laporan.html"
-               class="nav-link">
-                <svg viewBox="0 0 24 24">
-                    <path d="M3.5 12a8.5 8.5 0 1 0 2.2-5.7L3.5 8"/>
-                    <path d="M3.5 3.5V8H8"/>
-                    <path d="M12 7v5l3 2"/>
-                </svg>
-                <span>Riwayat Perbaikan</span>
-            </a>
+          <!-- Nama petugas dan ikon profil kanan atas -->
+          <a href="../Profil-Saya/Profil-Saya.html" class="nav-link">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <!-- Kepala -->
+              <circle cx="12" cy="7" r="3.5" />
 
-            
-<!-- Nama petugas dan ikon profil kanan atas -->
-<a href="../Profil-Saya/Profil-Saya.html"
-   class="nav-link">
+              <!-- Bahu dan badan -->
+              <path
+                d="M3 20V18.5C3 15.5 5.5 13.5 8.5 13.5H15.5C18.5 13.5 21 15.5 21 18.5V20H3Z"
+              />
+            </svg>
 
-    <svg viewBox="0 0 24 24"
-         xmlns="http://www.w3.org/2000/svg">
-
-        <!-- Kepala -->
-        <circle cx="12" cy="7" r="3.5"/>
-
-        <!-- Bahu dan badan -->
-        <path d="M3 20V18.5C3 15.5 5.5 13.5 8.5 13.5H15.5C18.5 13.5 21 15.5 21 18.5V20H3Z"/>
-
-    </svg>
-
-    <span>Profil</span>
-</a>
-
-
+            <span>Profil</span>
+          </a>
         </nav>
 
         <!-- KELUAR -->
         <a href="../../index.html" class="logout-link" id="logoutLink">
-            <svg viewBox="0 0 24 24">
-                <path d="M10 17l5-5-5-5M15 12H3"/>
-                <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>
-            </svg>
-            <span>Keluar</span>
+          <svg viewBox="0 0 24 24">
+            <path d="M10 17l5-5-5-5M15 12H3" />
+            <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7" />
+          </svg>
+          <span>Keluar</span>
         </a>
+      </aside>
 
-    </aside>
-
-
-    <!-- AREA UTAMA -->
-    <div class="workspace">
-
+      <!-- AREA UTAMA -->
+      <div class="workspace">
         <!-- HEADER -->
         <!-- Header: nama sistem informasi dan profil petugas di kanan atas -->
-<header class="topbar">
+        <header class="topbar">
+          <button class="menu-toggle" id="menuToggle" aria-label="Buka menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
 
-            <button class="menu-toggle" id="menuToggle"
-                    aria-label="Buka menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
+          <!-- Tulisan nama sistem informasi di header -->
+          <div class="system-name">
+            <span class="system-dot"></span>
+            SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS
+          </div>
 
-            <!-- Tulisan nama sistem informasi di header -->
-<div class="system-name">
-                <span class="system-dot"></span>
-                SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS
-            </div>
+          <a href="../Profil-Saya/Profil-Saya.html" class="profile-area">
+            <span class="profile-name"> Rahmat Hidayat, S.T. </span>
 
-            <a href="../Profil-Saya/Profil-Saya.html"
-               class="profile-area">
+            <!-- ICON PROFIL HEADER -->
+            <span class="profile-avatar">
+              <svg
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                aria-hidden="true"
+              >
+                <!-- Kepala -->
+                <circle
+                  cx="12"
+                  cy="7.5"
+                  r="3.2"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                />
 
-                <span class="profile-name">
-                    Rahmat Hidayat, S.T.
-                </span>
-
-                
-<!-- ICON PROFIL HEADER -->
-<span class="profile-avatar">
-    <svg viewBox="0 0 24 24"
-         xmlns="http://www.w3.org/2000/svg"
-         fill="none"
-         aria-hidden="true">
-
-        <!-- Kepala -->
-        <circle cx="12"
-                cy="7.5"
-                r="3.2"
-                stroke="currentColor"
-                stroke-width="1.8"/>
-
-        <!-- Bahu dan badan -->
-        <path d="M4.5 19V18
+                <!-- Bahu dan badan -->
+                <path
+                  d="M4.5 19V18
                  C4.5 14.8 7.5 13 12 13
                  C16.5 13 19.5 14.8 19.5 18
                  V19
                  H4.5Z"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"/>
-    </svg>
-</span>
-
-
-            </a>
-
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </a>
         </header>
-
 
         <!-- KONTEN VERIFIKASI LAPORAN -->
         <!-- Konten utama halaman Detail Verifikasi Laporan -->
-<main class="main-content detail-content">
+        <main class="main-content detail-content">
           <!-- Tombol kembali ke daftar verifikasi -->
-<a class="back-link" href="../Verifikasi-Laporan/Verifikasi-Laporan.html">← Kembali ke Verifikasi Laporan</a>
+          <a
+            class="back-link"
+            href="../Verifikasi-Laporan/Verifikasi-Laporan.html"
+            >← Kembali ke Verifikasi Laporan</a
+          >
           <h1>Verifikasi Laporan — <span id="pageCode">LPR-2024-001</span></h1>
           <!-- Status laporan: Menunggu Verifikasi -->
-<div class="pending-pill"><span>●</span> MENUNGGU VERIFIKASI</div>
+          <div class="pending-pill"><span>●</span> MENUNGGU VERIFIKASI</div>
           <!-- Tata letak kartu informasi dan penilaian -->
-<div class="detail-grid">
+          <div class="detail-grid">
             <!-- Kartu putih informasi laporan dan data pelapor -->
-<section class="detail-card info-card">
-              <div class="card-heading"><div><h2><span class="blue-icon">▤</span> Informasi Laporan Masuk</h2><p>Data kerusakan fasilitas yang diajukan<br>oleh pelapor (mahasiswa).</p></div><span class="date-pill">◷ 24 Okt 2024</span></div>
+            <section class="detail-card info-card">
+              <div class="card-heading">
+                <div>
+                  <h2>
+                    <span class="blue-icon">▤</span> Informasi Laporan Masuk
+                  </h2>
+                  <p>
+                    Data kerusakan fasilitas yang diajukan<br />oleh pelapor
+                    (mahasiswa).
+                  </p>
+                </div>
+                <span class="date-pill">◷ 24 Okt 2024</span>
+              </div>
               <!-- Kotak-kotak informasi kode, waktu, pelapor, fasilitas, dan lokasi -->
-<div class="info-grid">
-                <div class="info-tile"><span class="tile-label">KODE LAPORAN</span><strong class="code" id="reportCode">LPR-2024-001</strong></div>
-                <div class="info-tile"><span class="tile-label">WAKTU REGISTRASI</span><strong id="reportTime">24 Oktober 2024, 08:30 WIT</strong></div>
-                <div class="info-tile wide"><span class="tile-label">NAMA PELAPOR</span><div class="reporter-line"><span class="initials" id="reportInitials">FI</span><div><strong id="reportName">Fikram Idris</strong><p>NIM: <span id="reportNim">07352011042</span> — Program Studi Teknik Informatika</p></div></div></div>
+              <div class="info-grid">
+                <div class="info-tile">
+                  <span class="tile-label">KODE LAPORAN</span
+                  ><strong class="code" id="reportCode">LPR-2024-001</strong>
+                </div>
+                <div class="info-tile">
+                  <span class="tile-label">WAKTU REGISTRASI</span
+                  ><strong id="reportTime">24 Oktober 2024, 08:30 WIT</strong>
+                </div>
+                <div class="info-tile wide">
+                  <span class="tile-label">NAMA PELAPOR</span>
+                  <div class="reporter-line">
+                    <span class="initials" id="reportInitials">FI</span>
+                    <div>
+                      <strong id="reportName">Fikram Idris</strong>
+                      <p>
+                        NIM: <span id="reportNim">07352011042</span> — Program
+                        Studi Teknik Informatika
+                      </p>
+                    </div>
+                  </div>
+                </div>
                 <!-- NAMA FASILITAS -->
-<div class="info-tile">
+                <div class="info-tile">
+                  <span class="tile-label">NAMA FASILITAS</span>
 
-    <span class="tile-label">NAMA FASILITAS</span>
+                  <strong class="facility-name">
+                    <!-- ICON KIPAS AC -->
+                    <svg
+                      class="facility-ac-icon"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <!-- Lingkaran tengah -->
+                      <circle cx="12" cy="12" r="2" fill="currentColor" />
 
-    <strong class="facility-name">
-
-        <!-- ICON KIPAS AC -->
-        <svg class="facility-ac-icon"
-             viewBox="0 0 24 24"
-             xmlns="http://www.w3.org/2000/svg"
-             fill="none"
-             aria-hidden="true">
-
-            <!-- Lingkaran tengah -->
-            <circle cx="12" cy="12" r="2"
-                    fill="currentColor"/>
-
-            <!-- Baling-baling atas -->
-            <path d="M12 10
+                      <!-- Baling-baling atas -->
+                      <path
+                        d="M12 10
                      C9 7 10 3 13 3
                      C16 3 16 7 13 10Z"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linejoin="round"/>
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                        stroke-linejoin="round"
+                      />
 
-            <!-- Baling-baling kanan -->
-            <path d="M14 12
+                      <!-- Baling-baling kanan -->
+                      <path
+                        d="M14 12
                      C17 9 21 10 21 13
                      C21 16 17 16 14 13Z"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linejoin="round"/>
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                        stroke-linejoin="round"
+                      />
 
-            <!-- Baling-baling bawah -->
-            <path d="M12 14
+                      <!-- Baling-baling bawah -->
+                      <path
+                        d="M12 14
                      C15 17 14 21 11 21
                      C8 21 8 17 11 14Z"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linejoin="round"/>
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                        stroke-linejoin="round"
+                      />
 
-            <!-- Baling-baling kiri -->
-            <path d="M10 12
+                      <!-- Baling-baling kiri -->
+                      <path
+                        d="M10 12
                      C7 15 3 14 3 11
                      C3 8 7 8 10 11Z"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linejoin="round"/>
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
 
-        </svg>
-
-        <span id="reportFacility">
-            AC Daikin 2 PK — R. 3.1
-        </span>
-
-    </strong>
-
-</div>
+                    <span id="reportFacility"> AC Daikin 2 PK — R. 3.1 </span>
+                  </strong>
+                </div>
                 <!-- LOKASI FASILITAS -->
-<div class="info-tile">
+                <div class="info-tile">
+                  <span class="tile-label">LOKASI FASILITAS</span>
 
-    <span class="tile-label">LOKASI FASILITAS</span>
-
-    <strong class="facility-location">
-
-        <!-- ICON LOCATION PIN -->
-        <svg class="facility-location-icon"
-             viewBox="0 0 24 24"
-             xmlns="http://www.w3.org/2000/svg"
-             fill="none"
-             aria-hidden="true">
-
-            <!-- Bentuk penanda lokasi -->
-            <path d="M20 10
+                  <strong class="facility-location">
+                    <!-- ICON LOCATION PIN -->
+                    <svg
+                      class="facility-location-icon"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <!-- Bentuk penanda lokasi -->
+                      <path
+                        d="M20 10
                      C20 16 12 22 12 22
                      C12 22 4 16 4 10
                      A8 8 0 0 1 20 10Z"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
 
-            <!-- Titik tengah lokasi -->
-            <circle cx="12"
-                    cy="10"
-                    r="2.5"
-                    stroke="currentColor"
-                    stroke-width="1.8"/>
+                      <!-- Titik tengah lokasi -->
+                      <circle
+                        cx="12"
+                        cy="10"
+                        r="2.5"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                      />
+                    </svg>
 
-        </svg>
-
-        <span id="reportLocation">
-            Gedung Kuliah Bersama Lt. 3, R. 3.1
-        </span>
-
-    </strong>
-
-</div>
+                    <span id="reportLocation">
+                      Gedung Kuliah Bersama Lt. 3, R. 3.1
+                    </span>
+                  </strong>
+                </div>
               </div>
               <!-- Deskripsi kerusakan dari pelapor -->
-<div class="description"><h3>≡ Deskripsi Kerusakan dari Pelapor</h3><blockquote id="reportDescription">“AC mengeluarkan suara mendengung keras dan tidak dingin sama sekali sejak perkuliahan pagi, menyebabkan ruang kelas panas dan mengganggu proses belajar mengajar mata kuliah Pemrograman Web.”</blockquote></div>
+              <div class="description">
+                <h3>≡ Deskripsi Kerusakan dari Pelapor</h3>
+                <blockquote id="reportDescription">
+                  “AC mengeluarkan suara mendengung keras dan tidak dingin sama
+                  sekali sejak perkuliahan pagi, menyebabkan ruang kelas panas
+                  dan mengganggu proses belajar mengajar mata kuliah Pemrograman
+                  Web.”
+                </blockquote>
+              </div>
             </section>
             <div class="right-column">
               <!-- Kartu penilaian tingkat kerusakan dan parameter C4.5 -->
-<section class="detail-card scoring-card">
-                <h2><span class="blue-icon">⚑</span> Penilaian Kerusakan &amp; Parameter C4.5</h2>
-                <div class="parameter"><div class="parameter-heading"><strong><span class="parameter-id">X1</span> Tingkat Kerusakan</strong><small>Awal: Berat</small></div><select id="damage"><option value="berat">✎ Berat (Mati total)</option><option value="sedang">Sedang (Fungsi terganggu)</option><option value="ringan">Ringan (Kerusakan kecil)</option></select></div>
-                <div class="parameter"><div class="parameter-heading"><strong><span class="parameter-id">X2</span> Dampak terhadap Kegiatan Akademik</strong><small>Awal: Tinggi</small></div><select id="impact"><option value="tinggi">✎ Tinggi (Mengganggu perkuliahan)</option><option value="sedang">Sedang (Sebagian terganggu)</option><option value="rendah">Rendah (Tidak mengganggu)</option></select></div>
+              <section class="detail-card scoring-card">
+                <h2>
+                  <span class="blue-icon">⚑</span> Penilaian Kerusakan &amp;
+                  Parameter C4.5
+                </h2>
+                <div class="parameter">
+                  <div class="parameter-heading">
+                    <strong
+                      ><span class="parameter-id">X1</span> Tingkat
+                      Kerusakan</strong
+                    ><small>Awal: Berat</small>
+                  </div>
+                  <select id="damage">
+                    <option value="berat">✎ Berat (Mati total)</option>
+                    <option value="sedang">Sedang (Fungsi terganggu)</option>
+                    <option value="ringan">Ringan (Kerusakan kecil)</option>
+                  </select>
+                </div>
+                <div class="parameter">
+                  <div class="parameter-heading">
+                    <strong
+                      ><span class="parameter-id">X2</span> Dampak terhadap
+                      Kegiatan Akademik</strong
+                    ><small>Awal: Tinggi</small>
+                  </div>
+                  <select id="impact">
+                    <option value="tinggi">
+                      ✎ Tinggi (Mengganggu perkuliahan)
+                    </option>
+                    <option value="sedang">Sedang (Sebagian terganggu)</option>
+                    <option value="rendah">Rendah (Tidak mengganggu)</option>
+                  </select>
+                </div>
                 <!-- X3 FREKUENSI PENGGUNAAN -->
-<div class="parameter">
+                <div class="parameter">
+                  <div class="parameter-heading">
+                    <strong>
+                      <span class="parameter-id">X3</span>
+                      Frekuensi Penggunaan
+                    </strong>
 
-    <div class="parameter-heading">
-        <strong>
-            <span class="parameter-id">X3</span>
-            Frekuensi Penggunaan
-        </strong>
+                    <!-- ICON TERKUNCI SISTEM -->
+                    <small class="locked-label">
+                      <svg
+                        class="lock-icon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <rect
+                          x="5"
+                          y="10"
+                          width="14"
+                          height="11"
+                          rx="2"
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                        />
 
-        <!-- ICON TERKUNCI SISTEM -->
-        <small class="locked-label">
-            <svg class="lock-icon"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 xmlns="http://www.w3.org/2000/svg"
-                 aria-hidden="true">
-
-                <rect x="5" y="10"
-                      width="14" height="11"
-                      rx="2"
-                      stroke="currentColor"
-                      stroke-width="1.8"/>
-
-                <path d="M8 10V7
+                        <path
+                          d="M8 10V7
                          a4 4 0 0 1 8 0
                          v3"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      stroke-linecap="round"/>
+                          stroke="currentColor"
+                          stroke-width="1.8"
+                          stroke-linecap="round"
+                        />
 
-                <circle cx="12" cy="15.5"
-                        r="1.2"
-                        fill="currentColor"/>
-            </svg>
+                        <circle cx="12" cy="15.5" r="1.2" fill="currentColor" />
+                      </svg>
 
-            Terkunci Sistem
-        </small>
-    </div>
+                      Terkunci Sistem
+                    </small>
+                  </div>
 
-    <!-- NILAI FREKUENSI -->
-    <div class="locked-value">
-        Sering
+                  <!-- NILAI FREKUENSI -->
+                  <div class="locked-value">
+                    Sering
 
-        <svg class="lock-icon"
-             viewBox="0 0 24 24"
-             fill="none"
-             xmlns="http://www.w3.org/2000/svg"
-             aria-hidden="true">
+                    <svg
+                      class="lock-icon"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                    >
+                      <rect
+                        x="5"
+                        y="10"
+                        width="14"
+                        height="11"
+                        rx="2"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                      />
 
-            <rect x="5" y="10"
-                  width="14" height="11"
-                  rx="2"
-                  stroke="currentColor"
-                  stroke-width="1.8"/>
-
-            <path d="M8 10V7
+                      <path
+                        d="M8 10V7
                      a4 4 0 0 1 8 0
                      v3"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"/>
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                      />
 
-            <circle cx="12" cy="15.5"
-                    r="1.2"
-                    fill="currentColor"/>
-        </svg>
-    </div>
+                      <circle cx="12" cy="15.5" r="1.2" fill="currentColor" />
+                    </svg>
+                  </div>
 
-    <p class="parameter-help">
-        5 hari perkuliahan aktif per minggu.
-        Diambil dari Master Data Fasilitas Admin.
-        Nilai X3 tidak dapat diubah oleh petugas.
-    </p>
-
-</div>
+                  <p class="parameter-help">
+                    5 hari perkuliahan aktif per minggu. Diambil dari Master
+                    Data Fasilitas Admin. Nilai X3 tidak dapat diubah oleh
+                    petugas.
+                  </p>
+                </div>
                 <!-- Tombol untuk menghitung ulang rekomendasi prioritas -->
-<button id="recalculate" class="recalculate" type="button">⟳ &nbsp;Hitung Ulang Prioritas</button>
+                <button id="recalculate" class="recalculate" type="button">
+                  ⟳ &nbsp;Hitung Ulang Prioritas
+                </button>
                 <!-- Hasil rekomendasi prioritas laporan -->
-<div class="recommendation"><div class="tile-label">REKOMENDASI PRIORITAS MODEL C4.5:</div><strong id="priorityResult" class="priority-high">TINGGI</strong><p>ⓘ &nbsp;Hasil klasifikasi merupakan rekomendasi awal dan belum menjadi keputusan akhir penanganan.</p></div>
+                <div class="recommendation">
+                  <div class="tile-label">
+                    REKOMENDASI PRIORITAS MODEL C4.5:
+                  </div>
+                  <strong id="priorityResult" class="priority-high"
+                    >TINGGI</strong
+                  >
+                  <p>
+                    ⓘ &nbsp;Hasil klasifikasi merupakan rekomendasi awal dan
+                    belum menjadi keputusan akhir penanganan.
+                  </p>
+                </div>
               </section>
               <!-- Kartu keputusan verifikasi laporan -->
-<section class="detail-card decision-card">
-                <h2><span class="blue-icon">⚒</span> Keputusan Hasil Verifikasi</h2><p class="subheading">Tentukan validitas klaim kerusakan sarana prasarana.</p>
+              <section class="detail-card decision-card">
+                <h2>
+                  <span class="blue-icon">⚒</span> Keputusan Hasil Verifikasi
+                </h2>
+                <p class="subheading">
+                  Tentukan validitas klaim kerusakan sarana prasarana.
+                </p>
                 <!-- Pilihan tombol Laporan Valid atau Laporan Tidak Valid -->
-<div class="decision-switch">
+                <div class="decision-switch">
+                  <!-- LAPORAN VALID -->
+                  <button
+                    class="decision-option selected"
+                    data-decision="valid"
+                    type="button"
+                  >
+                    <svg
+                      class="decision-icon icon-valid"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="9"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      />
 
-    <!-- LAPORAN VALID -->
-    <button class="decision-option selected"
-            data-decision="valid"
-            type="button">
+                      <path
+                        d="M8 12L10.5 14.5L16 9"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
 
-        <svg class="decision-icon icon-valid"
-             viewBox="0 0 24 24"
-             fill="none">
+                    <span>Laporan Valid</span>
+                  </button>
 
-            <circle cx="12" cy="12" r="9"
-                    stroke="currentColor"
-                    stroke-width="2"/>
+                  <!-- LAPORAN TIDAK VALID -->
+                  <button
+                    class="decision-option"
+                    data-decision="invalid"
+                    type="button"
+                  >
+                    <svg
+                      class="decision-icon icon-invalid"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="9"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      />
 
-            <path d="M8 12L10.5 14.5L16 9"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
-        </svg>
+                      <path
+                        d="M9 9L15 15M15 9L9 15"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                      />
+                    </svg>
 
-        <span>Laporan Valid</span>
-    </button>
-
-    <!-- LAPORAN TIDAK VALID -->
-    <button class="decision-option"
-            data-decision="invalid"
-            type="button">
-
-        <svg class="decision-icon icon-invalid"
-             viewBox="0 0 24 24"
-             fill="none">
-
-            <circle cx="12" cy="12" r="9"
-                    stroke="currentColor"
-                    stroke-width="2"/>
-
-            <path d="M9 9L15 15M15 9L9 15"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"/>
-        </svg>
-
-        <span>Laporan Tidak Valid</span>
-    </button>
-
-</div>
+                    <span>Laporan Tidak Valid</span>
+                  </button>
+                </div>
                 <!-- Pesan hasil keputusan verifikasi -->
-<div class="decision-notice valid" id="decisionNotice">
-
-    <strong>
-        <svg class="notice-check-icon"
-             viewBox="0 0 24 24"
-             xmlns="http://www.w3.org/2000/svg"
-             fill="none"
-             aria-hidden="true">
-
-            <!-- Bentuk segel bergerigi -->
-            <path d="M12 2
+                <div class="decision-notice valid" id="decisionNotice">
+                  <strong>
+                    <svg
+                      class="notice-check-icon"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <!-- Bentuk segel bergerigi -->
+                      <path
+                        d="M12 2
                      L14.3 4
                      L17.4 3.6
                      L18.1 6.7
@@ -514,40 +576,56 @@
                      L7 5.8
                      L9 3
                      Z"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linejoin="round"/>
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linejoin="round"
+                      />
 
-            <!-- Centang di tengah -->
-            <path d="M8 12L10.8 14.8L16.3 9.3"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
-        </svg>
+                      <!-- Centang di tengah -->
+                      <path
+                        d="M8 12L10.8 14.8L16.3 9.3"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
 
-        <span>Laporan Memenuhi Syarat</span>
-    </strong>
+                    <span>Laporan Memenuhi Syarat</span>
+                  </strong>
 
-    <p>
-        Laporan diverifikasi valid dan akan diteruskan ke
-        daftar antrean Penanganan Fasilitas.
-    </p>
-
-</div>
+                  <p>
+                    Laporan diverifikasi valid dan akan diteruskan ke daftar
+                    antrean Penanganan Fasilitas.
+                  </p>
+                </div>
                 <!-- Kolom catatan verifikator (opsional) -->
-<label class="notes-label" for="verifierNotes">Catatan Verifikator (Opsional)</label><textarea id="verifierNotes" rows="2" placeholder="Tambahkan catatan teknis untuk teknisi penanganan..."></textarea>
+                <label class="notes-label" for="verifierNotes"
+                  >Catatan Verifikator (Opsional)</label
+                ><textarea
+                  id="verifierNotes"
+                  rows="2"
+                  placeholder="Tambahkan catatan teknis untuk teknisi penanganan..."
+                ></textarea>
                 <!-- Tombol Simpan Verifikasi -->
-<button id="saveVerification" class="save-button" type="button">▣ &nbsp;Simpan Verifikasi</button><p id="saveFeedback" class="save-feedback" role="status" aria-live="polite"></p>
+                <button id="saveVerification" class="save-button" type="button">
+                  ▣ &nbsp;Simpan Verifikasi
+                </button>
+                <p
+                  id="saveFeedback"
+                  class="save-feedback"
+                  role="status"
+                  aria-live="polite"
+                ></p>
               </section>
             </div>
           </div>
         </main>
+      </div>
     </div>
-</div>
-<!-- Lapisan gelap saat menu sidebar dibuka di layar kecil -->
-<div class="page-overlay" id="pageOverlay"></div>
-<!-- Script interaksi detail verifikasi laporan -->
-<script src="Detail-Verifikasi-Laporan.js"></script>
-</body>
+    <!-- Lapisan gelap saat menu sidebar dibuka di layar kecil -->
+    <div class="page-overlay" id="pageOverlay"></div>
+    <!-- Script interaksi detail verifikasi laporan -->
+    <script src="Detail-Verifikasi-Laporan.js"></script>
+  </body>
 </html>

@@ -1,31 +1,60 @@
-/* SIPFAS - MANAJEMEN PENGGUNA */
+/* =========================================================
+   SIPFAS - MANAJEMEN PENGGUNA
+   Standar desain:
+   - Dashboard Admin
+   - Kategori Fasilitas
+   - Global Logo SIPFAS
 
-/* 01. VARIABEL GLOBAL */
+   Font       : Inter
+   Sidebar    : Navy
+   Primary    : Blue
+   Background : Light Gray
+========================================================= */
+
+/* =========================================================
+   01. VARIABEL GLOBAL
+========================================================= */
+
 :root {
   --font-main: "Inter", sans-serif;
+
   --navy: #203f65;
   --navy-dark: #193858;
+
   --primary: #0758e8;
   --primary-hover: #064bc4;
+
   --page-bg: #f4f7fb;
   --white: #ffffff;
+
   --text-main: #20262d;
   --text-secondary: #68717c;
   --text-muted: #929ba7;
+
   --border: #edf0f4;
   --table-head: #f0f2f5;
+
   --green: #15845b;
   --green-soft: #d3f6e8;
+
   --red: #d92d35;
   --red-soft: #ffe1df;
+
   --blue-soft: #e1e7ff;
   --blue-text: #0758e8;
+
   --radius-card: 10px;
   --radius-panel: 11px;
-  --sidebar-width: 190px;
+
+  /* SAMA DENGAN DASHBOARD ADMIN */
+  --sidebar-width: 240px;
+  --topbar-height: 54px;
 }
 
-/* 02. RESET */
+/* =========================================================
+   02. RESET
+========================================================= */
+
 * {
   margin: 0;
   padding: 0;
@@ -39,12 +68,17 @@ html {
 body {
   min-width: 320px;
   min-height: 100vh;
+
   font-family: var(--font-main);
+
   background: var(--page-bg);
   color: var(--text-main);
+
   font-size: 12px;
   line-height: 1.5;
+
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 button,
@@ -66,64 +100,93 @@ a {
 
 svg {
   display: block;
+
   width: 100%;
   height: 100%;
+
   fill: none;
   stroke: currentColor;
+
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-/* 03. LAYOUT UTAMA */
+/* =========================================================
+   03. LAYOUT UTAMA
+========================================================= */
+
 .app-layout {
   display: flex;
+
   width: 100%;
   min-height: 100vh;
+
   overflow-x: hidden;
 }
 
-/* 04. SIDEBAR */
+/* =========================================================
+   04. SIDEBAR
+   Desktop : 240px
+   Tablet  : 185px
+========================================================= */
+
 .sidebar {
   width: var(--sidebar-width);
   min-width: var(--sidebar-width);
+
   min-height: 100vh;
+
   display: flex;
   flex-direction: column;
+
   position: relative;
   z-index: 10;
+
   flex-shrink: 0;
+
   background: var(--navy);
   color: #dce7f5;
 }
 
 .sidebar::after {
   content: "";
+
   position: absolute;
   top: 0;
   right: 0;
+
   width: 1px;
   height: 100%;
+
   background: rgba(255, 255, 255, 0.08);
 }
+
+/* =========================================================
+   05. IDENTITAS LOGO SIPFAS
+   Menggunakan logo.css GLOBAL.
+
+   Tidak mengatur ulang:
+   - Ukuran logo
+   - Jarak logo dan tulisan
+   - Posisi identitas
+   - Garis pemisah logo
+
+   Semua menggunakan logo.css.
+========================================================= */
 
 .sidebar-logo {
   flex-shrink: 0;
 }
 
-/* 05. GARIS PEMISAH LOGO */
-.sidebar-brand-divider {
-  width: 100%;
-  height: 1px;
-  flex-shrink: 0;
-  margin: 0 0 5px 0;
-  background: rgba(255, 255, 255, 0.22);
-}
+/* =========================================================
+   06. NAVIGASI SIDEBAR
+========================================================= */
 
-/* 06. NAVIGASI SIDEBAR */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
+
   flex: 1;
 }
 
@@ -134,24 +197,34 @@ svg {
 
 .nav-title {
   color: #91aac7;
+
   font-size: 7px;
   font-weight: 700;
+
   letter-spacing: 0.45px;
+
   padding: 8px 5px 6px;
 }
 
 .nav-link {
   width: 100%;
   min-height: 26px;
+
   display: flex;
   align-items: center;
+
   gap: 8px;
+
   padding: 5px 8px;
   margin-bottom: 2px;
+
   border-radius: 6px;
+
   color: #d5e2f1;
+
   font-size: 9px;
   font-weight: 500;
+
   transition:
     background 0.18s ease,
     color 0.18s ease;
@@ -165,28 +238,37 @@ svg {
 .nav-link.active {
   background: var(--primary);
   color: #ffffff;
+
   font-weight: 700;
 }
 
 .nav-icon {
   width: 13px;
   height: 13px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   flex-shrink: 0;
 }
 
 .nav-icon svg {
   width: 13px;
   height: 13px;
+
   stroke-width: 1.8;
 }
 
-/* 07. MENU AKUN */
+/* =========================================================
+   07. MENU AKUN
+========================================================= */
+
 .sidebar-bottom {
   margin-top: auto;
+
   padding: 8px 11px 9px;
+
   border-top: 1px solid rgba(255, 255, 255, 0.09);
 }
 
@@ -194,52 +276,74 @@ svg {
   padding-top: 0;
 }
 
-/* 08. AREA KONTEN */
+/* =========================================================
+   08. AREA KONTEN
+========================================================= */
+
 .main-area {
   flex: 1;
   min-width: 0;
+
   display: flex;
   flex-direction: column;
 }
 
-/* 09. TOPBAR */
+/* =========================================================
+   09. TOPBAR
+   Konsisten dengan Dashboard Admin.
+========================================================= */
+
 .topbar {
-  height: 54px;
-  min-height: 54px;
+  height: 66px;
+  min-height: 64px;
+
   padding: 0 20px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   background: var(--white);
   border-bottom: 1px solid var(--border);
+
+  flex-shrink: 0;
 }
 
 .topbar-system {
   display: flex;
   align-items: center;
+
   gap: 8px;
+
   color: #58616c;
+
   font-size: 8px;
   font-weight: 500;
+
   letter-spacing: 0.15px;
 }
 
 .topbar-dot {
   width: 6px;
   height: 6px;
+
   border-radius: 50%;
+
   background: var(--primary);
+
   flex-shrink: 0;
 }
 
 .topbar-user {
   display: flex;
   align-items: center;
+
   gap: 8px;
 }
 
 .topbar-user-name {
   color: #25303c;
+
   font-size: 8px;
   font-weight: 600;
 }
@@ -247,12 +351,16 @@ svg {
 .topbar-user-avatar {
   width: 23px;
   height: 23px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   border-radius: 50%;
+
   background: var(--primary);
   color: #ffffff;
+
   flex-shrink: 0;
 }
 
@@ -261,28 +369,41 @@ svg {
   height: 13px;
 }
 
-/* 10. KONTEN HALAMAN */
+/* =========================================================
+   10. KONTEN HALAMAN
+========================================================= */
+
 .content {
   flex: 1;
   min-width: 0;
+
   padding: 17px 20px 25px;
 }
 
-/* 11. HEADER HALAMAN */
+/* =========================================================
+   11. HEADER HALAMAN
+========================================================= */
+
 .page-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+
   gap: 12px;
+
   margin-bottom: 15px;
 }
 
 .breadcrumb {
   display: flex;
   align-items: center;
+
   gap: 5px;
+
   margin-bottom: 3px;
+
   color: #7b8591;
+
   font-size: 7px;
   font-weight: 400;
 }
@@ -294,27 +415,40 @@ svg {
 
 .page-header h1 {
   color: #152f4b;
+
   font-size: 17px;
   font-weight: 700;
+
   line-height: 1.3;
   letter-spacing: -0.35px;
 }
 
-/* 12. TOMBOL TAMBAH PENGGUNA */
+/* =========================================================
+   12. TOMBOL TAMBAH PENGGUNA
+========================================================= */
+
 .add-user-btn {
   min-height: 32px;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   gap: 7px;
+
   padding: 0 12px;
+
   border: 1px solid var(--primary);
   border-radius: 6px;
+
   background: var(--primary);
   color: #ffffff;
+
   font-size: 8px;
   font-weight: 650;
+
   cursor: pointer;
+
   transition:
     background 0.2s ease,
     box-shadow 0.2s ease;
@@ -322,34 +456,50 @@ svg {
 
 .add-user-btn:hover {
   background: var(--primary-hover);
+
   box-shadow: 0 3px 8px rgba(7, 88, 232, 0.16);
 }
 
 .add-user-btn svg {
   width: 13px;
   height: 13px;
+
   stroke-width: 2;
 }
 
-/* 13. GRID RINGKASAN */
+/* =========================================================
+   13. GRID RINGKASAN
+========================================================= */
+
 .summary-grid {
   display: grid;
+
   grid-template-columns: repeat(3, minmax(0, 1fr));
+
   gap: 10px;
+
   margin-bottom: 14px;
 }
 
-/* 14. KARTU STATISTIK */
+/* =========================================================
+   14. KARTU STATISTIK
+========================================================= */
+
 .summary-card {
   min-width: 0;
   min-height: 99px;
+
   padding: 15px 17px;
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+
   background: var(--white);
+
   border: 1px solid #eef1f5;
   border-radius: var(--radius-card);
+
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
@@ -357,6 +507,7 @@ svg {
 
 .summary-card:hover {
   transform: translateY(-2px);
+
   box-shadow: 0 5px 15px rgba(25, 56, 88, 0.06);
 }
 
@@ -364,12 +515,15 @@ svg {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+
   gap: 8px;
 }
 
 .summary-card-top p {
   padding-top: 2px;
+
   color: #515b67;
+
   font-size: 8px;
   font-weight: 600;
 }
@@ -377,11 +531,15 @@ svg {
 .summary-card-icon {
   width: 29px;
   height: 29px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   border-radius: 6px;
+
   flex-shrink: 0;
+
   background: #dce5ff;
   color: var(--primary);
 }
@@ -394,68 +552,100 @@ svg {
 .summary-number {
   display: flex;
   align-items: baseline;
+
   gap: 6px;
+
   color: #20262d;
+
   font-size: 21px;
   font-weight: 750;
+
   line-height: 1.15;
   letter-spacing: -0.4px;
 }
 
 .summary-number small {
   color: #69727d;
+
   font-size: 8px;
   font-weight: 400;
+
   letter-spacing: 0;
 }
 
 .summary-card-bottom {
   display: flex;
   align-items: center;
+
   gap: 5px;
+
   color: #68727e;
+
   font-size: 7px;
 }
 
 .meta-bullet {
   width: 5px;
   height: 5px;
+
   display: inline-block;
+
   border-radius: 50%;
+
   background: var(--primary);
+
   flex-shrink: 0;
 }
 
-/* 15. PANEL TABEL */
+/* =========================================================
+   15. PANEL TABEL
+========================================================= */
+
 .user-panel {
   width: 100%;
+
   background: var(--white);
+
   border: 1px solid #edf0f4;
   border-radius: var(--radius-panel);
+
   overflow: hidden;
 }
 
-/* 16. SEARCH DAN FILTER */
+/* =========================================================
+   16. SEARCH DAN FILTER
+========================================================= */
+
 .filter-bar {
   min-height: 58px;
+
   padding: 11px 14px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 12px;
+
   border-bottom: 1px solid #edf0f4;
 }
 
 .search-box {
   width: min(340px, 100%);
   height: 32px;
+
   display: flex;
   align-items: center;
+
   gap: 8px;
+
   padding: 0 10px;
+
   background: #f1f3f6;
+
   border: 1px solid #eef0f3;
   border-radius: 6px;
+
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
@@ -463,13 +653,16 @@ svg {
 
 .search-box:focus-within {
   border-color: var(--primary);
+
   box-shadow: 0 0 0 2px rgba(7, 88, 232, 0.08);
 }
 
 .search-box svg {
   width: 13px;
   height: 13px;
+
   color: #89939f;
+
   flex-shrink: 0;
 }
 
@@ -477,10 +670,14 @@ svg {
   width: 100%;
   min-width: 0;
   height: 100%;
+
   border: none;
   outline: none;
+
   background: transparent;
+
   color: #354153;
+
   font-size: 8px;
 }
 
@@ -491,19 +688,26 @@ svg {
 .filter-actions {
   display: flex;
   align-items: center;
+
   gap: 7px;
 }
 
 .filter-actions select {
   min-width: 115px;
   height: 32px;
+
   padding: 0 9px;
+
   border: 1px solid #e5e9ef;
   border-radius: 6px;
+
   background: #f1f3f6;
+
   color: #515b67;
+
   font-size: 8px;
   font-weight: 500;
+
   outline: none;
   cursor: pointer;
 }
@@ -512,19 +716,28 @@ svg {
   border-color: var(--primary);
 }
 
-/* 17. PEMBUNGKUS TABEL */
+/* =========================================================
+   17. PEMBUNGKUS TABEL
+========================================================= */
+
 .table-wrap {
   width: 100%;
   overflow-x: auto;
 }
 
-/* 18. TABEL PENGGUNA */
+/* =========================================================
+   18. TABEL PENGGUNA
+========================================================= */
+
 .user-table {
   width: 100%;
+
   border-collapse: collapse;
   table-layout: fixed;
+
   text-align: left;
   white-space: nowrap;
+
   background: #ffffff;
 }
 
@@ -556,19 +769,28 @@ svg {
   width: 7%;
 }
 
-/* 19. HEADER TABEL */
+/* =========================================================
+   19. HEADER TABEL
+========================================================= */
+
 .user-table thead {
   background: var(--table-head);
 }
 
 .user-table th {
   height: 36px;
+
   padding: 8px 9px;
+
   color: #58616b;
+
   font-size: 7px;
   font-weight: 750;
+
   letter-spacing: 0.1px;
+
   text-align: left;
+
   border-bottom: 1px solid #e9edf2;
 }
 
@@ -579,14 +801,22 @@ svg {
   text-align: center;
 }
 
-/* 20. ISI TABEL */
+/* =========================================================
+   20. ISI TABEL
+========================================================= */
+
 .user-table td {
   height: 49px;
+
   padding: 8px 9px;
+
   border-bottom: 1px solid #f0f2f6;
+
   color: #59636e;
+
   font-size: 8px;
   font-weight: 400;
+
   vertical-align: middle;
 }
 
@@ -604,26 +834,36 @@ svg {
 
 .user-table td strong {
   color: #303740;
+
   font-size: 8px;
   font-weight: 600;
 }
 
 .user-table td.identity {
   color: #23466d;
+
   font-size: 8px;
   font-weight: 600;
+
   font-variant-numeric: tabular-nums;
 }
 
-/* 21. BADGE PERAN */
+/* =========================================================
+   21. BADGE PERAN
+========================================================= */
+
 .role-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   padding: 4px 7px;
+
   border-radius: 4px;
+
   font-size: 7px;
   font-weight: 650;
+
   white-space: nowrap;
 }
 
@@ -642,25 +882,37 @@ svg {
   color: #50565e;
 }
 
-/* 22. BADGE STATUS */
+/* =========================================================
+   22. BADGE STATUS
+========================================================= */
+
 .status-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   gap: 5px;
+
   padding: 4px 8px;
+
   border-radius: 20px;
+
   font-size: 7px;
   font-weight: 600;
+
   white-space: nowrap;
 }
 
 .status-badge::before {
   content: "";
+
   width: 5px;
   height: 5px;
+
   display: inline-block;
+
   border-radius: 50%;
+
   background: currentColor;
 }
 
@@ -674,24 +926,32 @@ svg {
   color: #68717c;
 }
 
-/* 23. TOMBOL AKSI */
+/* =========================================================
+   23. TOMBOL AKSI
+========================================================= */
+
 .action-buttons {
   display: flex;
   align-items: center;
   justify-content: center;
+
   gap: 5px;
 }
 
 .action-btn {
   width: 23px;
   height: 23px;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   border: 1px solid transparent;
   border-radius: 5px;
+
   background: transparent;
   color: #64748b;
+
   transition:
     background 0.18s ease,
     color 0.18s ease;
@@ -700,6 +960,7 @@ svg {
 .action-btn svg {
   width: 13px;
   height: 13px;
+
   stroke-width: 1.9;
 }
 
@@ -713,35 +974,48 @@ svg {
   color: var(--red);
 }
 
-/* 24. PAGINATION */
+/* =========================================================
+   24. PAGINATION
+========================================================= */
+
 .panel-foot {
   min-height: 43px;
+
   padding: 0 14px;
+
   display: flex;
   align-items: center;
   justify-content: flex-start;
+
   border-top: 1px solid #edf0f4;
+
   background: #ffffff;
 }
 
 .pagination {
   display: flex;
   align-items: center;
+
   gap: 4px;
 }
 
 .pagination button {
   width: 25px;
   height: 25px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   border: 1px solid #e9edf2;
   border-radius: 5px;
+
   background: #ffffff;
   color: #66717c;
+
   font-size: 8px;
   font-weight: 500;
+
   transition:
     background 0.18s ease,
     color 0.18s ease;
@@ -759,21 +1033,30 @@ svg {
 .pagination button.active {
   background: var(--primary);
   border-color: var(--primary);
+
   color: #ffffff;
+
   font-weight: 700;
 }
 
 .pagination span {
   padding: 0 3px;
+
   color: #89939f;
+
   font-size: 9px;
 }
 
-/* 25. MODAL TAMBAH PENGGUNA */
+/* =========================================================
+   25. MODAL TAMBAH PENGGUNA
+========================================================= */
+
 .modal-toggle {
   position: absolute;
+
   width: 1px;
   height: 1px;
+
   opacity: 0;
   pointer-events: none;
 }
@@ -781,10 +1064,13 @@ svg {
 .modal-overlay {
   position: fixed;
   inset: 0;
+
   z-index: 1000;
+
   display: none;
   align-items: center;
   justify-content: center;
+
   padding: 20px;
 }
 
@@ -795,22 +1081,31 @@ svg {
 .modal-backdrop {
   position: absolute;
   inset: 0;
+
   background: rgba(15, 35, 59, 0.48);
+
   backdrop-filter: blur(3px);
+
   cursor: pointer;
 }
 
 .modal-card {
   position: relative;
   z-index: 1;
+
   width: 100%;
   max-width: 530px;
   max-height: 90vh;
+
   overflow-y: auto;
+
   background: #ffffff;
+
   border: 1px solid #edf0f4;
   border-radius: 12px;
+
   box-shadow: 0 15px 45px rgba(15, 35, 59, 0.2);
+
   animation: modalAppear 0.2s ease;
 }
 
@@ -819,6 +1114,7 @@ svg {
     opacity: 0;
     transform: translateY(10px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -827,35 +1123,47 @@ svg {
 
 .modal-header {
   padding: 19px 22px;
+
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+
   gap: 12px;
+
   border-bottom: 1px solid var(--border);
 }
 
 .modal-header h2 {
   color: #152f4b;
+
   font-size: 16px;
   font-weight: 700;
+
   margin-bottom: 4px;
 }
 
 .modal-header p {
   color: #7b8591;
+
   font-size: 9px;
 }
 
 .modal-close {
   width: 27px;
   height: 27px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   border-radius: 6px;
+
   color: #68717c;
+
   font-size: 22px;
+
   cursor: pointer;
+
   transition: background 0.2s ease;
 }
 
@@ -867,22 +1175,29 @@ svg {
   padding: 20px 22px;
 }
 
-/* 26. FORM TAMBAH PENGGUNA */
+/* =========================================================
+   26. FORM TAMBAH PENGGUNA
+========================================================= */
+
 .user-form {
   display: flex;
   flex-direction: column;
+
   gap: 14px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
+
   gap: 6px;
+
   min-width: 0;
 }
 
 .form-group label {
   color: #354153;
+
   font-size: 9px;
   font-weight: 600;
 }
@@ -895,13 +1210,20 @@ svg {
 .form-group select {
   width: 100%;
   height: 36px;
+
   padding: 0 11px;
+
   border: 1px solid #e2e7ee;
   border-radius: 6px;
+
   outline: none;
+
   background: #ffffff;
+
   color: #354153;
+
   font-size: 9px;
+
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
@@ -914,42 +1236,58 @@ svg {
 .form-group input:focus,
 .form-group select:focus {
   border-color: var(--primary);
+
   box-shadow: 0 0 0 2px rgba(7, 88, 232, 0.08);
 }
 
 .form-row {
   display: grid;
+
   grid-template-columns: repeat(2, minmax(0, 1fr));
+
   gap: 12px;
 }
 
-/* 27. TOMBOL MODAL */
+/* =========================================================
+   27. TOMBOL MODAL
+========================================================= */
+
 .modal-footer {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+
   gap: 8px;
+
   padding-top: 15px;
   margin-top: 3px;
+
   border-top: 1px solid var(--border);
 }
 
 .cancel-btn,
 .save-btn {
   min-height: 34px;
+
   padding: 0 14px;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   border-radius: 6px;
+
   font-size: 9px;
   font-weight: 600;
+
   cursor: pointer;
+
   transition: background 0.2s ease;
 }
 
 .cancel-btn {
   border: 1px solid #e1e6ed;
+
   background: #ffffff;
   color: #59636e;
 }
@@ -960,6 +1298,7 @@ svg {
 
 .save-btn {
   border: 1px solid var(--primary);
+
   background: var(--primary);
   color: #ffffff;
 }
@@ -968,11 +1307,366 @@ svg {
   background: var(--primary-hover);
 }
 
-/* 28. RESPONSIVE TABLET */
+/* =========================================================
+   28. MODAL EDIT DAN KONFIRMASI HAPUS
+========================================================= */
+
+.action-modal-toggle {
+  position: absolute;
+
+  width: 1px;
+  height: 1px;
+
+  opacity: 0;
+  pointer-events: none;
+}
+
+.action-modal {
+  position: fixed;
+  inset: 0;
+
+  z-index: 2000;
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+}
+
+#edit-user-modal:checked ~ .edit-modal,
+#delete-user-modal:checked ~ .delete-modal {
+  display: flex;
+}
+
+.action-modal-backdrop {
+  position: absolute;
+  inset: 0;
+
+  background: rgba(15, 35, 59, 0.48);
+
+  backdrop-filter: blur(3px);
+
+  cursor: pointer;
+}
+
+.action-modal-card {
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+  max-width: 530px;
+  max-height: 90vh;
+
+  overflow-y: auto;
+
+  background: #ffffff;
+
+  border: 1px solid #edf0f4;
+  border-radius: 12px;
+
+  box-shadow: 0 15px 45px rgba(15, 35, 59, 0.2);
+
+  animation: actionModalAppear 0.2s ease;
+}
+
+@keyframes actionModalAppear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.action-modal-header {
+  padding: 19px 22px;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.action-modal-header h2 {
+  color: #152f4b;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  margin-bottom: 4px;
+}
+
+.action-modal-header p {
+  color: #7b8591;
+
+  font-size: 9px;
+}
+
+.action-modal-close {
+  width: 27px;
+  height: 27px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 6px;
+
+  background: transparent;
+  color: #68717c;
+
+  font-size: 22px;
+
+  cursor: pointer;
+}
+
+.action-modal-close:hover {
+  background: #f0f2f5;
+}
+
+.action-modal-body {
+  padding: 20px 22px;
+}
+
+/* =========================================================
+   29. FORM EDIT PENGGUNA
+========================================================= */
+
+.edit-user-form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
+}
+
+.edit-form-group {
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  min-width: 0;
+}
+
+.edit-form-group label {
+  color: #354153;
+
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.edit-form-group label span {
+  color: #e04444;
+}
+
+.edit-form-group input,
+.edit-form-group select {
+  width: 100%;
+  height: 36px;
+
+  padding: 0 11px;
+
+  border: 1px solid #e2e7ee;
+  border-radius: 6px;
+
+  outline: none;
+
+  background: #ffffff;
+  color: #354153;
+
+  font-size: 9px;
+}
+
+.edit-form-group input:focus,
+.edit-form-group select:focus {
+  border-color: var(--primary);
+
+  box-shadow: 0 0 0 2px rgba(7, 88, 232, 0.08);
+}
+
+.edit-form-row {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+/* =========================================================
+   30. FOOTER MODAL
+========================================================= */
+
+.action-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 8px;
+
+  padding-top: 15px;
+  margin-top: 3px;
+
+  border-top: 1px solid var(--border);
+}
+
+.action-cancel-btn,
+.action-save-btn,
+.action-delete-confirm {
+  min-height: 34px;
+
+  padding: 0 14px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 6px;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.action-cancel-btn {
+  border: 1px solid #e1e6ed;
+
+  background: #ffffff;
+  color: #59636e;
+}
+
+.action-cancel-btn:hover {
+  background: #f1f3f6;
+}
+
+.action-save-btn {
+  border: 1px solid var(--primary);
+
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.action-save-btn:hover {
+  background: var(--primary-hover);
+}
+
+/* =========================================================
+   31. KONFIRMASI HAPUS
+========================================================= */
+
+.delete-modal-card {
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+  max-width: 390px;
+
+  padding: 25px;
+
+  background: #ffffff;
+
+  border-radius: 12px;
+
+  box-shadow: 0 15px 45px rgba(15, 35, 59, 0.2);
+
+  text-align: center;
+
+  animation: actionModalAppear 0.2s ease;
+}
+
+.delete-warning-icon {
+  width: 48px;
+  height: 48px;
+
+  margin: 0 auto 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #fff0ef;
+  color: var(--red);
+}
+
+.delete-warning-icon svg {
+  width: 22px;
+  height: 22px;
+
+  stroke-width: 1.8;
+}
+
+.delete-modal-card h2 {
+  margin-bottom: 8px;
+
+  color: #263547;
+
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.delete-modal-card p {
+  color: #748091;
+
+  font-size: 9px;
+  line-height: 1.7;
+}
+
+.delete-modal-footer {
+  display: flex;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-top: 20px;
+}
+
+.action-delete-confirm {
+  border: 1px solid var(--red);
+
+  background: var(--red);
+  color: #ffffff;
+}
+
+.action-delete-confirm:hover {
+  background: #b91c25;
+}
+
+/* =========================================================
+   32. TOMBOL IKON EDIT DAN HAPUS
+========================================================= */
+
+.action-btn {
+  cursor: pointer;
+}
+
+.action-btn:hover {
+  background: #edf3ff;
+  color: var(--primary);
+}
+
+.action-btn.delete-btn:hover {
+  background: #fff0ef;
+  color: var(--red);
+}
+
+/* =========================================================
+   33. RESPONSIVE TABLET
+   SAMA DENGAN DASHBOARD ADMIN
+========================================================= */
+
 @media (max-width: 1100px) {
   .sidebar {
-    width: 175px;
-    min-width: 175px;
+    width: 185px;
+    min-width: 185px;
   }
 
   .content {
@@ -984,7 +1678,10 @@ svg {
   }
 }
 
-/* 29. RESPONSIVE LAYAR MENENGAH */
+/* =========================================================
+   34. RESPONSIVE LAYAR MENENGAH
+========================================================= */
+
 @media (max-width: 850px) {
   .summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1009,7 +1706,11 @@ svg {
   }
 }
 
-/* 30. RESPONSIVE MOBILE */
+/* =========================================================
+   35. RESPONSIVE MOBILE
+   Konsisten dengan Dashboard Admin.
+========================================================= */
+
 @media (max-width: 700px) {
   .app-layout {
     flex-direction: column;
@@ -1034,6 +1735,7 @@ svg {
   .topbar {
     height: 48px;
     min-height: 48px;
+
     padding: 0 12px;
   }
 
@@ -1052,6 +1754,7 @@ svg {
   .page-header {
     align-items: flex-start;
     flex-direction: column;
+
     gap: 10px;
   }
 
@@ -1061,6 +1764,7 @@ svg {
 
   .summary-grid {
     grid-template-columns: 1fr;
+
     gap: 9px;
   }
 
@@ -1107,7 +1811,10 @@ svg {
   }
 }
 
-/* 31. RESPONSIVE LAYAR KECIL */
+/* =========================================================
+   36. RESPONSIVE LAYAR KECIL
+========================================================= */
+
 @media (max-width: 420px) {
   .form-row {
     grid-template-columns: 1fr;
@@ -1126,283 +1833,9 @@ svg {
   }
 }
 
-/* 32. MODAL EDIT DAN KONFIRMASI HAPUS */
-
-.action-modal-toggle {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.action-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-#edit-user-modal:checked ~ .edit-modal,
-#delete-user-modal:checked ~ .delete-modal {
-  display: flex;
-}
-
-.action-modal-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(15, 35, 59, 0.48);
-  backdrop-filter: blur(3px);
-  cursor: pointer;
-}
-
-.action-modal-card {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 530px;
-  max-height: 90vh;
-  overflow-y: auto;
-  background: #ffffff;
-  border: 1px solid #edf0f4;
-  border-radius: 12px;
-  box-shadow: 0 15px 45px rgba(15, 35, 59, 0.2);
-  animation: actionModalAppear 0.2s ease;
-}
-
-@keyframes actionModalAppear {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.action-modal-header {
-  padding: 19px 22px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-.action-modal-header h2 {
-  color: #152f4b;
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.action-modal-header p {
-  color: #7b8591;
-  font-size: 9px;
-}
-
-.action-modal-close {
-  width: 27px;
-  height: 27px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  background: transparent;
-  color: #68717c;
-  font-size: 22px;
-  cursor: pointer;
-}
-
-.action-modal-close:hover {
-  background: #f0f2f5;
-}
-
-.action-modal-body {
-  padding: 20px 22px;
-}
-
-/* 33. FORM EDIT PENGGUNA */
-
-.edit-user-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.edit-form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.edit-form-group label {
-  color: #354153;
-  font-size: 9px;
-  font-weight: 600;
-}
-
-.edit-form-group label span {
-  color: #e04444;
-}
-
-.edit-form-group input,
-.edit-form-group select {
-  width: 100%;
-  height: 36px;
-  padding: 0 11px;
-  border: 1px solid #e2e7ee;
-  border-radius: 6px;
-  outline: none;
-  background: #ffffff;
-  color: #354153;
-  font-size: 9px;
-}
-
-.edit-form-group input:focus,
-.edit-form-group select:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(7, 88, 232, 0.08);
-}
-
-.edit-form-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-/* 34. FOOTER MODAL */
-
-.action-modal-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  padding-top: 15px;
-  margin-top: 3px;
-  border-top: 1px solid var(--border);
-}
-
-.action-cancel-btn,
-.action-save-btn,
-.action-delete-confirm {
-  min-height: 34px;
-  padding: 0 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  font-size: 9px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.action-cancel-btn {
-  border: 1px solid #e1e6ed;
-  background: #ffffff;
-  color: #59636e;
-}
-
-.action-cancel-btn:hover {
-  background: #f1f3f6;
-}
-
-.action-save-btn {
-  border: 1px solid var(--primary);
-  background: var(--primary);
-  color: #ffffff;
-}
-
-.action-save-btn:hover {
-  background: var(--primary-hover);
-}
-
-/* 35. KONFIRMASI HAPUS */
-
-.delete-modal-card {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 390px;
-  padding: 25px;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 15px 45px rgba(15, 35, 59, 0.2);
-  text-align: center;
-  animation: actionModalAppear 0.2s ease;
-}
-
-.delete-warning-icon {
-  width: 48px;
-  height: 48px;
-  margin: 0 auto 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: #fff0ef;
-  color: var(--red);
-}
-
-.delete-warning-icon svg {
-  width: 22px;
-  height: 22px;
-  stroke-width: 1.8;
-}
-
-.delete-modal-card h2 {
-  margin-bottom: 8px;
-  color: #263547;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.delete-modal-card p {
-  color: #748091;
-  font-size: 9px;
-  line-height: 1.7;
-}
-
-.delete-modal-footer {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 20px;
-}
-
-.action-delete-confirm {
-  border: 1px solid var(--red);
-  background: var(--red);
-  color: #ffffff;
-}
-
-.action-delete-confirm:hover {
-  background: #b91c25;
-}
-
-/* 36. TOMBOL IKON EDIT DAN HAPUS */
-
-.action-btn {
-  cursor: pointer;
-}
-
-.action-btn:hover {
-  background: #edf3ff;
-  color: var(--primary);
-}
-
-.action-btn.delete-btn:hover {
-  background: #fff0ef;
-  color: var(--red);
-}
-
-/* 37. RESPONSIVE MODAL */
+/* =========================================================
+   37. RESPONSIVE MODAL EDIT DAN HAPUS
+========================================================= */
 
 @media (max-width: 700px) {
   .action-modal {

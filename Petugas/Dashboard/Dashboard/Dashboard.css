@@ -1,38 +1,38 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 /* PALET WARNA UTAMA: variabel navy untuk sidebar, biru aksen/tombol, latar, dan warna teks. */
 :root {
-    --navy: #1d3b60;
-    --blue: #2864f0;
-    --page-bg: #f7f8ff;
-    --text: #172942;
-    --muted: #5f6878;
+  --navy: #1d3b60;
+  --blue: #2864f0;
+  --page-bg: #f7f8ff;
+  --text: #172942;
+  --muted: #5f6878;
 }
 
 /* ATURAN DASAR: box sizing agar ukuran elemen lebih mudah dihitung. */
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 /* TAMPILAN DASAR HALAMAN: font, latar belakang, dan warna tulisan. */
 body {
-    margin: 0;
-    min-height: 100vh;
-    background: var(--page-bg);
-    color: var(--text);
-    font-family: 'Inter', Arial, sans-serif;
-    font-size: 12px;
+  margin: 0;
+  min-height: 100vh;
+  background: var(--page-bg);
+  color: var(--text);
+  font-family: "Inter", Arial, sans-serif;
+  font-size: 12px;
 }
 
 a {
-    color: inherit;
-    text-decoration: none;
+  color: inherit;
+  text-decoration: none;
 }
 
 /* LAYOUT UTAMA: sidebar dan area kerja berdampingan. */
 .app {
-    display: flex;
-    min-height: 100vh;
+  display: flex;
+  min-height: 100vh;
 }
 
 /* =========================
@@ -41,14 +41,14 @@ a {
 
 /* KOTAK SIDEBAR: ukuran, latar navy, dan tata letak menu kiri. */
 .sidebar {
-    width: 250px;
-    min-width: 250px;
-    min-height: 100vh;
-    padding: 0 18px 20px;
-    display: flex;
-    flex-direction: column;
-    background: var(--navy);
-    color: #d5dfed;
+  width: 250px;
+  min-width: 250px;
+  min-height: 100vh;
+  padding: 0 18px 20px;
+  display: flex;
+  flex-direction: column;
+  background: var(--navy);
+  color: #d5dfed;
 }
 
 /* =========================
@@ -57,13 +57,13 @@ a {
 
 /* BAGIAN LOGO SIDEBAR: tinggi area logo serta garis pemisah. */
 .sidebar .sidebar-logo {
-    width: calc(100% + 36px);
-    height: 66px;
-    min-height: 66px;
+  width: calc(100% + 36px);
+  height: 66px;
+  min-height: 66px;
 
-    margin-left: -18px;
+  margin-left: -18px;
 
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 /* =========================
@@ -72,70 +72,70 @@ a {
 
 /* WADAH MENU SIDEBAR: arah susunan dan jarak antartautan. */
 .nav-menu {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
-    /* Jarak antar menu */
-    gap: 3px;
+  /* Jarak antar menu */
+  gap: 3px;
 
-    /* Memberikan jarak dari bagian logo */
-    margin-top: 25px;
+  /* Memberikan jarak dari bagian logo */
+  margin-top: 25px;
 }
 
 /* TOMBOL MENU SIDEBAR: ukuran, warna teks, dan posisi ikon. */
 .nav-link {
-    height: 35px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0 9px;
-    border-radius: 6px;
-    color: #d1dbea;
-    font-size: 10px;
-    font-weight: 600;
-    transition: .2s;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 9px;
+  border-radius: 6px;
+  color: #d1dbea;
+  font-size: 10px;
+  font-weight: 600;
+  transition: 0.2s;
 }
 
 /* ICON SIDEBAR */
 /* IKON MENU SIDEBAR: ukuran dan bentuk garis SVG. */
 .nav-link svg,
 .logout-link svg {
-    width: 16px;
-    height: 16px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.4;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
 }
 
 /* EFEK HOVER MENU: perubahan warna ketika ditunjuk kursor. */
 .nav-link:hover {
-    color: #fff;
-    background: rgba(255,255,255,.08);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* MENU AKTIF: warna biru untuk halaman yang sedang dipilih. */
 .nav-link.active {
-    color: #fff;
-    background: #3269f2;
+  color: #fff;
+  background: #3269f2;
 }
 
 /* TOMBOL KELUAR: posisi di bagian bawah sidebar. */
 .logout-link {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: auto;
-    padding: 0 8px;
-    height: 25px;
-    color: #9db0ca;
-    font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding: 0 8px;
+  height: 25px;
+  color: #9db0ca;
+  font-size: 10px;
 }
 
 .logout-link:hover {
-    color: #fff;
+  color: #fff;
 }
 
 /* =========================
@@ -144,52 +144,52 @@ a {
 
 /* AREA KERJA: kolom kanan setelah sidebar. */
 .workspace {
-    min-width: 0;
-    flex: 1;
+  min-width: 0;
+  flex: 1;
 }
 
 /* HEADER PUTIH ATAS: tinggi, jarak, dan tata letak nama sistem/profil. */
 .topbar {
-    height: 66px;
-    padding: 0 26px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #fff;
-    border-bottom: 1px solid #eef0f5;
+  height: 66px;
+  padding: 0 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-bottom: 1px solid #eef0f5;
 }
 
 /* TEKS NAMA SISTEM INFORMASI di sisi kiri header. */
 .system-name {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    color: #555e6e;
-    font-size: 8px;
-    font-weight: 500;
-    letter-spacing: .15px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #555e6e;
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.15px;
 }
 
 /* BULATAN BIRU sebagai aksen sebelum nama sistem. */
 .system-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--blue);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--blue);
 }
 
 /* AREA PROFIL KANAN ATAS: nama petugas dan ikon avatar. */
 .profile-area {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* TULISAN NAMA PETUGAS di header. */
 .profile-name {
-    color: #26354b;
-    font-size: 8px;
-    font-weight: 700;
+  color: #26354b;
+  font-size: 8px;
+  font-weight: 700;
 }
 
 /* =========================
@@ -198,30 +198,30 @@ a {
 
 /* LINGKARAN IKON PROFIL: ukuran dan warna latar avatar. */
 .profile-avatar {
-    width: 32px;
-    height: 32px;
+  width: 32px;
+  height: 32px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    background: #0054D6;
-    color: #FFFFFF;
+  background: #0054d6;
+  color: #ffffff;
 
-    border-radius: 50%;
-    flex-shrink: 0;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 /* GAMBAR SVG PROFIL: ukuran serta ketebalan garis ikon. */
 .profile-avatar svg {
-    width: 17px;
-    height: 17px;
+  width: 17px;
+  height: 17px;
 
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* =========================
@@ -230,16 +230,16 @@ a {
 
 /* RUANG ISI DASHBOARD: jarak konten dari tepi. */
 .main-content {
-    padding: 9px 32px 45px;
+  padding: 9px 32px 45px;
 }
 
 /* JUDUL UTAMA HALAMAN DASHBOARD: ukuran dan warna teks. */
 .main-content h1 {
-    margin: 0 0 29px;
-    color: #182a43;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: -.25px;
+  margin: 0 0 29px;
+  color: #182a43;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.25px;
 }
 
 /* =========================
@@ -248,37 +248,37 @@ a {
 
 /* SUSUNAN KOTAK STATISTIK: empat kolom kartu pada desktop. */
 .summary-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 15px;
-    margin-bottom: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 15px;
+  margin-bottom: 14px;
 }
 
 /* KARTU PUTIH STATISTIK: ukuran, border, sudut, dan jarak dalam. */
 .summary-card {
-    min-width: 0;
-    height: 137px;
-    padding: 13px;
-    background: #fff;
-    border: 1px solid #f0f1f6;
-    border-radius: 9px;
+  min-width: 0;
+  height: 137px;
+  padding: 13px;
+  background: #fff;
+  border: 1px solid #f0f1f6;
+  border-radius: 9px;
 }
 
 /* BAGIAN ATAS KARTU: judul di kiri dan ikon di kanan. */
 .card-top {
-    min-height: 27px;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 6px;
+  min-height: 27px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
 }
 
 /* JUDUL KECIL DI DALAM KARTU: gaya teks label statistik. */
 .card-top > span:first-child {
-    color: #424b5b;
-    font-size: 8px;
-    line-height: 1.4;
-    font-weight: 600;
+  color: #424b5b;
+  font-size: 8px;
+  line-height: 1.4;
+  font-weight: 600;
 }
 
 /* =========================
@@ -287,42 +287,42 @@ a {
 
 /* KOTAK LATAR IKON KARTU: ukuran dan sudut membulat. */
 .icon-box {
-    width: 46px;
-    height: 46px;
+  width: 46px;
+  height: 46px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    flex-shrink: 0;
-    border-radius: 10px;
+  flex-shrink: 0;
+  border-radius: 10px;
 }
 
 /* Ukuran SVG */
 /* ICON SVG DALAM KOTAK: ukuran dan pengaturan garis. */
 .icon-box svg {
-    width: 23px;
-    height: 23px;
+  width: 23px;
+  height: 23px;
 
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* Total Laporan */
 /* WARNA KOTAK IKON TOTAL LAPORAN: biru muda. */
 .icon-blue {
-    color: #0054D6;
-    background: #DFE9FF;
+  color: #0054d6;
+  background: #dfe9ff;
 }
 
 /* Menunggu Verifikasi */
 /* WARNA KOTAK IKON MENUNGGU VERIFIKASI: kuning. */
 .icon-yellow {
-    color: #C56B08;
-    background: #FFF2C6;
+  color: #c56b08;
+  background: #fff2c6;
 }
 
 /* =========================
@@ -331,89 +331,89 @@ a {
 
 /* KOTAK IKON PENANGANAN: warna dan ukuran khusus. */
 .icon-box.icon-indigo {
-    width: 46px;
-    height: 46px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #DFE4FF;
-    color: #0054D6;
-    border-radius: 10px;
-    flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dfe4ff;
+  color: #0054d6;
+  border-radius: 10px;
+  flex-shrink: 0;
 }
 
 /* ICON WRENCH DALAM PENANGANAN */
 .icon-box.icon-indigo svg {
-    width: 24px;
-    height: 24px;
-    fill: none;
+  width: 24px;
+  height: 24px;
+  fill: none;
 
-    /* Membalik arah kunci pas ke kiri */
-    transform: scaleX(-1);
+  /* Membalik arah kunci pas ke kiri */
+  transform: scaleX(-1);
 }
 
 /* WARNA KOTAK IKON SELESAI: hijau. */
 .icon-green {
-    color: #159a70;
-    background: #d8f7e9;
+  color: #159a70;
+  background: #d8f7e9;
 }
 
 /* ANGKA UTAMA KARTU: ukuran teks total laporan. */
 .number {
-    color: #182b45;
-    font-size: 21px;
-    line-height: 1.1;
-    font-weight: 700;
-    margin: 3px 0 8px;
+  color: #182b45;
+  font-size: 21px;
+  line-height: 1.1;
+  font-weight: 700;
+  margin: 3px 0 8px;
 }
 
 /* BARIS NILAI KARTU: menyatukan angka dengan badge status. */
 .number-row {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    min-height: 23px;
-    margin: 3px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 23px;
+  margin: 3px 0 8px;
 }
 
 .number-row .number {
-    margin: 0;
+  margin: 0;
 }
 
 /* KETERANGAN KARTU: teks penjelasan di bawah angka. */
 .summary-card p {
-    margin: 0;
-    color: #626b7a;
-    font-size: 8px;
-    line-height: 1.5;
+  margin: 0;
+  color: #626b7a;
+  font-size: 8px;
+  line-height: 1.5;
 }
 
 /* LABEL STATUS KECIL DI KARTU: bentuk dan ukuran umum. */
 .badge {
-    display: inline-block;
-    padding: 4px 6px;
-    border-radius: 10px;
-    white-space: nowrap;
-    font-size: 6px;
-    font-weight: 600;
+  display: inline-block;
+  padding: 4px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  font-size: 6px;
+  font-weight: 600;
 }
 
 /* WARNA BADGE MENUNGGU: kuning. */
 .badge-yellow {
-    color: #bc7900;
-    background: #fff0c9;
+  color: #bc7900;
+  background: #fff0c9;
 }
 
 /* WARNA BADGE DALAM PENANGANAN: biru. */
 .badge-blue {
-    color: #1856d5;
-    background: #e0e9ff;
+  color: #1856d5;
+  background: #e0e9ff;
 }
 
 /* WARNA BADGE SELESAI: hijau. */
 .badge-green {
-    color: #13855f;
-    background: #d8f7e9;
+  color: #13855f;
+  background: #d8f7e9;
 }
 
 /* =========================
@@ -422,136 +422,136 @@ a {
 
 /* KOTAK PUTIH PANEL LAPORAN: latar, batas, dan sudut. */
 .report-panel {
-    padding: 14px 12px 15px;
-    background: #fff;
-    border: 1px solid #f0f1f6;
-    border-radius: 9px;
+  padding: 14px 12px 15px;
+  background: #fff;
+  border: 1px solid #f0f1f6;
+  border-radius: 9px;
 }
 
 /* AREA JUDUL TABEL: pemisah antara judul dan isi tabel. */
 .panel-heading {
-    margin-bottom: 12px;
+  margin-bottom: 12px;
 }
 
 /* JUDUL PANEL LAPORAN: teks tebal di atas tabel. */
 .panel-heading h2 {
-    margin: 0 0 4px;
-    color: #1c2d45;
-    font-size: 12px;
-    font-weight: 700;
+  margin: 0 0 4px;
+  color: #1c2d45;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 /* DESKRIPSI PANEL: teks penjelas di bawah judul. */
 .panel-heading p {
-    margin: 0;
-    color: #626b7a;
-    font-size: 9px;
+  margin: 0;
+  color: #626b7a;
+  font-size: 9px;
 }
 
 /* WADAH TABEL RESPONSIF: scroll horizontal bila sempit. */
 .table-container {
-    width: 100%;
-    overflow-x: auto;
+  width: 100%;
+  overflow-x: auto;
 }
 
 /* TABEL LAPORAN: lebar dan aturan penggabungan garis tabel. */
 table {
-    width: 100%;
-    min-width: 620px;
-    border-collapse: collapse;
-    text-align: left;
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  text-align: left;
 }
 
 /* LATAR KEPALA TABEL: warna biru muda. */
 thead {
-    background: #edf2ff;
+  background: #edf2ff;
 }
 
 /* JUDUL KOLOM TABEL: ukuran dan warna teks. */
 th {
-    height: 35px;
-    padding: 9px 10px;
-    color: #536f9c;
-    font-size: 9px;
-    line-height: 1.3;
-    font-weight: 800;
+  height: 35px;
+  padding: 9px 10px;
+  color: #536f9c;
+  font-size: 9px;
+  line-height: 1.3;
+  font-weight: 800;
 }
 
 /* ISI SEL TABEL: jarak, warna, dan keterbacaan data. */
 td {
-    height: 45px;
-    padding: 10px 12px;
-    color: #5d6676;
-    font-size: 9px;
-    font-weight: 400;
-    line-height: 1.5;
-    vertical-align: middle;
+  height: 45px;
+  padding: 10px 12px;
+  color: #5d6676;
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.5;
+  vertical-align: middle;
 }
 
 /* KODE LAPORAN: teks berwarna biru. */
 .report-code {
-    color: #1760f0;
-    font-size: 9px;
-    font-weight: 700;
+  color: #1760f0;
+  font-size: 9px;
+  font-weight: 700;
 }
 
 /* NAMA FASILITAS: teks lebih tebal. */
 .facility {
-    color: #28374d;
-    font-size: 9px;
-    font-weight: 700;
+  color: #28374d;
+  font-size: 9px;
+  font-weight: 700;
 }
 
 /* LABEL PRIORITAS: bentuk kapsul untuk tingkat urgensi. */
 .priority {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 24px;
-    padding: 5px 10px;
-    border-radius: 12px;
-    font-size: 9px;
-    font-weight: 600;
-    line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 /* WARNA PRIORITAS TINGGI: merah. */
 .priority-high {
-    color: #d64e4e;
-    background: #ffe2e2;
+  color: #d64e4e;
+  background: #ffe2e2;
 }
 
 /* WARNA PRIORITAS SEDANG: kuning. */
 .priority-medium {
-    color: #b87910;
-    background: #fff0ce;
+  color: #b87910;
+  background: #fff0ce;
 }
 
 /* WARNA PRIORITAS RENDAH: hijau. */
 .priority-low {
-    color: #13885f;
-    background: #d9f7e9;
+  color: #13885f;
+  background: #d9f7e9;
 }
 
 /* TOMBOL PERIKSA: gaya tombol biru pada setiap baris. */
 .action-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 65px;
-    height: 28px;
-    padding: 0 12px;
-    color: #ffffff;
-    background: #2864ef;
-    border-radius: 5px;
-    font-size: 9px;
-    font-weight: 600;
-    line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 65px;
+  height: 28px;
+  padding: 0 12px;
+  color: #ffffff;
+  background: #2864ef;
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 /* EFEK HOVER TOMBOL PERIKSA: biru lebih gelap. */
 .action-button:hover {
-    background: #174fcf;
+  background: #174fcf;
 }
 
 /* =========================
@@ -561,136 +561,136 @@ td {
 /* KONTROL MOBILE: tombol menu dan overlay disembunyikan secara default. */
 .menu-toggle,
 .page-overlay {
-    display: none;
+  display: none;
 }
 
 /* LAYAR BESAR: sidebar dan jarak konten diperlebar. */
 @media (min-width: 1400px) {
-    .sidebar {
-        width: 270px;
-        min-width: 270px;
-    }
+  .sidebar {
+    width: 270px;
+    min-width: 270px;
+  }
 
-    .main-content {
-        padding-left: 38px;
-        padding-right: 38px;
-    }
+  .main-content {
+    padding-left: 38px;
+    padding-right: 38px;
+  }
 
-    .summary-card {
-        height: 145px;
-    }
+  .summary-card {
+    height: 145px;
+  }
 }
 
 /* LAYAR TABLET: sidebar lebih ramping dan kartu menjadi dua kolom. */
 @media (max-width: 900px) {
-    .sidebar {
-        width: 220px;
-        min-width: 220px;
-    }
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+  }
 
-    .main-content {
-        padding-left: 22px;
-        padding-right: 22px;
-    }
+  .main-content {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
 
-    .summary-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /* LAYAR PONSEL: sidebar geser, tombol menu, dan penyesuaian konten. */
 @media (max-width: 650px) {
-    .sidebar {
-        position: fixed;
-        z-index: 30;
-        inset: 0 auto 0 0;
-        width: 255px;
-        min-width: 255px;
-        transform: translateX(-100%);
-        transition: transform .22s ease;
-    }
+  .sidebar {
+    position: fixed;
+    z-index: 30;
+    inset: 0 auto 0 0;
+    width: 255px;
+    min-width: 255px;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+  }
 
-    .sidebar.open {
-        transform: translateX(0);
-    }
+  .sidebar.open {
+    transform: translateX(0);
+  }
 
-    .page-overlay.show {
-        display: block;
-        position: fixed;
-        z-index: 20;
-        inset: 0;
-        background: rgba(12,25,44,.4);
-    }
+  .page-overlay.show {
+    display: block;
+    position: fixed;
+    z-index: 20;
+    inset: 0;
+    background: rgba(12, 25, 44, 0.4);
+  }
 
-    .topbar {
-        height: 58px;
-        padding: 0 14px;
-        gap: 10px;
-    }
+  .topbar {
+    height: 58px;
+    padding: 0 14px;
+    gap: 10px;
+  }
 
-    .menu-toggle {
-        width: 25px;
-        height: 25px;
-        padding: 3px;
-        border: 0;
-        background: transparent;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        gap: 4px;
-        cursor: pointer;
-    }
+  .menu-toggle {
+    width: 25px;
+    height: 25px;
+    padding: 3px;
+    border: 0;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+  }
 
-    .menu-toggle span {
-        display: block;
-        width: 18px;
-        height: 2px;
-        border-radius: 2px;
-        background: #27374e;
-    }
+  .menu-toggle span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    border-radius: 2px;
+    background: #27374e;
+  }
 
-    .system-name {
-        flex: 1;
-        font-size: 6px;
-        line-height: 1.4;
-    }
+  .system-name {
+    flex: 1;
+    font-size: 6px;
+    line-height: 1.4;
+  }
 
-    .profile-name {
-        display: none;
-    }
+  .profile-name {
+    display: none;
+  }
 
-    .main-content {
-        padding: 23px 14px 32px;
-    }
+  .main-content {
+    padding: 23px 14px 32px;
+  }
 
-    .main-content h1 {
-        margin-bottom: 21px;
-    }
+  .main-content h1 {
+    margin-bottom: 21px;
+  }
 
-    .summary-grid {
-        gap: 10px;
-    }
+  .summary-grid {
+    gap: 10px;
+  }
 
-    .summary-card {
-        height: 132px;
-        padding: 12px 10px;
-    }
+  .summary-card {
+    height: 132px;
+    padding: 12px 10px;
+  }
 
-    .report-panel {
-        padding: 13px 10px;
-    }
+  .report-panel {
+    padding: 13px 10px;
+  }
 }
 
 /* LAYAR PONSEL KECIL: kartu disusun satu kolom. */
 @media (max-width: 360px) {
-    .summary-grid {
-        grid-template-columns: 1fr;
-    }
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
 
-    .summary-card {
-        height: auto;
-        min-height: 120px;
-    }
+  .summary-card {
+    height: auto;
+    min-height: 120px;
+  }
 }
 
 /* =========================
@@ -699,22 +699,22 @@ td {
 
 /* TEKS LOGO SIPFAS: susunan nama sistem dan instansi. */
 .sidebar-logo .brand-text {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .sidebar-logo .brand-text strong {
-    display: block;
-    white-space: nowrap;
+  display: block;
+  white-space: nowrap;
 }
 
 .sidebar-logo .brand-text span {
-    display: block;
-    white-space: nowrap;
-    margin-top: 2px;
+  display: block;
+  white-space: nowrap;
+  margin-top: 2px;
 }
 
 /* =========================
@@ -723,23 +723,23 @@ td {
 
 /* PENYESUAIAN IKON KUNING: ukuran akhir ikon verifikasi. */
 .icon-box.icon-yellow {
-    width: 52px;
-    height: 52px;
+  width: 52px;
+  height: 52px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    background: #FFF2C6;
-    color: #B86108;
+  background: #fff2c6;
+  color: #b86108;
 
-    border-radius: 14px;
-    flex-shrink: 0;
+  border-radius: 14px;
+  flex-shrink: 0;
 }
 
 /* Ukuran ikon kalender dan jam */
 .icon-box.icon-yellow svg {
-    width: 32px;
-    height: 32px;
-    fill: none;
+  width: 32px;
+  height: 32px;
+  fill: none;
 }

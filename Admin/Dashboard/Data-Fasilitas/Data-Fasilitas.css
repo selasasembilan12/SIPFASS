@@ -1,20 +1,15 @@
 /* =========================================================
    SIPFAS - DATA FASILITAS
-   File: Data-Fasilitas.css
+   Standar desain:
+   - Dashboard Admin
+   - Manajemen Pengguna
+   - Kategori Fasilitas
+   - Global Logo SIPFAS
 
-   Fitur tampilan:
-   1. Sidebar navigasi
-   2. Topbar
-   3. Header halaman
-   4. Informasi parameter X3
-   5. Pencarian dan filter
-   6. Tabel fasilitas
-   7. Tombol aksi
-   8. Modal edit
-   9. Modal hapus
-   10. Responsive
-
-   HTML + CSS TANPA JAVASCRIPT
+   Font       : Inter
+   Sidebar    : Navy
+   Primary    : Blue
+   Background : Light Gray
 ========================================================= */
 
 /* =========================================================
@@ -30,9 +25,6 @@
   --primary: #0758e8;
   --primary-hover: #064bc4;
 
-  --danger: #dc3545;
-  --danger-hover: #c82333;
-
   --page-bg: #f4f7fb;
   --white: #ffffff;
 
@@ -43,23 +35,27 @@
   --border: #edf0f4;
   --table-head: #f0f2f5;
 
-  --rare-bg: #e9ecef;
-  --rare-text: #66707b;
+  --blue-soft: #e1e7ff;
+  --blue-text: #0758e8;
 
-  --medium-bg: #3974f6;
-  --medium-text: #ffffff;
+  --green: #15845b;
+  --green-soft: #d3f6e8;
 
-  --often-bg: #173b63;
-  --often-text: #ffffff;
+  --red: #d92d35;
+  --red-soft: #ffe1df;
+
+  --orange: #b7791f;
+  --orange-soft: #fff4db;
+
+  --sidebar-width: 240px;
+  --topbar-height: 54px;
 
   --radius-card: 10px;
   --radius-panel: 11px;
-
-  --sidebar-width: 190px;
 }
 
 /* =========================================================
-   02. RESET DAN DASAR
+   02. RESET DAN PENGATURAN DASAR
 ========================================================= */
 
 * {
@@ -77,22 +73,27 @@ body {
   min-height: 100vh;
 
   font-family: var(--font-main);
+  font-size: 12px;
+  line-height: 1.5;
 
   background: var(--page-bg);
   color: var(--text-main);
 
-  font-size: 12px;
-  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 button,
 input,
-select {
+select,
+textarea {
   font-family: inherit;
+  font-size: inherit;
 }
 
 button {
   cursor: pointer;
+  border: none;
 }
 
 a {
@@ -112,10 +113,6 @@ svg {
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-[hidden] {
-  display: none !important;
 }
 
 /* =========================================================
@@ -157,20 +154,27 @@ svg {
   content: "";
 
   position: absolute;
-
   top: 0;
   right: 0;
 
   width: 1px;
   height: 100%;
 
-  background: rgba(255, 255, 255, 0.16);
-
-  pointer-events: none;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* =========================================================
-   05. PEMBATAS SIDEBAR
+   05. LOGO GLOBAL
+   Menggunakan logo.css.
+   Ukuran dan posisi logo tidak diatur ulang.
+========================================================= */
+
+.sidebar-logo {
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   06. GARIS PEMISAH LOGO
 ========================================================= */
 
 .sidebar-brand-divider {
@@ -179,17 +183,20 @@ svg {
 
   flex-shrink: 0;
 
-  margin: 0 0 5px;
+  margin: 0 0 5px 0;
 
   background: rgba(255, 255, 255, 0.22);
 }
 
 /* =========================================================
-   06. NAVIGASI SIDEBAR
+   07. NAVIGASI SIDEBAR
 ========================================================= */
 
 .sidebar-nav {
-  display: block;
+  display: flex;
+  flex-direction: column;
+
+  flex: 1;
 }
 
 .nav-group {
@@ -263,7 +270,7 @@ svg {
 }
 
 /* =========================================================
-   07. MENU AKUN
+   08. MENU AKUN
 ========================================================= */
 
 .sidebar-bottom {
@@ -271,7 +278,7 @@ svg {
 
   padding: 8px 11px 9px;
 
-  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
 }
 
 .sidebar-bottom .nav-title {
@@ -279,7 +286,7 @@ svg {
 }
 
 /* =========================================================
-   08. AREA UTAMA
+   09. AREA KONTEN UTAMA
 ========================================================= */
 
 .main-area {
@@ -288,15 +295,17 @@ svg {
 
   display: flex;
   flex-direction: column;
+
+  background: var(--page-bg);
 }
 
 /* =========================================================
-   09. TOPBAR
+   10. TOPBAR
 ========================================================= */
 
 .topbar {
-  height: 54px;
-  min-height: 54px;
+  height: 66px;
+  min-height: 64px;
 
   padding: 0 20px;
 
@@ -305,8 +314,9 @@ svg {
   justify-content: space-between;
 
   background: var(--white);
-
   border-bottom: 1px solid var(--border);
+
+  flex-shrink: 0;
 }
 
 .topbar-system {
@@ -360,39 +370,42 @@ svg {
 
   background: var(--primary);
   color: #ffffff;
+
+  flex-shrink: 0;
 }
 
 .topbar-user-avatar svg {
   width: 13px;
   height: 13px;
-
-  stroke-width: 1.8;
 }
 
 /* =========================================================
-   10. KONTEN HALAMAN
+   11. AREA KONTEN
 ========================================================= */
 
 .content {
   flex: 1;
   min-width: 0;
 
-  padding: 17px 20px 24px;
+  padding: 17px 20px 25px;
 }
 
 /* =========================================================
-   11. HEADER DAN BREADCRUMB
+   12. HEADER HALAMAN
 ========================================================= */
 
 .page-header {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+
   margin-bottom: 15px;
 }
 
 .breadcrumb {
   display: flex;
   align-items: center;
-
-  flex-wrap: wrap;
 
   gap: 5px;
 
@@ -416,36 +429,40 @@ svg {
   font-weight: 700;
 
   line-height: 1.3;
-
   letter-spacing: -0.35px;
 }
 
 /* =========================================================
-   12. INFORMASI PARAMETER X3
+   13. INFORMATION CARD PARAMETER X3
 ========================================================= */
 
 .information-card {
+  width: 100%;
+
+  padding: 15px 17px;
+
+  margin-bottom: 15px;
+
   display: flex;
   align-items: flex-start;
 
-  gap: 10px;
+  gap: 13px;
 
-  width: 100%;
-  min-height: 78px;
+  background: #ffffff;
 
-  padding: 12px;
-  margin-bottom: 17px;
+  border: 1px solid #e5ebf5;
+  border-left: 3px solid var(--primary);
 
-  background: var(--white);
+  border-radius: var(--radius-panel);
 
-  border: 1px solid #edf0f4;
-
-  border-radius: var(--radius-card);
+  box-shadow: 0 1px 2px rgba(24, 39, 75, 0.02);
 }
 
+/* ICON INFORMASI */
+
 .information-icon {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
 
   display: flex;
   align-items: center;
@@ -453,47 +470,48 @@ svg {
 
   flex-shrink: 0;
 
-  border-radius: 6px;
+  border-radius: 7px;
 
-  color: #173f75;
-  background: #dfe5ff;
+  background: #e9efff;
+  color: var(--primary);
 }
 
 .information-icon svg {
-  width: 17px;
-  height: 17px;
+  width: 19px;
+  height: 19px;
 
-  stroke-width: 2;
+  stroke-width: 1.8;
 }
 
+/* KONTEN INFORMASI */
+
 .information-content {
+  flex: 1;
   min-width: 0;
 }
 
 .information-content h2 {
-  margin-bottom: 2px;
+  margin-bottom: 5px;
 
-  color: #17395f;
+  color: #203f65;
 
   font-size: 10px;
   font-weight: 700;
 
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .information-content p {
-  margin-bottom: 6px;
-
-  color: #606a75;
+  color: #657181;
 
   font-size: 8px;
   font-weight: 400;
 
-  line-height: 1.5;
+  line-height: 1.7;
 }
 
 /* =========================================================
-   13. LEGENDA FREKUENSI
+   14. LEGEND PARAMETER X3
 ========================================================= */
 
 .legend-list {
@@ -502,92 +520,96 @@ svg {
 
   flex-wrap: wrap;
 
-  gap: 5px;
+  gap: 9px 18px;
+
+  margin-top: 12px;
 }
 
 .legend-item {
-  display: inline-flex;
+  display: flex;
   align-items: center;
 
-  gap: 3px;
+  gap: 5px;
 
-  min-height: 17px;
+  color: #68717c;
 
-  padding: 2px 6px;
-
-  border-radius: 3px;
-
-  color: #59616b;
-  background: #eff1f4;
-
-  font-size: 7px;
-
+  font-size: 8px;
   white-space: nowrap;
 }
 
 .legend-item strong {
-  color: #39424d;
+  color: #394555;
 
-  font-size: 7px;
+  font-size: 8px;
   font-weight: 700;
 }
 
-.legend-dot {
-  width: 6px;
-  height: 6px;
+/* TITIK WARNA */
 
-  flex-shrink: 0;
+.legend-dot {
+  width: 7px;
+  height: 7px;
+
+  display: inline-block;
 
   border-radius: 50%;
+
+  flex-shrink: 0;
 }
 
 .dot-rare {
-  background: #7c8793;
+  background: #8994a2;
 }
 
 .dot-medium {
-  background: #3974f6;
+  background: #d49a32;
 }
 
 .dot-often {
-  background: #173b63;
+  background: #15845b;
 }
 
 /* =========================================================
-   14. PANEL MASTER DATA
+   15. PANEL DATA FASILITAS
 ========================================================= */
 
 .panel {
   width: 100%;
 
-  padding: 17px;
-
   background: var(--white);
 
   border: 1px solid #edf0f4;
-
   border-radius: var(--radius-panel);
 
   overflow: hidden;
+
+  box-shadow: 0 1px 2px rgba(24, 39, 75, 0.02);
 }
 
 /* =========================================================
-   15. PENCARIAN DAN FILTER
+   16. SEARCH DAN FILTER
 ========================================================= */
 
 .filter-bar {
+  min-height: 58px;
+
+  padding: 11px 14px;
+
   display: flex;
   align-items: center;
+  justify-content: space-between;
 
-  flex-wrap: wrap;
+  gap: 12px;
 
-  gap: 7px;
+  border-bottom: 1px solid #edf0f4;
 
-  margin-bottom: 11px;
+  background: #ffffff;
 }
 
+/* SEARCH BOX */
+
 .search-box {
-  width: 238px;
+  width: min(340px, 100%);
   height: 33px;
 
   display: flex;
@@ -597,126 +619,169 @@ svg {
 
   padding: 0 10px;
 
-  border: 1px solid #edf0f4;
-
-  border-radius: 6px;
-
-  color: #87919c;
-  background: #f1f3f6;
-}
-
-.search-box svg {
-  width: 12px;
-  height: 12px;
-
-  flex-shrink: 0;
-
-  stroke-width: 2;
-}
-
-.search-box input {
-  width: 100%;
-  min-width: 0;
-
-  border: 0;
-  outline: 0;
-
-  color: #414a55;
-  background: transparent;
-
-  font-size: 8px;
-}
-
-.search-box input::placeholder {
-  color: #8b949e;
-}
-
-.category-filter {
-  width: 160px;
-  height: 33px;
-
-  padding: 0 10px;
-
-  border: 1px solid #edf0f4;
-
-  border-radius: 6px;
-
-  outline: none;
-
-  color: #414a55;
   background: #f1f3f6;
 
-  font-size: 8px;
-  font-weight: 500;
+  border: 1px solid #eef0f3;
+  border-radius: 6px;
 
-  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.category-filter:focus,
 .search-box:focus-within {
   border-color: var(--primary);
 
   box-shadow: 0 0 0 2px rgba(7, 88, 232, 0.08);
 }
 
+.search-box svg {
+  width: 14px;
+  height: 14px;
+
+  color: #89939f;
+
+  flex-shrink: 0;
+}
+
+.search-box input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  color: #354153;
+
+  font-size: 8px;
+  font-weight: 400;
+}
+
+.search-box input::placeholder {
+  color: #929ba7;
+}
+
+.search-box input::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
+/* FILTER KATEGORI */
+
+.category-filter {
+  width: 185px;
+  height: 33px;
+
+  padding: 0 10px;
+
+  border: 1px solid #e5e9ef;
+  border-radius: 6px;
+
+  outline: none;
+
+  background: #f1f3f6;
+
+  color: #515b67;
+
+  font-size: 8px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: border-color 0.2s ease;
+}
+
+.category-filter:focus {
+  border-color: var(--primary);
+}
+
 /* =========================================================
-   16. TABEL MASTER FASILITAS
+   17. PEMBUNGKUS TABEL
 ========================================================= */
 
 .table-wrap {
   width: 100%;
 
   overflow-x: auto;
+  scrollbar-width: thin;
+
+  scrollbar-color: #cbd5e1 #f4f7fb;
 }
+
+.table-wrap::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-wrap::-webkit-scrollbar-track {
+  background: #f4f7fb;
+}
+
+.table-wrap::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+/* =========================================================
+   18. TABEL FASILITAS
+========================================================= */
 
 .facility-table {
   width: 100%;
-  min-width: 850px;
+  min-width: 1050px;
 
   border-collapse: collapse;
-
   table-layout: fixed;
 
   text-align: left;
   white-space: nowrap;
+
+  background: #ffffff;
 }
 
+/* LEBAR KOLOM */
+
 .facility-table th:nth-child(1) {
-  width: 3%;
+  width: 4%;
 }
 
 .facility-table th:nth-child(2) {
-  width: 13%;
+  width: 12%;
 }
 
 .facility-table th:nth-child(3) {
-  width: 22%;
+  width: 18%;
 }
 
 .facility-table th:nth-child(4) {
-  width: 17%;
+  width: 16%;
 }
 
 .facility-table th:nth-child(5) {
-  width: 25%;
+  width: 19%;
 }
 
 .facility-table th:nth-child(6) {
-  width: 13%;
+  width: 19%;
 }
 
 .facility-table th:nth-child(7) {
-  width: 7%;
+  width: 12%;
 }
+
+/* =========================================================
+   19. HEADER TABEL
+========================================================= */
 
 .facility-table thead {
   background: var(--table-head);
 }
 
 .facility-table th {
-  height: 29px;
+  height: 38px;
 
-  padding: 0 12px;
+  padding: 9px 10px;
 
   color: #58616b;
 
@@ -726,22 +791,23 @@ svg {
   letter-spacing: 0.1px;
 
   text-align: left;
+
+  border-bottom: 1px solid #e9edf2;
 }
 
 .facility-table th:first-child,
-.facility-table td:first-child {
+.facility-table th:last-child {
   text-align: center;
 }
 
-.facility-table th:last-child,
-.facility-table td:last-child {
-  text-align: center;
-}
+/* =========================================================
+   20. ISI TABEL
+========================================================= */
 
 .facility-table td {
-  height: 43px;
+  height: 52px;
 
-  padding: 5px 12px;
+  padding: 9px 10px;
 
   border-bottom: 1px solid #f0f2f6;
 
@@ -753,146 +819,181 @@ svg {
   vertical-align: middle;
 }
 
-.facility-table tbody tr:last-child td {
-  border-bottom: none;
+.facility-table tbody tr {
+  transition: background 0.15s ease;
 }
 
 .facility-table tbody tr:hover {
   background: #fafbfd;
 }
 
-.facility-code {
-  color: #23466d;
-
-  font-size: 8px;
-  font-weight: 750;
+.facility-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
+.facility-table td:first-child,
+.facility-table td:last-child {
+  text-align: center;
+}
+
+.facility-table td:first-child {
+  color: #697481;
+  font-size: 8px;
+}
+
+/* =========================================================
+   21. KODE FASILITAS
+========================================================= */
+
+.facility-code {
+  color: var(--primary);
+
+  font-size: 8px;
+  font-weight: 700;
+
+  letter-spacing: 0.1px;
+}
+
+/* =========================================================
+   22. NAMA FASILITAS
+========================================================= */
+
 .facility-name {
-  color: #303740;
+  color: #303945;
 
   font-size: 8px;
   font-weight: 600;
 }
 
 /* =========================================================
-   17. BADGE KATEGORI
+   23. BADGE KATEGORI
 ========================================================= */
 
 .category-badge {
-  display: inline-flex;
-  align-items: center;
+  min-height: 21px;
 
-  max-width: 100%;
-
-  padding: 3px 6px;
-
-  border-radius: 3px;
-
-  font-size: 7px;
-  font-weight: 600;
-
-  line-height: 1.3;
-}
-
-.category-blue {
-  color: #24447b;
-  background: #dfe5ff;
-}
-
-.category-gray {
-  color: #5d6670;
-  background: #eceff2;
-}
-
-/* =========================================================
-   18. BADGE FREKUENSI X3
-========================================================= */
-
-.frequency-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  gap: 4px;
-
-  min-height: 19px;
-
-  padding: 3px 7px;
-
-  border-radius: 3px;
-
-  font-size: 7px;
-  font-weight: 600;
-
-  line-height: 1.2;
-}
-
-.frequency-badge svg {
-  width: 9px;
-  height: 9px;
-
-  flex-shrink: 0;
-
-  stroke-width: 2;
-}
-
-.frequency-rare {
-  color: var(--rare-text);
-  background: var(--rare-bg);
-}
-
-.frequency-medium {
-  color: var(--medium-text);
-  background: var(--medium-bg);
-}
-
-.frequency-often {
-  color: var(--often-text);
-  background: var(--often-bg);
-}
-
-.frequency-often svg {
-  fill: currentColor;
-  stroke: currentColor;
-}
-
-/* =========================================================
-   19. TOMBOL AKSI EDIT DAN HAPUS
-========================================================= */
-
-.action-buttons {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  gap: 7px;
-}
-
-.action-btn {
-  width: 22px;
-  height: 22px;
+  padding: 4px 7px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  padding: 0;
-
-  border: none;
-  outline: none;
 
   border-radius: 4px;
 
-  color: #59636e;
+  font-size: 7px;
+  font-weight: 650;
+
+  white-space: nowrap;
+}
+
+.category-blue {
+  background: #e6edff;
+  color: #2455c4;
+}
+
+.category-gray {
+  background: #eef0f2;
+  color: #58616c;
+}
+
+/* =========================================================
+   24. BADGE FREKUENSI PENGGUNAAN X3
+========================================================= */
+
+.frequency-badge {
+  min-height: 23px;
+
+  padding: 4px 8px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+
+  border-radius: 5px;
+
+  font-size: 7px;
+  font-weight: 650;
+
+  white-space: nowrap;
+}
+
+.frequency-badge svg {
+  width: 12px;
+  height: 12px;
+
+  flex: 0 0 12px;
+
+  stroke-width: 1.9;
+}
+
+/* FREKUENSI SERING */
+
+.frequency-often {
+  background: #e0f5e9;
+  color: #15845b;
+}
+
+.frequency-often svg {
+  stroke: #15845b;
+}
+
+/* FREKUENSI SEDANG */
+
+.frequency-medium {
+  background: #fff4db;
+  color: #a66a0b;
+}
+
+.frequency-medium svg {
+  stroke: #b7791f;
+}
+
+/* FREKUENSI JARANG */
+
+.frequency-rare {
+  background: #eef0f2;
+  color: #68717c;
+}
+
+.frequency-rare svg {
+  stroke: #68717c;
+}
+
+/* =========================================================
+   25. TOMBOL AKSI
+========================================================= */
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+}
+
+.action-btn {
+  width: 24px;
+  height: 24px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid transparent;
+  border-radius: 5px;
+
   background: transparent;
+
+  color: #64748b;
 
   cursor: pointer;
 
   transition:
-    color 0.18s ease,
     background 0.18s ease,
-    transform 0.18s ease;
+    color 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .action-btn svg {
@@ -902,46 +1003,50 @@ svg {
   stroke-width: 1.9;
 }
 
-.edit-btn:hover {
-  color: var(--primary);
-  background: #edf2ff;
+/* EDIT */
 
-  transform: translateY(-1px);
+.edit-btn:hover {
+  background: #edf3ff;
+
+  border-color: #d4e1ff;
+
+  color: var(--primary);
+}
+
+/* DELETE */
+
+.delete-btn {
+  color: #8994a2;
 }
 
 .delete-btn:hover {
-  color: #d92d35;
-  background: #fff0f0;
+  background: #fff0ef;
 
-  transform: translateY(-1px);
-}
+  border-color: #ffd4d1;
 
-.action-btn:focus-visible {
-  outline: 2px solid rgba(7, 88, 232, 0.35);
-  outline-offset: 2px;
+  color: var(--red);
 }
 
 /* =========================================================
-   20. PESAN TABEL KOSONG
+   26. EMPTY STATE
 ========================================================= */
 
 .empty-state {
   display: none;
 
-  padding: 18px 10px;
+  padding: 35px 15px;
 
-  color: #8a939e;
+  color: #89939f;
 
-  font-size: 8px;
-
+  font-size: 9px;
   text-align: center;
+
+  border-top: 1px solid #edf0f4;
 }
 
 /* =========================================================
-   21. PENGATURAN MODAL CSS
+   27. KONTROL MODAL
 ========================================================= */
-
-/* Checkbox tidak ditampilkan */
 
 .modal-toggle {
   position: absolute;
@@ -950,104 +1055,132 @@ svg {
   height: 1px;
 
   opacity: 0;
-
   pointer-events: none;
 }
 
-/* Background modal */
+/* =========================================================
+   28. OVERLAY MODAL
+========================================================= */
 
 .modal-overlay {
   position: fixed;
-
   inset: 0;
 
   z-index: 999;
 
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
 
   padding: 20px;
 
-  background: rgba(15, 30, 48, 0.48);
+  background: rgba(20, 37, 58, 0.48);
 
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease;
 }
 
-/* Membuka modal edit */
+/* MODAL EDIT AKTIF */
 
 #editModalToggle:checked ~ .edit-modal-overlay {
-  display: flex;
-  animation: modalFade 0.2s ease;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
-/* Membuka modal hapus */
+/* MODAL HAPUS AKTIF */
 
 #deleteModalToggle:checked ~ .delete-modal-overlay {
-  display: flex;
-  animation: modalFade 0.2s ease;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 /* =========================================================
-   22. KOTAK MODAL
+   29. KARTU MODAL
 ========================================================= */
 
 .modal-card {
+  position: relative;
+  z-index: 2;
+
   width: 100%;
-  max-width: 485px;
+  max-width: 530px;
+  max-height: 90vh;
 
-  max-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
 
-  overflow-y: auto;
-
-  padding: 20px;
+  overflow: hidden;
 
   background: #ffffff;
 
-  border: 1px solid #edf0f4;
+  border: 1px solid rgba(230, 235, 243, 0.9);
   border-radius: 12px;
 
-  box-shadow: 0 18px 55px rgba(15, 35, 60, 0.18);
+  box-shadow: 0 20px 60px rgba(15, 35, 60, 0.2);
 
-  animation: modalSlide 0.22s ease;
+  transform: translateY(12px) scale(0.98);
+
+  transition: transform 0.25s ease;
+}
+
+#editModalToggle:checked ~ .edit-modal-overlay .modal-card,
+#deleteModalToggle:checked ~ .delete-modal-overlay .modal-card {
+  transform: translateY(0) scale(1);
 }
 
 /* =========================================================
-   23. HEADER MODAL
+   30. HEADER MODAL
 ========================================================= */
 
 .modal-header {
+  min-height: 72px;
+
+  padding: 17px 22px;
+
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
 
   gap: 15px;
-
-  padding-bottom: 15px;
-  margin-bottom: 17px;
 
   border-bottom: 1px solid #edf0f4;
 }
 
 .modal-header h2 {
-  color: #17395f;
+  color: #193858;
 
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
 
-  margin-bottom: 4px;
+  letter-spacing: -0.2px;
 }
 
 .modal-header p {
-  color: #8993a0;
+  margin-top: 3px;
+
+  color: #7c8795;
 
   font-size: 9px;
+  font-weight: 400;
 }
 
+/* =========================================================
+   31. TOMBOL TUTUP MODAL
+========================================================= */
+
 .modal-close {
-  width: 25px;
-  height: 25px;
+  width: 28px;
+  height: 28px;
 
   display: flex;
   align-items: center;
@@ -1055,41 +1188,57 @@ svg {
 
   flex-shrink: 0;
 
-  color: #7b8591;
+  border-radius: 6px;
 
-  font-size: 21px;
-  font-weight: 400;
+  background: transparent;
+
+  color: #7b8490;
+
+  font-size: 22px;
+  line-height: 1;
 
   cursor: pointer;
 
-  transition: 0.18s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .modal-close:hover {
-  color: #d92d35;
+  background: #f0f2f5;
+  color: #dc3545;
 }
 
 /* =========================================================
-   24. FORM EDIT
+   32. BODY MODAL
 ========================================================= */
 
 .modal-body {
+  padding: 20px 22px 18px;
+
   display: flex;
   flex-direction: column;
 
-  gap: 13px;
+  gap: 15px;
+
+  overflow-y: auto;
 }
 
+/* =========================================================
+   33. FORM GROUP
+========================================================= */
+
 .form-group {
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  min-width: 0;
 }
 
 .form-group label {
-  display: block;
-
-  margin-bottom: 6px;
-
-  color: #465363;
+  color: #354153;
 
   font-size: 9px;
   font-weight: 600;
@@ -1099,26 +1248,32 @@ svg {
   color: #e5484d;
 }
 
+/* =========================================================
+   34. INPUT DAN SELECT MODAL
+========================================================= */
+
 .form-group input,
 .form-group select {
   width: 100%;
-  height: 36px;
+  min-height: 37px;
 
-  padding: 0 10px;
+  padding: 9px 11px;
 
   border: 1px solid #dfe5ed;
   border-radius: 6px;
 
   outline: none;
 
-  color: #394858;
   background: #ffffff;
 
+  color: #354153;
+
+  font-family: inherit;
   font-size: 9px;
 
   transition:
-    border-color 0.18s ease,
-    box-shadow 0.18s ease;
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .form-group input:focus,
@@ -1128,8 +1283,16 @@ svg {
   box-shadow: 0 0 0 3px rgba(7, 88, 232, 0.08);
 }
 
+.form-group input[readonly] {
+  background: #f3f5f8;
+
+  color: #758092;
+
+  cursor: not-allowed;
+}
+
 /* =========================================================
-   25. FOOTER MODAL
+   35. FOOTER MODAL
 ========================================================= */
 
 .modal-footer {
@@ -1139,92 +1302,96 @@ svg {
 
   gap: 8px;
 
-  padding-top: 14px;
-  margin-top: 18px;
+  padding: 15px 22px;
 
   border-top: 1px solid #edf0f4;
+
+  background: #ffffff;
 }
 
-.btn-cancel,
-.btn-save,
-.btn-delete {
-  min-height: 32px;
+/* =========================================================
+   36. TOMBOL BATAL
+========================================================= */
+
+.btn-cancel {
+  min-width: 75px;
+  min-height: 34px;
+
+  padding: 0 13px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  padding: 0 15px;
+  border: 1px solid #dfe5ed;
+  border-radius: 6px;
 
-  border-radius: 5px;
+  background: #ffffff;
 
-  font-family: inherit;
+  color: #657181;
+
   font-size: 9px;
   font-weight: 600;
 
   cursor: pointer;
 
-  transition:
-    background 0.18s ease,
-    color 0.18s ease,
-    transform 0.18s ease;
-}
-
-.btn-cancel {
-  color: #687483;
-
-  background: #ffffff;
-
-  border: 1px solid #dfe5ed;
+  transition: all 0.2s ease;
 }
 
 .btn-cancel:hover {
   background: #f3f5f8;
+
+  border-color: #cbd3df;
+
+  color: #354153;
 }
 
+/* =========================================================
+   37. TOMBOL SIMPAN
+========================================================= */
+
 .btn-save {
-  color: #ffffff;
+  min-width: 125px;
+  min-height: 34px;
+
+  padding: 0 14px;
+
+  border: 1px solid var(--primary);
+  border-radius: 6px;
 
   background: var(--primary);
 
-  border: none;
+  color: #ffffff;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  transition: background 0.2s ease;
 }
 
 .btn-save:hover {
   background: var(--primary-hover);
 }
 
-.btn-delete {
-  color: #ffffff;
-
-  background: var(--danger);
-
-  border: none;
-}
-
-.btn-delete:hover {
-  background: var(--danger-hover);
-}
-
-.btn-cancel:active,
-.btn-save:active,
-.btn-delete:active {
-  transform: scale(0.98);
-}
-
 /* =========================================================
-   26. MODAL HAPUS
+   38. MODAL KONFIRMASI HAPUS
 ========================================================= */
 
 .delete-card {
-  max-width: 390px;
+  max-width: 430px;
 }
 
+/* =========================================================
+   39. KONTEN KONFIRMASI HAPUS
+========================================================= */
+
 .delete-content {
-  color: #596575;
+  padding: 20px 22px;
+
+  color: #465160;
 
   font-size: 10px;
-  line-height: 1.7;
+  line-height: 1.8;
 }
 
 .delete-content p {
@@ -1232,84 +1399,105 @@ svg {
 }
 
 .delete-content strong {
-  color: #24466e;
+  color: #203f65;
+  font-weight: 700;
 }
 
 /* =========================================================
-   27. PERINGATAN HAPUS
+   40. PERINGATAN PENGHAPUSAN
 ========================================================= */
 
 .delete-warning {
-  margin-top: 16px;
+  margin-top: 14px;
 
-  padding: 11px;
+  padding: 11px 12px;
 
-  border: 1px solid #ffdfad;
+  border: 1px solid #f5dfb5;
   border-radius: 6px;
 
   background: #fff9ed;
 
-  color: #94631d;
+  color: #91651b;
 
   font-size: 9px;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 .delete-warning strong {
-  color: #94631d;
+  color: #91651b;
 }
 
 /* =========================================================
-   28. ANIMASI MODAL
+   41. TOMBOL HAPUS
 ========================================================= */
 
-@keyframes modalFade {
-  from {
-    opacity: 0;
-  }
+.btn-delete {
+  min-width: 100px;
+  min-height: 34px;
 
-  to {
-    opacity: 1;
-  }
+  padding: 0 13px;
+
+  border: 1px solid #dc3545;
+  border-radius: 6px;
+
+  background: #dc3545;
+
+  color: #ffffff;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  transition: background 0.2s ease;
 }
 
-@keyframes modalSlide {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+.btn-delete:hover {
+  background: #bd2635;
 }
 
 /* =========================================================
-   29. RESPONSIVE TABLET
+   42. RESPONSIVE TABLET
 ========================================================= */
 
 @media (max-width: 1100px) {
   .sidebar {
-    width: 175px;
-    min-width: 175px;
+    width: 185px;
+    min-width: 185px;
   }
 
   .content {
     padding: 15px;
   }
 
-  .panel {
-    padding: 13px;
-  }
-
   .facility-table {
-    min-width: 900px;
+    min-width: 1050px;
   }
 }
 
 /* =========================================================
-   30. RESPONSIVE MOBILE
+   43. RESPONSIVE LAYAR MENENGAH
+========================================================= */
+
+@media (max-width: 850px) {
+  .filter-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .category-filter {
+    width: 100%;
+  }
+
+  .legend-list {
+    gap: 8px 13px;
+  }
+}
+
+/* =========================================================
+   44. RESPONSIVE MOBILE
 ========================================================= */
 
 @media (max-width: 700px) {
@@ -1328,12 +1516,7 @@ svg {
     height: 50px;
   }
 
-  .sidebar-brand-divider {
-    width: calc(100% - 24px);
-    margin-bottom: 0;
-  }
-
-  .nav-group,
+  .sidebar-nav,
   .sidebar-bottom {
     display: none;
   }
@@ -1354,7 +1537,7 @@ svg {
   }
 
   .content {
-    padding: 14px 12px;
+    padding: 14px 12px 20px;
   }
 
   .page-header h1 {
@@ -1362,58 +1545,14 @@ svg {
   }
 
   .information-card {
-    padding: 10px;
+    padding: 13px;
+
+    gap: 10px;
   }
 
-  .legend-list {
-    align-items: flex-start;
-  }
-
-  .legend-item {
-    white-space: normal;
-  }
-
-  .panel {
-    padding: 11px;
-  }
-
-  .filter-bar {
-    align-items: stretch;
-  }
-
-  .search-box {
-    flex: 1 1 100%;
-    width: 100%;
-  }
-
-  .category-filter {
-    width: 100%;
-  }
-
-  .table-wrap {
-    overflow-x: auto;
-  }
-
-  .facility-table {
-    min-width: 900px;
-  }
-
-  .modal-overlay {
-    padding: 12px;
-  }
-
-  .modal-card {
-    padding: 17px;
-  }
-}
-
-/* =========================================================
-   31. RESPONSIVE LAYAR KECIL
-========================================================= */
-
-@media (max-width: 380px) {
-  .breadcrumb {
-    font-size: 6px;
+  .information-icon {
+    width: 29px;
+    height: 29px;
   }
 
   .information-content h2 {
@@ -1421,25 +1560,92 @@ svg {
   }
 
   .information-content p {
-    font-size: 7px;
+    font-size: 8px;
   }
 
-  .legend-item,
-  .legend-item strong {
-    font-size: 6px;
+  .legend-list {
+    flex-direction: column;
+    align-items: flex-start;
+
+    gap: 7px;
+
+    margin-top: 10px;
   }
 
-  .modal-header h2 {
-    font-size: 13px;
+  .filter-bar {
+    padding: 10px;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+  }
+
+  .facility-table {
+    min-width: 1050px;
+  }
+
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal-card {
+    max-width: 100%;
+    max-height: 92vh;
+
+    border-radius: 10px;
+  }
+
+  .modal-header {
+    padding: 15px;
+  }
+
+  .modal-body {
+    padding: 16px 15px;
   }
 
   .modal-footer {
-    gap: 6px;
+    padding: 13px 15px;
   }
 
-  .btn-cancel,
-  .btn-save,
-  .btn-delete {
-    padding: 0 10px;
+  .delete-content {
+    padding: 16px 15px;
+  }
+
+  .modal-header h2 {
+    font-size: 14px;
+  }
+}
+
+/* =========================================================
+   45. RESPONSIVE LAYAR SANGAT KECIL
+========================================================= */
+
+@media (max-width: 380px) {
+  .breadcrumb {
+    font-size: 6px;
+  }
+
+  .topbar-system {
+    font-size: 6px;
+  }
+
+  .information-card {
+    gap: 8px;
+  }
+
+  .information-content h2 {
+    font-size: 8px;
+  }
+
+  .legend-item {
+    font-size: 7px;
+  }
+
+  .legend-item strong {
+    font-size: 7px;
+  }
+
+  .modal-footer {
+    flex-wrap: wrap;
   }
 }

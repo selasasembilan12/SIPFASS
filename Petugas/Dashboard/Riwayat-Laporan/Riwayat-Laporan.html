@@ -1,369 +1,490 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Riwayat Laporan | SIPFAS</title>
     <!-- CSS LOGO GLOBAL SIPFAS -->
-<link rel="stylesheet" href="../../../assets/CSS/logo.css">
+    <link rel="stylesheet" href="../../../assets/css/logo.css" />
 
-<!-- CSS KHUSUS DASHBOARD PETUGAS -->
-<link rel="stylesheet" href="Riwayat-Laporan.css">
-</head>
-<body>
+    <!-- CSS KHUSUS DASHBOARD PETUGAS -->
+    <link rel="stylesheet" href="Riwayat-Laporan.css" />
+  </head>
+  <body>
+    <!-- PEMBUNGKUS UTAMA HALAMAN PETUGAS -->
+    <div class="app">
+      <!-- SIDEBAR -->
+      <!-- SIDEBAR: logo dan navigasi antarhalaman petugas -->
+      <aside class="sidebar" id="sidebar">
+        <!-- LOGO SIPFAS GLOBAL -->
+        <div class="sidebar-logo">
+          <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS" />
 
-<!-- PEMBUNGKUS UTAMA HALAMAN PETUGAS -->
-<div class="app">
-
-    <!-- SIDEBAR -->
-    <!-- SIDEBAR: logo dan navigasi antarhalaman petugas -->
-    <aside class="sidebar" id="sidebar">
-
-        
-
-<!-- LOGO SIPFAS GLOBAL -->
-<div class="sidebar-logo">
-    <img src="../../../assets/images/logo-sipfas.png"
-         alt="Logo SIPFAS">
-
-    <div class="brand-text">
-        <strong>SIPFAS</strong>
-        <span>Informatika UNKHAIR</span>
-    </div>
-</div>
-
-
+          <div class="brand-text">
+            <strong>SIPFAS</strong>
+            <span>Informatika UNKHAIR</span>
+          </div>
+        </div>
 
         <!-- MENU NAVIGASI -->
         <!-- MENU SIDEBAR: Dashboard, Verifikasi, Penanganan, Riwayat, dan Profil -->
         <nav class="nav-menu">
+          <a href="../Dashboard/Dashboard.html" class="nav-link">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <!-- Kotak kiri atas -->
+              <rect x="2" y="2" width="8" height="9" rx="0.3" />
 
-            
+              <!-- Kotak kanan atas -->
+              <rect x="14" y="2" width="8" height="7" rx="0.3" />
 
-<a href="../Dashboard/Dashboard.html" class="nav-link">
-    <svg viewBox="0 0 24 24"
-         xmlns="http://www.w3.org/2000/svg">
+              <!-- Kotak kiri bawah -->
+              <rect x="2" y="15" width="8" height="7" rx="0.3" />
 
-        <!-- Kotak kiri atas -->
-        <rect x="2" y="2"
-              width="8" height="9"
-              rx="0.3"/>
+              <!-- Kotak kanan bawah -->
+              <rect x="14" y="12" width="8" height="10" rx="0.3" />
+            </svg>
 
-        <!-- Kotak kanan atas -->
-        <rect x="14" y="2"
-              width="8" height="7"
-              rx="0.3"/>
+            <span>Dashboard</span>
+          </a>
 
-        <!-- Kotak kiri bawah -->
-        <rect x="2" y="15"
-              width="8" height="7"
-              rx="0.3"/>
+          <a
+            href="../Verifikasi-Laporan/Verifikasi-Laporan.html"
+            class="nav-link"
+          >
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <!-- Kotak utama -->
+              <rect x="3" y="3" width="18" height="18" rx="1.5" />
 
-        <!-- Kotak kanan bawah -->
-        <rect x="14" y="12"
-              width="8" height="10"
-              rx="0.3"/>
+              <!-- Tiga garis daftar -->
+              <path d="M6.5 8H10" />
+              <path d="M6.5 12H10" />
+              <path d="M6.5 16H10" />
 
-    </svg>
+              <!-- Tanda centang di sebelah kanan -->
+              <path d="M13 12.5L15.5 15L19.5 10.5" />
+            </svg>
 
-    <span>Dashboard</span>
-</a>
+            <span>Verifikasi Laporan</span>
+          </a>
 
-
-
-            
-
-<a href="../Verifikasi-Laporan/Verifikasi-Laporan.html"
-   class="nav-link">
-
-    <svg viewBox="0 0 24 24"
-         xmlns="http://www.w3.org/2000/svg">
-
-        <!-- Kotak utama -->
-        <rect x="3" y="3"
-              width="18" height="18"
-              rx="1.5"/>
-
-        <!-- Tiga garis daftar -->
-        <path d="M6.5 8H10"/>
-        <path d="M6.5 12H10"/>
-        <path d="M6.5 16H10"/>
-
-        <!-- Tanda centang di sebelah kanan -->
-        <path d="M13 12.5L15.5 15L19.5 10.5"/>
-
-    </svg>
-
-    <span>Verifikasi Laporan</span>
-</a>
-
-
-
-            
-<a href="../Penanganan/Penanganan.html" class="nav-link">
-    <svg viewBox="0 0 24 24"
-         xmlns="http://www.w3.org/2000/svg">
-        <g transform="translate(24 0) scale(-1 1)">
-            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.1-3.1a6 6 0 0 1-7.9 7.9l-6.4 6.4a2 2 0 0 1-2.8-2.8l6.4-6.4a6 6 0 0 1 7.9-7.9z"
+          <a href="../Penanganan/Penanganan.html" class="nav-link">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <g transform="translate(24 0) scale(-1 1)">
+                <path
+                  d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.1-3.1a6 6 0 0 1-7.9 7.9l-6.4 6.4a2 2 0 0 1-2.8-2.8l6.4-6.4a6 6 0 0 1 7.9-7.9z"
                   fill="none"
                   stroke="currentColor"
                   stroke-width="1.8"
                   stroke-linecap="round"
-                  stroke-linejoin="round"/>
-        </g>
-    </svg>
-    <span>Penanganan</span>
-</a>
+                  stroke-linejoin="round"
+                />
+              </g>
+            </svg>
+            <span>Penanganan</span>
+          </a>
 
+          <a href="Riwayat-Laporan.html" class="nav-link active">
+            <svg viewBox="0 0 24 24">
+              <path d="M3.5 12a8.5 8.5 0 1 0 2.2-5.7L3.5 8" />
+              <path d="M3.5 3.5V8H8" />
+              <path d="M12 7v5l3 2" />
+            </svg>
+            <span>Riwayat Perbaikan</span>
+          </a>
 
-            <a href="Riwayat-Laporan.html"
-               class="nav-link active">
-                <svg viewBox="0 0 24 24">
-                    <path d="M3.5 12a8.5 8.5 0 1 0 2.2-5.7L3.5 8"/>
-                    <path d="M3.5 3.5V8H8"/>
-                    <path d="M12 7v5l3 2"/>
-                </svg>
-                <span>Riwayat Perbaikan</span>
-            </a>
+          <a href="../Profil-Saya/Profil-Saya.html" class="nav-link">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <!-- Kepala -->
+              <circle cx="12" cy="7" r="3.5" />
 
-            
-<a href="../Profil-Saya/Profil-Saya.html"
-   class="nav-link">
+              <!-- Bahu dan badan -->
+              <path
+                d="M3 20V18.5C3 15.5 5.5 13.5 8.5 13.5H15.5C18.5 13.5 21 15.5 21 18.5V20H3Z"
+              />
+            </svg>
 
-    <svg viewBox="0 0 24 24"
-         xmlns="http://www.w3.org/2000/svg">
-
-        <!-- Kepala -->
-        <circle cx="12" cy="7" r="3.5"/>
-
-        <!-- Bahu dan badan -->
-        <path d="M3 20V18.5C3 15.5 5.5 13.5 8.5 13.5H15.5C18.5 13.5 21 15.5 21 18.5V20H3Z"/>
-
-    </svg>
-
-    <span>Profil</span>
-</a>
-
-
+            <span>Profil</span>
+          </a>
         </nav>
 
         <!-- KELUAR -->
         <a href="../../index.html" class="logout-link" id="logoutLink">
-            <svg viewBox="0 0 24 24">
-                <path d="M10 17l5-5-5-5M15 12H3"/>
-                <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>
-            </svg>
-            <span>Keluar</span>
+          <svg viewBox="0 0 24 24">
+            <path d="M10 17l5-5-5-5M15 12H3" />
+            <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7" />
+          </svg>
+          <span>Keluar</span>
         </a>
+      </aside>
 
-    </aside>
-
-
-    <!-- AREA UTAMA -->
-    <div class="workspace">
-
+      <!-- AREA UTAMA -->
+      <div class="workspace">
         <!-- HEADER -->
         <!-- HEADER: nama sistem dan informasi profil petugas -->
         <header class="topbar">
+          <button class="menu-toggle" id="menuToggle" aria-label="Buka menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
 
-            <button class="menu-toggle" id="menuToggle"
-                    aria-label="Buka menu">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
+          <!-- TEKS NAMA SISTEM DI HEADER -->
+          <div class="system-name">
+            <span class="system-dot"></span>
+            SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS
+          </div>
 
-            <!-- TEKS NAMA SISTEM DI HEADER -->
-            <div class="system-name">
-                <span class="system-dot"></span>
-                SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS
-            </div>
+          <a href="../Profil-Saya/Profil-Saya.html" class="profile-area">
+            <span class="profile-name"> Rahmat Hidayat, S.T. </span>
 
-            <a href="../Profil-Saya/Profil-Saya.html"
-               class="profile-area">
+            <!-- ICON PROFIL HEADER -->
+            <span class="profile-avatar">
+              <svg
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                aria-hidden="true"
+              >
+                <!-- Kepala -->
+                <circle
+                  cx="12"
+                  cy="7.5"
+                  r="3.2"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                />
 
-                <span class="profile-name">
-                    Rahmat Hidayat, S.T.
-                </span>
-
-                
-<!-- ICON PROFIL HEADER -->
-<span class="profile-avatar">
-    <svg viewBox="0 0 24 24"
-         xmlns="http://www.w3.org/2000/svg"
-         fill="none"
-         aria-hidden="true">
-
-        <!-- Kepala -->
-        <circle cx="12"
-                cy="7.5"
-                r="3.2"
-                stroke="currentColor"
-                stroke-width="1.8"/>
-
-        <!-- Bahu dan badan -->
-        <path d="M4.5 19V18
+                <!-- Bahu dan badan -->
+                <path
+                  d="M4.5 19V18
                  C4.5 14.8 7.5 13 12 13
                  C16.5 13 19.5 14.8 19.5 18
                  V19
                  H4.5Z"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"/>
-    </svg>
-</span>
-
-
-            </a>
-
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+          </a>
         </header>
-
 
         <!-- KONTEN DASHBOARD -->
         <!-- KONTEN UTAMA HALAMAN RIWAYAT LAPORAN -->
         <main class="main-content history-content">
-    <!-- BREADCRUMB: petunjuk posisi halaman Riwayat Laporan -->
-    <div class="breadcrumb"><span>SIPFAS</span><span class="crumb-separator">›</span><strong>Riwayat Laporan</strong></div>
-    <!-- JUDUL HALAMAN DAN KETERANGAN RIWAYAT -->
-    <div class="page-heading">
-        <h1>Riwayat Laporan</h1>
-        <p>Lihat laporan kerusakan yang telah selesai ditangani atau ditutup.</p>
-    </div>
+          <!-- BREADCRUMB: petunjuk posisi halaman Riwayat Laporan -->
+          <div class="breadcrumb">
+            <span>SIPFAS</span><span class="crumb-separator">›</span
+            ><strong>Riwayat Laporan</strong>
+          </div>
+          <!-- JUDUL HALAMAN DAN KETERANGAN RIWAYAT -->
+          <div class="page-heading">
+            <h1>Riwayat Laporan</h1>
+            <p>
+              Lihat laporan kerusakan yang telah selesai ditangani atau ditutup.
+            </p>
+          </div>
 
-    <!-- KARTU PUTIH: filter pencarian dan daftar arsip laporan -->
-    <section class="history-panel" aria-label="Daftar arsip pemeliharaan">
-        <!-- FILTER: pencarian dan pilihan status akhir laporan -->
-        <div class="history-filters">
-            <label class="history-search">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
-                <input type="search" id="searchHistory" placeholder="Cari riwayat kode laporan, fasilitas, atau lokasi..." aria-label="Cari riwayat laporan">
-            </label>
-            <select id="statusHistory" aria-label="Filter status akhir">
+          <!-- KARTU PUTIH: filter pencarian dan daftar arsip laporan -->
+          <section class="history-panel" aria-label="Daftar arsip pemeliharaan">
+            <!-- FILTER: pencarian dan pilihan status akhir laporan -->
+            <div class="history-filters">
+              <label class="history-search">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="10.5" cy="10.5" r="6.5" />
+                  <path d="m15.5 15.5 5 5" />
+                </svg>
+                <input
+                  type="search"
+                  id="searchHistory"
+                  placeholder="Cari riwayat kode laporan, fasilitas, atau lokasi..."
+                  aria-label="Cari riwayat laporan"
+                />
+              </label>
+              <select id="statusHistory" aria-label="Filter status akhir">
                 <option value="semua">Semua Status Akhir</option>
                 <option value="selesai">Selesai</option>
                 <option value="tidak-valid">Tidak Valid</option>
-            </select>
-        </div>
+              </select>
+            </div>
 
-        <!-- JUDUL TABEL ARSIP DAN JUMLAH DATA -->
-        <div class="archive-heading">
-            <h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 3v4m8-4v4M8 11h8m-8 4h5"/></svg>Daftar Arsip Pemeliharaan &amp; Penutupan</h2>
-            <span class="record-count" id="recordCount">Menampilkan 4 Data Terekam</span>
-        </div>
+            <!-- JUDUL TABEL ARSIP DAN JUMLAH DATA -->
+            <div class="archive-heading">
+              <h2>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 5h16v14H4z" />
+                  <path d="M8 3v4m8-4v4M8 11h8m-8 4h5" /></svg
+                >Daftar Arsip Pemeliharaan &amp; Penutupan
+              </h2>
+              <span class="record-count" id="recordCount"
+                >Menampilkan 4 Data Terekam</span
+              >
+            </div>
 
-        <!-- TABEL RIWAYAT: data laporan, prioritas, status akhir, dan tombol detail -->
-        <div class="history-table-wrap">
-            <table class="history-table">
-                <thead><tr><th>KODE<br>LAPORAN</th><th>FASILITAS</th><th>LOKASI</th><th>PRIORITAS<br>C4.5</th><th>STATUS AKHIR</th><th>TANGGAL<br>PENYELESAIAN</th><th>AKSI</th></tr></thead>
+            <!-- TABEL RIWAYAT: data laporan, prioritas, status akhir, dan tombol detail -->
+            <div class="history-table-wrap">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>KODE<br />LAPORAN</th>
+                    <th>FASILITAS</th>
+                    <th>LOKASI</th>
+                    <th>PRIORITAS<br />C4.5</th>
+                    <th>STATUS AKHIR</th>
+                    <th>TANGGAL<br />PENYELESAIAN</th>
+                    <th>AKSI</th>
+                  </tr>
+                </thead>
                 <tbody id="historyRows">
-                    <tr data-status="selesai" data-code="LPR-2024-002" data-search="LPR-2024-002 Proyektor Epson Lab Komputer 1 Gedung TI Lt. 2">
-                        <td><span class="history-code">LPR-<br>2024-002</span></td><td class="history-facility">Proyektor Epson<br>Lab Komputer 1</td><td>Gedung TI<br>Lt. 2</td><td><span class="priority-pill high">Tinggi</span></td><td><span class="final-status done">✓ Selesai</span></td><td>22 Okt 2024, 15:30<br>WIT</td><td><button class="detail-history active" data-code="LPR-2024-002">Detail<br>Riwayat <svg viewBox="0 0 24 24"
-     xmlns="http://www.w3.org/2000/svg"
-     aria-hidden="true">
-    <path d="M2 12C4.5 7.5 8 5 12 5
+                  <tr
+                    data-status="selesai"
+                    data-code="LPR-2024-002"
+                    data-search="LPR-2024-002 Proyektor Epson Lab Komputer 1 Gedung TI Lt. 2"
+                  >
+                    <td>
+                      <span class="history-code">LPR-<br />2024-002</span>
+                    </td>
+                    <td class="history-facility">
+                      Proyektor Epson<br />Lab Komputer 1
+                    </td>
+                    <td>Gedung TI<br />Lt. 2</td>
+                    <td><span class="priority-pill high">Tinggi</span></td>
+                    <td><span class="final-status done">✓ Selesai</span></td>
+                    <td>22 Okt 2024, 15:30<br />WIT</td>
+                    <td>
+                      <button
+                        class="detail-history active"
+                        data-code="LPR-2024-002"
+                      >
+                        Detail<br />Riwayat
+                        <svg
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M2 12C4.5 7.5 8 5 12 5
              C16 5 19.5 7.5 22 12
              C19.5 16.5 16 19 12 19
-             C8 19 4.5 16.5 2 12Z"/>
-    <circle cx="12" cy="12" r="3"/>
-</svg></button></td>
-                    </tr>
-                    <tr data-status="selesai" data-code="LPR-2024-006" data-search="LPR-2024-006 AC Split Ruang Dosen TI Gedung FTI Lt. 1">
-                        <td><span class="history-code">LPR-<br>2024-006</span></td><td class="history-facility">AC Split Ruang<br>Dosen TI</td><td>Gedung FTI<br>Lt. 1</td><td><span class="priority-pill medium">Sedang</span></td><td><span class="final-status done">✓ Selesai</span></td><td>21 Okt 2024, 11:20<br>WIT</td><td><button class="detail-history" data-code="LPR-2024-006">Detail<br>Riwayat <svg viewBox="0 0 24 24"
-     xmlns="http://www.w3.org/2000/svg"
-     aria-hidden="true">
-    <path d="M2 12C4.5 7.5 8 5 12 5
+             C8 19 4.5 16.5 2 12Z"
+                          />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr
+                    data-status="selesai"
+                    data-code="LPR-2024-006"
+                    data-search="LPR-2024-006 AC Split Ruang Dosen TI Gedung FTI Lt. 1"
+                  >
+                    <td>
+                      <span class="history-code">LPR-<br />2024-006</span>
+                    </td>
+                    <td class="history-facility">
+                      AC Split Ruang<br />Dosen TI
+                    </td>
+                    <td>Gedung FTI<br />Lt. 1</td>
+                    <td><span class="priority-pill medium">Sedang</span></td>
+                    <td><span class="final-status done">✓ Selesai</span></td>
+                    <td>21 Okt 2024, 11:20<br />WIT</td>
+                    <td>
+                      <button class="detail-history" data-code="LPR-2024-006">
+                        Detail<br />Riwayat
+                        <svg
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M2 12C4.5 7.5 8 5 12 5
              C16 5 19.5 7.5 22 12
              C19.5 16.5 16 19 12 19
-             C8 19 4.5 16.5 2 12Z"/>
-    <circle cx="12" cy="12" r="3"/>
-</svg></button></td>
-                    </tr>
-                    <tr data-status="tidak-valid" data-code="LPR-2024-011" data-search="LPR-2024-011 Lampu Neon Koridor FTI Barat">
-                        <td><span class="history-code">LPR-<br>2024-011</span></td><td class="history-facility">Lampu Neon<br>Koridor FTI</td><td>Koridor FTI<br>Barat</td><td><span class="priority-pill low">Rendah</span></td><td><span class="final-status invalid">⊗ Tidak Valid</span></td><td>19 Okt 2024, 09:15<br>WIT</td><td><button class="detail-history" data-code="LPR-2024-011">Detail<br>Riwayat <svg viewBox="0 0 24 24"
-     xmlns="http://www.w3.org/2000/svg"
-     aria-hidden="true">
-    <path d="M2 12C4.5 7.5 8 5 12 5
+             C8 19 4.5 16.5 2 12Z"
+                          />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr
+                    data-status="tidak-valid"
+                    data-code="LPR-2024-011"
+                    data-search="LPR-2024-011 Lampu Neon Koridor FTI Barat"
+                  >
+                    <td>
+                      <span class="history-code">LPR-<br />2024-011</span>
+                    </td>
+                    <td class="history-facility">
+                      Lampu Neon<br />Koridor FTI
+                    </td>
+                    <td>Koridor FTI<br />Barat</td>
+                    <td><span class="priority-pill low">Rendah</span></td>
+                    <td>
+                      <span class="final-status invalid">⊗ Tidak Valid</span>
+                    </td>
+                    <td>19 Okt 2024, 09:15<br />WIT</td>
+                    <td>
+                      <button class="detail-history" data-code="LPR-2024-011">
+                        Detail<br />Riwayat
+                        <svg
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M2 12C4.5 7.5 8 5 12 5
              C16 5 19.5 7.5 22 12
              C19.5 16.5 16 19 12 19
-             C8 19 4.5 16.5 2 12Z"/>
-    <circle cx="12" cy="12" r="3"/>
-</svg></button></td>
-                    </tr>
-                    <tr data-status="selesai" data-code="LPR-2024-012" data-search="LPR-2024-012 Stop Kontak Meja Lab 3 Lab Komputer Lt. 2">
-                        <td><span class="history-code">LPR-<br>2024-012</span></td><td class="history-facility">Stop Kontak Meja<br>Lab 3</td><td>Lab<br>Komputer Lt. 2</td><td><span class="priority-pill medium">Sedang</span></td><td><span class="final-status done">✓ Selesai</span></td><td>18 Okt 2024, 16:45<br>WIT</td><td><button class="detail-history" data-code="LPR-2024-012">Detail<br>Riwayat <svg viewBox="0 0 24 24"
-     xmlns="http://www.w3.org/2000/svg"
-     aria-hidden="true">
-    <path d="M2 12C4.5 7.5 8 5 12 5
+             C8 19 4.5 16.5 2 12Z"
+                          />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr
+                    data-status="selesai"
+                    data-code="LPR-2024-012"
+                    data-search="LPR-2024-012 Stop Kontak Meja Lab 3 Lab Komputer Lt. 2"
+                  >
+                    <td>
+                      <span class="history-code">LPR-<br />2024-012</span>
+                    </td>
+                    <td class="history-facility">
+                      Stop Kontak Meja<br />Lab 3
+                    </td>
+                    <td>Lab<br />Komputer Lt. 2</td>
+                    <td><span class="priority-pill medium">Sedang</span></td>
+                    <td><span class="final-status done">✓ Selesai</span></td>
+                    <td>18 Okt 2024, 16:45<br />WIT</td>
+                    <td>
+                      <button class="detail-history" data-code="LPR-2024-012">
+                        Detail<br />Riwayat
+                        <svg
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M2 12C4.5 7.5 8 5 12 5
              C16 5 19.5 7.5 22 12
              C19.5 16.5 16 19 12 19
-             C8 19 4.5 16.5 2 12Z"/>
-    <circle cx="12" cy="12" r="3"/>
-</svg></button></td>
-                    </tr>
+             C8 19 4.5 16.5 2 12Z"
+                          />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
                 </tbody>
-            </table>
-        </div>
-        <p class="history-empty" id="historyEmpty" hidden>Tidak ada riwayat laporan yang sesuai dengan pencarian atau filter.</p>
-    </section>
-
-    <!-- PANEL PRATINJAU: detail arsip laporan yang dipilih -->
-    <section class="history-detail" id="historyDetail">
-        <!-- JUDUL DETAIL DAN STATUS LAPORAN TERPILIH -->
-        <div class="detail-title">
-            <span class="detail-check">✓</span>
-            <div><div class="detail-eyebrow">PRATINJAU ARSIP <span class="detail-state">Selesai Diperbaiki</span></div>
-                <h2 id="detailTitle">Detail Riwayat Terpilih: LPR-2024-002 — Selesai Diperbaiki</h2></div>
-        </div>
-        <!-- SUSUNAN KARTU INFORMASI DAN CATATAN LAPORAN -->
-        <div class="detail-grid">
-            <!-- KARTU INFORMASI DAN KLASIFIKASI LAPORAN -->
-            <div class="info-card">
-                
-<h3>
-    <svg viewBox="0 0 24 24"
-         xmlns="http://www.w3.org/2000/svg"
-         aria-hidden="true">
-        <circle cx="12" cy="12" r="9.5"/>
-        <path d="M12 11v5"/>
-        <circle cx="12" cy="7.5" r="0.5" fill="currentColor" stroke="none"/>
-    </svg>
-    Informasi &amp; Klasifikasi
-</h3>
-
-                <div class="info-row"><span>Pelapor</span><strong id="detailReporter">Fikram Idris (Mahasiswa)</strong></div>
-                <div class="info-row"><span>Tanggal Masuk Laporan</span><strong id="detailDate">20 Okt 2024, 08:45 WIT</strong></div>
-                <div class="info-row"><span>Hasil Verifikasi Dokumen</span><strong class="valid-label" id="detailValidation">Valid (X1: Berat, X2: Tinggi, X3: Sering)</strong></div>
-                <div class="info-row"><span>Rekomendasi Pohon C4.5</span><strong class="priority-pill high" id="detailPriority">Tinggi (Segera)</strong></div>
+              </table>
             </div>
-            <!-- KARTU CATATAN TINDAK LANJUT DAN HASIL AKHIR -->
-            <div class="detail-notes">
+            <p class="history-empty" id="historyEmpty" hidden>
+              Tidak ada riwayat laporan yang sesuai dengan pencarian atau
+              filter.
+            </p>
+          </section>
+
+          <!-- PANEL PRATINJAU: detail arsip laporan yang dipilih -->
+          <section class="history-detail" id="historyDetail">
+            <!-- JUDUL DETAIL DAN STATUS LAPORAN TERPILIH -->
+            <div class="detail-title">
+              <span class="detail-check">✓</span>
+              <div>
+                <div class="detail-eyebrow">
+                  PRATINJAU ARSIP
+                  <span class="detail-state">Selesai Diperbaiki</span>
+                </div>
+                <h2 id="detailTitle">
+                  Detail Riwayat Terpilih: LPR-2024-002 — Selesai Diperbaiki
+                </h2>
+              </div>
+            </div>
+            <!-- SUSUNAN KARTU INFORMASI DAN CATATAN LAPORAN -->
+            <div class="detail-grid">
+              <!-- KARTU INFORMASI DAN KLASIFIKASI LAPORAN -->
+              <div class="info-card">
+                <h3>
+                  <svg
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="12" r="9.5" />
+                    <path d="M12 11v5" />
+                    <circle
+                      cx="12"
+                      cy="7.5"
+                      r="0.5"
+                      fill="currentColor"
+                      stroke="none"
+                    />
+                  </svg>
+                  Informasi &amp; Klasifikasi
+                </h3>
+
+                <div class="info-row">
+                  <span>Pelapor</span
+                  ><strong id="detailReporter">Fikram Idris (Mahasiswa)</strong>
+                </div>
+                <div class="info-row">
+                  <span>Tanggal Masuk Laporan</span
+                  ><strong id="detailDate">20 Okt 2024, 08:45 WIT</strong>
+                </div>
+                <div class="info-row">
+                  <span>Hasil Verifikasi Dokumen</span
+                  ><strong class="valid-label" id="detailValidation"
+                    >Valid (X1: Berat, X2: Tinggi, X3: Sering)</strong
+                  >
+                </div>
+                <div class="info-row">
+                  <span>Rekomendasi Pohon C4.5</span
+                  ><strong class="priority-pill high" id="detailPriority"
+                    >Tinggi (Segera)</strong
+                  >
+                </div>
+              </div>
+              <!-- KARTU CATATAN TINDAK LANJUT DAN HASIL AKHIR -->
+              <div class="detail-notes">
                 <div class="note-card">
-<h3>
-    <svg viewBox="0 0 24 24"
-         xmlns="http://www.w3.org/2000/svg"
-         aria-hidden="true">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M14.7 6.3a4.5 4.5 0 0 0-5.3 5.3l-3.5 3.5a1.4 1.4 0 0 0 2 2l3.5-3.5a4.5 4.5 0 0 0 5.3-5.3l-2.5 2.5-2-2z"/>
-    </svg>
-    Tindak Lanjut Teknisi
-</h3>
-<p id="detailAction">Penggantian lampu optik proyektor dan pembersihan lensa pendingin.</p></div>
-                <div class="note-card final-note"><h3>▧ Catatan Akhir Petugas Sarpras</h3><p id="detailNote">“Proyektor telah dites menyala normal selama 2 jam perkuliahan.”</p></div>
+                  <h3>
+                    <svg
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path
+                        d="M14.7 6.3a4.5 4.5 0 0 0-5.3 5.3l-3.5 3.5a1.4 1.4 0 0 0 2 2l3.5-3.5a4.5 4.5 0 0 0 5.3-5.3l-2.5 2.5-2-2z"
+                      />
+                    </svg>
+                    Tindak Lanjut Teknisi
+                  </h3>
+                  <p id="detailAction">
+                    Penggantian lampu optik proyektor dan pembersihan lensa
+                    pendingin.
+                  </p>
+                </div>
+                <div class="note-card final-note">
+                  <h3>▧ Catatan Akhir Petugas Sarpras</h3>
+                  <p id="detailNote">
+                    “Proyektor telah dites menyala normal selama 2 jam
+                    perkuliahan.”
+                  </p>
+                </div>
+              </div>
             </div>
-        </div>
-    </section>
-</main>
-
+          </section>
+        </main>
+      </div>
     </div>
 
-</div>
+    <!-- LAPISAN LATAR SAAT SIDEBAR MOBILE DIBUKA -->
+    <div class="page-overlay" id="pageOverlay"></div>
 
-<!-- LAPISAN LATAR SAAT SIDEBAR MOBILE DIBUKA -->
-<div class="page-overlay" id="pageOverlay"></div>
-
-<script src="Riwayat-Laporan.js"></script>
-
-</body>
+    <script src="Riwayat-Laporan.js"></script>
+  </body>
 </html>

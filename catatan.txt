@@ -37,3 +37,105 @@ Bagaimana semua folder tersebut saling berhubungan?
 2. Auth (Login & Register) & API (Proses backend)
 3. Admin (Kelola sistem), Petugas (Tindak lanjut), Pelapor (Input laporan)
 4. Database MySQL (Penyimpanan data SIPFAS)
+
+
+
+
+
+LOGO.CSS
+/* =========================================================
+   LOGO SIPFAS - GLOBAL
+   Fungsi:
+   - Menyamakan identitas logo seluruh halaman Admin.
+   - Mengatur ukuran simbol dan tulisan.
+   - Memperbaiki jarak horizontal.
+   - Menyejajarkan logo dengan dua baris identitas.
+========================================================= */
+
+/* Variabel ukuran logo */
+:root {
+  --logo-size: 40px;
+  --logo-gap: 1px;
+}
+
+/* Area logo dan identitas */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  gap: var(--logo-gap);
+
+  width: 100%;
+  height: 68px;
+
+  padding: 0 14px;
+
+  box-sizing: border-box;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+/* Simbol logo SIPFAS */
+.sidebar-logo img {
+  display: block;
+
+  width: var(--logo-size);
+  height: var(--logo-size);
+
+  object-fit: contain;
+  object-position: center;
+
+  flex-shrink: 0;
+
+  background: transparent;
+  border: none;
+  border-radius: 0;
+
+  /* Sedikit penyesuaian posisi visual simbol */
+  transform: translateY(3px);
+}
+
+/* Area tulisan identitas */
+.sidebar-brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  gap: 1px;
+
+  min-width: 0;
+  line-height: 1.2;
+}
+
+/* Nama aplikasi */
+.sidebar-brand strong {
+  color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+/* Nama institusi */
+.sidebar-brand span {
+  color: #b9cce2;
+
+  font-size: 10px;
+  font-weight: 400;
+
+  white-space: nowrap;
+}
+
+/* Penyesuaian layar kecil */
+@media (max-width: 768px) {
+  .sidebar-logo {
+    height: 62px;
+    padding: 0 12px;
+  }
+
+  :root {
+    --logo-size: 36px;
+    --logo-gap: 1px;
+  }
+}

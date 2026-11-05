@@ -1,8 +1,7 @@
-
 /* =========================================================
    SIPFAS - HASIL PENGUJIAN C4.5
    FINAL CSS
-   Referensi Sidebar: Dashboard.css
+   Referensi Sidebar: Dashboard Admin SIPFAS
 ========================================================= */
 
 /* =========================================================
@@ -40,7 +39,9 @@
   --green: #15845b;
   --green-soft: #d3f6e8;
 
-  --sidebar-width: 190px;
+  /* SAMA DENGAN DASHBOARD */
+  --sidebar-width: 240px;
+  --topbar-height: 54px;
 }
 
 /* =========================================================
@@ -118,7 +119,7 @@ svg {
 
 /* =========================================================
    04. SIDEBAR SIPFAS
-   Mengikuti Dashboard.css
+   SAMA DENGAN DASHBOARD ADMIN
 ========================================================= */
 
 .sidebar {
@@ -154,6 +155,12 @@ svg {
   background: rgba(255, 255, 255, 0.08);
 }
 
+/*
+  LOGO SIDEBAR:
+  Tidak mendefinisikan ulang .sidebar-logo dan img.
+  Ukuran logo mengikuti logo.css global.
+*/
+
 /* Garis pemisah logo */
 
 .sidebar-brand-divider {
@@ -162,19 +169,19 @@ svg {
 
   flex-shrink: 0;
 
-  margin: 0 0 5px 0;
+  margin: 0 0 5px;
 
   background: rgba(255, 255, 255, 0.22);
 }
 
 /* =========================================================
    05. KELOMPOK MENU SIDEBAR
-   Struktur mengikuti Dashboard.css
+   SAMA DENGAN DASHBOARD ADMIN
 ========================================================= */
 
 /*
-   Menghilangkan kotak layout pembungkus navigasi.
-   .nav-group menjadi item Flexbox langsung dari .sidebar.
+  Menghilangkan kotak layout pembungkus navigasi.
+  .nav-group menjadi item Flexbox langsung dari .sidebar.
 */
 
 .sidebar-nav {
@@ -253,14 +260,12 @@ svg {
   align-items: center;
   justify-content: center;
 
-  flex-shrink: 0;
+  flex: 0 0 13px;
 }
 
 .nav-icon svg {
   width: 13px;
   height: 13px;
-
-  stroke-width: 1.8;
 }
 
 /* =========================================================
@@ -300,11 +305,12 @@ svg {
 
 /* =========================================================
    08. TOPBAR
+   SAMA DENGAN DASHBOARD ADMIN
 ========================================================= */
 
 .topbar {
-  height: 54px;
-  min-height: 54px;
+  height: 66px;
+  min-height: 64px;
 
   padding: 0 20px;
 
@@ -314,6 +320,8 @@ svg {
 
   background: var(--white);
   border-bottom: 1px solid var(--border);
+
+  flex-shrink: 0;
 }
 
 /* Identitas sistem */
@@ -726,7 +734,7 @@ svg {
 .analysis-grid {
   display: grid;
 
-  grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
 
   gap: 14px;
   margin-bottom: 14px;
@@ -1283,10 +1291,11 @@ svg {
 ========================================================= */
 
 @media (max-width: 1200px) {
+  /* Sidebar mengikuti standar Dashboard */
 
   .sidebar {
-    width: 175px;
-    min-width: 175px;
+    width: 185px;
+    min-width: 185px;
   }
 
   .content {
@@ -1305,7 +1314,6 @@ svg {
   .prediction-panel {
     min-height: 260px;
   }
-
 }
 
 /* =========================================================
@@ -1313,7 +1321,6 @@ svg {
 ========================================================= */
 
 @media (max-width: 700px) {
-
   .app-layout {
     flex-direction: column;
     overflow: visible;
@@ -1325,6 +1332,11 @@ svg {
     min-height: auto;
   }
 
+  /*
+    Logo tetap mengikuti logo.css global.
+    Navigasi disembunyikan pada mobile.
+  */
+
   .sidebar-nav,
   .sidebar-bottom {
     display: none;
@@ -1333,6 +1345,7 @@ svg {
   .topbar {
     height: 48px;
     min-height: 48px;
+
     padding: 0 12px;
   }
 
@@ -1385,7 +1398,6 @@ svg {
   .panel-heading {
     flex-wrap: wrap;
   }
-
 }
 
 /* =========================================================
@@ -1393,7 +1405,6 @@ svg {
 ========================================================= */
 
 @media (max-width: 420px) {
-
   .metrics-grid {
     grid-template-columns: 1fr;
   }
@@ -1410,5 +1421,4 @@ svg {
   .domain-summary {
     gap: 5px;
   }
-
 }
