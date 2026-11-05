@@ -1,3 +1,4 @@
+
 /* =========================================================
    LOGO SIPFAS - GLOBAL
    Fungsi:
@@ -9,7 +10,7 @@
 
 /* Variabel ukuran logo */
 :root {
-  --logo-size: 40px;
+  --logo-size: 46px;
   --logo-gap: 1px;
 }
 
@@ -47,7 +48,6 @@
   border: none;
   border-radius: 0;
 
-  /* Sedikit penyesuaian posisi visual simbol */
   transform: translateY(3px);
 }
 
@@ -90,7 +90,7 @@
   }
 
   :root {
-    --logo-size: 36px;
+    --logo-size: 42px;
     --logo-gap: 1px;
   }
 }
