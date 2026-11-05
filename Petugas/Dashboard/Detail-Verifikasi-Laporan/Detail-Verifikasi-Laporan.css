@@ -1,0 +1,1691 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --navy: #1d3b60;
+    --blue: #2864f0;
+    --page-bg: #f7f8ff;
+    --text: #172942;
+    --muted: #5f6878;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--page-bg);
+    color: var(--text);
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 12px;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+
+/* Sidebar kiri: warna latar, lebar, dan posisi menu petugas */
+.sidebar {
+    width: 250px;
+    min-width: 250px;
+    min-height: 100vh;
+    padding: 0 18px 20px;
+    display: flex;
+    flex-direction: column;
+    background: var(--navy);
+    color: #d5dfed;
+}
+
+/* =========================
+   GARIS PEMBATAS LOGO SIDEBAR
+========================= */
+
+.sidebar .sidebar-logo {
+    width: calc(100% + 36px);
+    height: 66px;
+    min-height: 66px;
+
+    margin-left: -18px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+
+
+/* =========================
+   MENU NAVIGASI SIDEBAR
+========================= */
+
+/* Menu navigasi pada sidebar */
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+
+    /* Jarak antar menu */
+    gap: 3px;
+
+    /* Memberikan jarak dari bagian logo */
+    margin-top: 25px;
+}
+
+
+.nav-link {
+    height: 35px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 9px;
+    border-radius: 6px;
+    color: #d1dbea;
+    font-size: 10px;
+    font-weight: 600;
+    transition: .2s;
+}
+
+
+/* ICON SIDEBAR */
+.nav-link svg,
+.logout-link svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+}
+
+
+.nav-link:hover {
+    color: #fff;
+    background: rgba(255,255,255,.08);
+}
+
+.nav-link.active {
+    color: #fff;
+    background: #3269f2;
+}
+
+.logout-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+    padding: 0 8px;
+    height: 25px;
+    color: #9db0ca;
+    font-size: 10px;
+}
+
+.logout-link:hover {
+    color: #fff;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.workspace {
+    min-width: 0;
+    flex: 1;
+}
+
+/* Header atas: latar putih dan posisi judul sistem serta profil */
+.topbar {
+    height: 66px;
+    padding: 0 26px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border-bottom: 1px solid #eef0f5;
+}
+
+/* Tulisan nama Sistem Informasi Pengelolaan Pemeliharaan Fasilitas */
+.system-name {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #555e6e;
+    font-size: 8px;
+    font-weight: 500;
+    letter-spacing: .15px;
+}
+
+.system-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--blue);
+}
+
+.profile-area {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-name {
+    color: #26354b;
+    font-size: 8px;
+    font-weight: 700;
+}
+
+
+/* =========================
+   ICON PROFIL HEADER
+========================= */
+
+/* Lingkaran biru dan ikon profil di kanan atas */
+.profile-avatar {
+    width: 32px;
+    height: 32px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #0054D6;
+    color: #FFFFFF;
+
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.profile-avatar svg {
+    width: 17px;
+    height: 17px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+
+/* =========================
+   KONTEN DASHBOARD
+========================= */
+
+.main-content {
+    padding: 9px 32px 45px;
+}
+
+.main-content h1 {
+    margin: 0 0 29px;
+    color: #182a43;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -.25px;
+}
+
+/* =========================
+   KARTU STATISTIK
+========================= */
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 15px;
+    margin-bottom: 14px;
+}
+
+.summary-card {
+    min-width: 0;
+    height: 137px;
+    padding: 13px;
+    background: #fff;
+    border: 1px solid #f0f1f6;
+    border-radius: 9px;
+}
+
+.card-top {
+    min-height: 27px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.card-top > span:first-child {
+    color: #424b5b;
+    font-size: 8px;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+
+/* =========================
+   ICON KARTU STATISTIK
+========================= */
+
+.icon-box {
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+    border-radius: 10px;
+}
+
+/* Ukuran SVG */
+.icon-box svg {
+    width: 23px;
+    height: 23px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Total Laporan */
+.icon-blue {
+    color: #0054D6;
+    background: #DFE9FF;
+}
+
+/* Menunggu Verifikasi */
+.icon-yellow {
+    color: #C56B08;
+    background: #FFF2C6;
+}
+
+
+
+/* =========================
+   ICON DALAM PENANGANAN
+========================= */
+
+.icon-box.icon-indigo {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #DFE4FF;
+    color: #0054D6;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+
+/* ICON WRENCH DALAM PENANGANAN */
+.icon-box.icon-indigo svg {
+    width: 24px;
+    height: 24px;
+    fill: none;
+
+    /* Membalik arah kunci pas ke kiri */
+    transform: scaleX(-1);
+}
+
+
+
+
+.icon-green {
+    color: #159a70;
+    background: #d8f7e9;
+}
+
+.number {
+    color: #182b45;
+    font-size: 21px;
+    line-height: 1.1;
+    font-weight: 700;
+    margin: 3px 0 8px;
+}
+
+.number-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 23px;
+    margin: 3px 0 8px;
+}
+
+.number-row .number {
+    margin: 0;
+}
+
+.summary-card p {
+    margin: 0;
+    color: #626b7a;
+    font-size: 8px;
+    line-height: 1.5;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 6px;
+    border-radius: 10px;
+    white-space: nowrap;
+    font-size: 6px;
+    font-weight: 600;
+}
+
+.badge-yellow {
+    color: #bc7900;
+    background: #fff0c9;
+}
+
+.badge-blue {
+    color: #1856d5;
+    background: #e0e9ff;
+}
+
+.badge-green {
+    color: #13855f;
+    background: #d8f7e9;
+}
+
+/* =========================
+   TABEL LAPORAN
+========================= */
+
+.report-panel {
+    padding: 14px 12px 15px;
+    background: #fff;
+    border: 1px solid #f0f1f6;
+    border-radius: 9px;
+}
+
+.panel-heading {
+    margin-bottom: 12px;
+}
+
+.panel-heading h2 {
+    margin: 0 0 4px;
+    color: #1c2d45;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.panel-heading p {
+    margin: 0;
+    color: #626b7a;
+    font-size: 9px;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+thead {
+    background: #edf2ff;
+}
+
+th {
+    height: 35px;
+    padding: 9px 10px;
+    color: #536f9c;
+    font-size: 9px;
+    line-height: 1.3;
+    font-weight: 800;
+}
+
+
+td {
+    height: 45px;
+    padding: 10px 12px;
+    color: #5d6676;
+    font-size: 9px;
+    font-weight: 400;
+    line-height: 1.5;
+    vertical-align: middle;
+}
+
+
+
+.report-code {
+    color: #1760f0;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+
+
+.facility {
+    color: #28374d;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+
+
+.priority {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+
+.priority-high {
+    color: #d64e4e;
+    background: #ffe2e2;
+}
+
+.priority-medium {
+    color: #b87910;
+    background: #fff0ce;
+}
+
+.priority-low {
+    color: #13885f;
+    background: #d9f7e9;
+}
+
+
+.action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 65px;
+    height: 28px;
+    padding: 0 12px;
+    color: #ffffff;
+    background: #2864ef;
+    border-radius: 5px;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+
+.action-button:hover {
+    background: #174fcf;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+.menu-toggle,
+.page-overlay {
+    display: none;
+}
+
+@media (min-width: 1400px) {
+    .sidebar {
+        width: 270px;
+        min-width: 270px;
+    }
+
+    .main-content {
+        padding-left: 38px;
+        padding-right: 38px;
+    }
+
+    .summary-card {
+        height: 145px;
+    }
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        width: 220px;
+        min-width: 220px;
+    }
+
+    .main-content {
+        padding-left: 22px;
+        padding-right: 22px;
+    }
+
+    .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .sidebar {
+        position: fixed;
+        z-index: 30;
+        inset: 0 auto 0 0;
+        width: 255px;
+        min-width: 255px;
+        transform: translateX(-100%);
+        transition: transform .22s ease;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .page-overlay.show {
+        display: block;
+        position: fixed;
+        z-index: 20;
+        inset: 0;
+        background: rgba(12,25,44,.4);
+    }
+
+    .topbar {
+        height: 58px;
+        padding: 0 14px;
+        gap: 10px;
+    }
+
+    .menu-toggle {
+        width: 25px;
+        height: 25px;
+        padding: 3px;
+        border: 0;
+        background: transparent;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 4px;
+        cursor: pointer;
+    }
+
+    .menu-toggle span {
+        display: block;
+        width: 18px;
+        height: 2px;
+        border-radius: 2px;
+        background: #27374e;
+    }
+
+    .system-name {
+        flex: 1;
+        font-size: 6px;
+        line-height: 1.4;
+    }
+
+    .profile-name {
+        display: none;
+    }
+
+    .main-content {
+        padding: 23px 14px 32px;
+    }
+
+    .main-content h1 {
+        margin-bottom: 21px;
+    }
+
+    .summary-grid {
+        gap: 10px;
+    }
+
+    .summary-card {
+        height: 132px;
+        padding: 12px 10px;
+    }
+
+    .report-panel {
+        padding: 13px 10px;
+    }
+}
+
+@media (max-width: 360px) {
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .summary-card {
+        height: auto;
+        min-height: 120px;
+    }
+}
+
+
+/* =========================
+   PERBAIKAN TEKS LOGO SIPFAS
+========================= */
+
+.sidebar-logo .brand-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.sidebar-logo .brand-text strong {
+    display: block;
+    white-space: nowrap;
+}
+
+.sidebar-logo .brand-text span {
+    display: block;
+    white-space: nowrap;
+    margin-top: 2px;
+}
+
+
+
+/* =========================
+   ICON MENUNGGU VERIFIKASI
+========================= */
+
+.icon-box.icon-yellow {
+    width: 52px;
+    height: 52px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #FFF2C6;
+    color: #B86108;
+
+    border-radius: 14px;
+    flex-shrink: 0;
+}
+
+/* Ukuran ikon kalender dan jam */
+.icon-box.icon-yellow svg {
+    width: 32px;
+    height: 32px;
+    fill: none;
+}
+
+
+
+/* KHUSUS HALAMAN VERIFIKASI LAPORAN */
+.verification-content {
+    padding-top:4px
+}
+
+/* Judul halaman verifikasi laporan */
+.page-heading h1 {
+    margin:0 0 5px;
+    font-size:24px;
+    letter-spacing:-.5px
+}
+
+.page-heading p {
+    margin:0;
+    color:#4d5667;
+    font-size:13px
+}
+
+.filter-bar {
+    margin:26px 0 23px;
+    min-height:76px;
+    border-radius:13px;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    padding:0 28px;
+    box-shadow:0 1px 2px #e8eaf2
+}
+
+.search-field {
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex:1;
+    min-width:0
+}
+
+.search-field svg,.priority-filter svg {
+    width:19px;
+    height:19px;
+    fill:none;
+    stroke:#3e485c;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    flex-shrink:0
+}
+
+.search-field input {
+    width:100%;
+    min-width:0;
+    border:0;
+    outline:0;
+    background:transparent;
+    font:inherit;
+    font-size:13px;
+    color:#172942
+}
+
+.search-field input::placeholder {
+    color:#7b8395;
+    opacity:1
+}
+
+.priority-filter {
+    display:flex;
+    align-items:center;
+    gap:9px;
+    white-space:nowrap
+}
+
+.priority-filter select {
+    border:0;
+    outline:0;
+    background:transparent;
+    color:#14243b;
+    font:inherit;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+    max-width:170px
+}
+
+.verification-panel {
+    background:#fff;
+    border-radius:13px;
+    padding:26px 24px 22px;
+    box-shadow:0 1px 2px #eceef5
+}
+
+.verification-panel-heading {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:20px
+}
+
+.verification-panel-heading h2 {
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin:0;
+    font-size:17px;
+    color:#15263d;
+    font-weight:700
+}
+
+.verification-panel-heading h2 svg {
+    width:21px;
+    height:21px;
+    fill:none;
+    stroke:#0054d6;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    flex-shrink:0
+}
+
+.verification-panel-heading>span {
+    font-size:10px;
+    color:#414a5d;
+    font-weight:600;
+    white-space:nowrap
+}
+
+.verification-table-wrap {
+    overflow-x:auto
+}
+
+.verification-table {
+    width:100%;
+    min-width:890px;
+    table-layout:fixed;
+    border-collapse:collapse
+}
+
+.verification-table th {
+    height:49px;
+    padding:8px 10px;
+    background:#edf1ff;
+    color:#424b60;
+    font-size:11px;
+    line-height:1.35;
+    font-weight:800;
+    text-align:center
+}
+
+.verification-table th:nth-child(1) {
+    width:11%
+}
+
+.verification-table th:nth-child(2) {
+    width:12%
+}
+
+.verification-table th:nth-child(3) {
+    width:15%
+}
+
+.verification-table th:nth-child(4) {
+    width:12%
+}
+
+.verification-table th:nth-child(5) {
+    width:11%
+}
+
+.verification-table th:nth-child(6) {
+    width:12%
+}
+
+.verification-table th:nth-child(7) {
+    width:15%
+}
+
+.verification-table th:nth-child(8) {
+    width:12%
+}
+
+.verification-table td {
+    height:70px;
+    padding:10px 9px;
+    color:#3f4758;
+    font-size:12px;
+    line-height:1.45;
+    vertical-align:middle
+}
+
+.verification-table td:nth-child(5) {
+    white-space:nowrap;
+    font-size:11px;
+    color:#15263d
+}
+
+.verification-table td:nth-child(6),.verification-table td:nth-child(7),.verification-table td:nth-child(8) {
+    text-align:center
+}
+
+.verification-table .report-code {
+    font-size:12px;
+    color:#0054d6;
+    font-weight:800;
+    letter-spacing:.2px;
+    padding-left:25px
+}
+
+.verification-table td strong {
+    display:block;
+    color:#14243b;
+    font-size:12px;
+    line-height:1.3
+}
+
+.verification-table td small {
+    display:block;
+    color:#273247;
+    font-size:10px
+}
+
+.facility-with-icon {
+    display:flex;
+    align-items:center;
+    gap:5px;
+    color:#15243b;
+    font-size:12px;
+    font-weight:500
+}
+
+.facility-with-icon svg {
+    width:16px;
+    height:16px;
+    flex-shrink:0;
+    fill:none;
+    stroke:#54719e;
+    stroke-width:1.8;
+    stroke-linecap:round;
+    stroke-linejoin:round
+}
+
+.pill {
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:3px 10px;
+    border-radius:99px;
+    font-size:11px;
+    line-height:1.2;
+    white-space:nowrap
+}
+
+.pill::before {
+    content:"";
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:currentColor
+}
+
+.pill.high {
+    background:#ffdcdc;
+    color:#bb1717
+}
+
+.pill.medium {
+    background:#d9e5ff;
+    color:#244c86
+}
+
+.pill.low {
+    background:#d6f8e7;
+    color:#096f48
+}
+
+.status-pill {
+    display:inline-flex;
+    align-items:center;
+    text-align:left;
+    gap:7px;
+    padding:5px 10px;
+    border-radius:30px;
+    background:#dbe7ff;
+    color:#3e5b88;
+    font-size:11px;
+    line-height:1.25
+}
+
+.status-pill::before {
+    content:"";
+    width:5px;
+    height:5px;
+    border-radius:50%;
+    background:#45669c;
+    flex-shrink:0
+}
+
+.check-button {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:88px;
+    height:46px;
+    background:#2864ef;
+    color:#fff;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:600
+}
+
+.check-button:hover {
+    background:#174fcf
+}
+
+.empty-state {
+    text-align:center;
+    font-size:13px;
+    padding:20px;
+    color:#626b7a
+}
+
+@media(max-width:900px) {
+    .verification-content {
+        padding-top:14px
+    }
+
+    .verification-panel {
+        padding:20px 14px
+    }
+
+    .verification-panel-heading {
+        align-items:flex-start;
+        flex-direction:column
+    }
+
+}
+
+@media(max-width:650px) {
+    .page-heading h1 {
+        font-size:22px
+    }
+
+    .page-heading p {
+        line-height:1.5
+    }
+
+    .filter-bar {
+        padding:18px;
+        align-items:stretch;
+        flex-direction:column;
+        gap:16px
+    }
+
+    .verification-panel-heading h2 {
+        font-size:15px
+    }
+
+}
+
+/* DETAIL VERIFIKASI LAPORAN: gaya tambahan sesuai referensi */
+/* Area konten halaman detail verifikasi */
+.detail-content {
+    padding:28px 32px 64px;
+    max-width:1500px;
+    margin:0 auto
+}
+
+/* Tautan kembali ke daftar Verifikasi Laporan */
+.back-link {
+    display:inline-block;
+    color:#0054d6;
+    font-size:12px;
+    font-weight:700;
+    margin-bottom:12px
+}
+
+/* Judul Detail Verifikasi dan kode laporan */
+.detail-content h1 {
+    font-size:22px;
+    letter-spacing:-.5px;
+    margin:0 0 16px;
+    color:#14233a
+}
+
+/* Label kuning status Menunggu Verifikasi */
+.pending-pill {
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding:6px 12px;
+    border-radius:20px;
+    background:#fff1cb;
+    color:#a34a0d;
+    font-size:11px;
+    font-weight:700;
+    margin-bottom:23px
+}
+
+.pending-pill span {
+    color:#f5a400
+}
+
+/* Susunan kolom kartu informasi dan kartu penilaian */
+.detail-grid {
+    display:grid;
+    grid-template-columns:minmax(0,1.44fr) minmax(320px,1fr);
+    gap:24px;
+    align-items:start
+}
+
+.right-column {
+    display:grid;
+    gap:24px
+}
+
+/* Kartu putih: warna latar, garis tepi, dan sudut kotak */
+.detail-card {
+    background:#fff;
+    border:1px solid #f0f1f6;
+    border-radius:13px;
+    padding:23px;
+    min-width:0;
+    box-shadow:0 1px 1px rgba(20,30,50,.02)
+}
+
+/* Judul pada setiap kartu */
+.detail-card h2 {
+    margin:0;
+    color:#13233a;
+    font-size:17px;
+    font-weight:700;
+    line-height:1.25
+}
+
+/* Warna ikon biru di samping judul kartu */
+.blue-icon {
+    color:#0054d6;
+    font-weight:800
+}
+
+.card-heading {
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:32px
+}
+
+.card-heading p,.subheading {
+    font-size:12px;
+    line-height:1.5;
+    color:#576174;
+    margin:4px 0 0
+}
+
+.date-pill {
+    background:#e7efff;
+    padding:5px 9px;
+    border-radius:9px;
+    font-size:10px;
+    font-weight:600;
+    white-space:nowrap;
+    color:#3d485c
+}
+
+/* Susunan kotak-kotak data laporan */
+.info-grid {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px
+}
+
+/* Kotak biru muda untuk data laporan masuk */
+.info-tile {
+    background:#eef2ff;
+    border-radius:9px;
+    padding:16px;
+    min-height:72px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:5px
+}
+
+.info-tile.wide {
+    grid-column:1/-1
+}
+
+/* Tulisan label seperti KODE LAPORAN dan NAMA PELAPOR */
+.tile-label {
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.35px;
+    color:#4b5262
+}
+
+.info-tile strong {
+    font-size:12px;
+    line-height:1.4;
+    color:#15263c
+}
+
+/* Warna dan ukuran teks kode laporan */
+.info-tile .code {
+    color:#0054d6;
+    font-size:16px
+}
+
+.reporter-line {
+    display:flex;
+    align-items:center;
+    gap:9px
+}
+
+/* Lingkaran inisial nama pelapor */
+.initials {
+    display:grid;
+    place-items:center;
+    width:31px;
+    height:31px;
+    border-radius:50%;
+    background:#b7d2ff;
+    color:#385987;
+    font-size:12px;
+    font-weight:700;
+    flex:none
+}
+
+.reporter-line p {
+    font-size:11px;
+    color:#535c6d;
+    margin:2px 0 0
+}
+
+.description {
+    margin-top:24px
+}
+
+.description h3 {
+    font-size:12px;
+    margin:0 0 8px
+}
+
+/* Kotak deskripsi kerusakan yang ditulis pelapor */
+.description blockquote {
+    background:#f7f8fd;
+    margin:0;
+    border-radius:10px;
+    padding:15px;
+    font-size:12px;
+    line-height:1.8;
+    font-style:italic;
+    color:#27364d
+}
+
+.scoring-card h2 {
+    margin-bottom:20px
+}
+
+.parameter {
+    margin:0 0 20px
+}
+
+/* Judul dan keterangan parameter penilaian C4.5 */
+.parameter-heading {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    margin-bottom:6px
+}
+
+.parameter-heading strong {
+    font-size:12px;
+    line-height:1.45;
+    max-width:70%
+}
+
+.parameter-heading small {
+    font-size:9px;
+    font-weight:600;
+    white-space:nowrap;
+    color:#4c5565;
+    padding-top:4px
+}
+
+.parameter-id {
+    background:#dfeaff;
+    border-radius:4px;
+    color:#0054d6;
+    padding:3px 4px;
+    margin-right:4px
+}
+
+/* Pilihan tingkat kerusakan dan dampak akademik */
+.parameter select {
+    width:100%;
+    height:42px;
+    border:0;
+    border-radius:8px;
+    background:#f7f8fd;
+    color:#263348;
+    font-size:12px;
+    padding:0 20px 0 13px;
+    cursor:pointer;
+    font-family:inherit
+}
+
+/* Kotak nilai X3 yang dikunci oleh sistem */
+.locked-value {
+    height:40px;
+    background:#e5edff;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 14px;
+    font-size:12px;
+    font-weight:600
+}
+
+.parameter-help {
+    font-size:11px;
+    line-height:1.5;
+    color:#535d70;
+    margin:7px 0 0
+}
+
+/* Tombol Hitung Ulang Prioritas: warna latar dan tulisan */
+.recalculate {
+    width:100%;
+    border:0;
+    border-radius:8px;
+    height:41px;
+    background:#edf2ff;
+    color:#0054d6;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit
+}
+
+/* Kotak hasil rekomendasi prioritas model C4.5 */
+.recommendation {
+    margin-top:17px;
+    background:#eef2ff;
+    border-radius:9px;
+    padding:16px
+}
+
+.recommendation>strong {
+    display:inline-block;
+    margin-top:9px;
+    border-radius:20px;
+    padding:5px 11px;
+    font-size:16px
+}
+
+.recommendation .priority-high {
+    color:#ef3838;
+    background:#ffdbdb
+}
+
+.recommendation .priority-medium {
+    color:#ad7100;
+    background:#ffedc8
+}
+
+.recommendation .priority-low {
+    color:#087d56;
+    background:#d5f5e7
+}
+
+.recommendation p {
+    font-size:11px;
+    line-height:1.6;
+    background:white;
+    color:#47618a;
+    border-radius:4px;
+    margin:8px 0 0;
+    padding:10px
+}
+
+.decision-card h2 {
+    margin-bottom:5px
+}
+
+/* Pembungkus pilihan keputusan verifikasi */
+.decision-switch {
+    display:flex;
+    background:#e5edff;
+    padding:4px;
+    border-radius:10px;
+    margin:22px 0;
+    gap:4px
+}
+
+/* Tombol Laporan Valid dan Laporan Tidak Valid */
+.decision-option {
+    flex:1;
+    min-width:0;
+    border:0;
+    border-radius:8px;
+    background:transparent;
+    padding:11px 5px;
+    color:#475061;
+    font-size:11px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit
+}
+
+/* Tampilan tombol keputusan yang sedang dipilih */
+.decision-option.selected {
+    color:#0054d6;
+    background:#fff;
+    box-shadow:0 1px 3px #d7dff1
+}
+
+.decision-notice {
+    border-radius:9px;
+    padding:17px;
+    margin-bottom:18px;
+    font-size:12px;
+    line-height:1.6
+}
+
+/* Pesan berwarna hijau untuk laporan valid */
+.decision-notice.valid {
+    background:#eafbf3;
+    color:#00785a
+}
+
+/* Pesan berwarna merah untuk laporan tidak valid */
+.decision-notice.invalid {
+    background:#fff1f0;
+    color:#b32929
+}
+
+.decision-notice p {
+    margin: 4px 0 0 32px;
+    line-height: 1.65;
+}
+
+.notes-label {
+    display:block;
+    font-weight:700;
+    font-size:12px;
+    margin-bottom:7px
+}
+
+/* Kolom tulisan catatan verifikator */
+#verifierNotes {
+    display:block;
+    resize:vertical;
+    width:100%;
+    border:0;
+    border-radius:8px;
+    background:#f7f8fd;
+    font-family:inherit;
+    font-size:12px;
+    padding:13px;
+    color:#26364e;
+    min-height:44px
+}
+
+#verifierNotes::placeholder {
+    color:#9ba7bb
+}
+
+/* Tombol Simpan Verifikasi: warna biru dan teks putih */
+.save-button {
+    background:#2864ef;
+    color:#fff;
+    border:0;
+    border-radius:8px;
+    height:43px;
+    width:100%;
+    font-weight:700;
+    font-size:12px;
+    margin-top:16px;
+    cursor:pointer;
+    font-family:inherit
+}
+
+/* Warna tombol Simpan Verifikasi saat kursor diarahkan */
+.save-button:hover {
+    background:#174fcf
+}
+
+/* Tulisan pesan setelah menyimpan verifikasi */
+.save-feedback {
+    margin:8px 0 0;
+    font-size:11px;
+    line-height:1.5;
+    color:#006f51
+}
+
+/* Tampilan responsif kartu dan kolom untuk tablet serta layar kecil */
+@media(max-width:1100px) {
+    .detail-grid {
+        grid-template-columns:1fr
+    }
+
+    .right-column {
+        grid-template-columns:repeat(2,minmax(0,1fr))
+    }
+
+    .detail-content {
+        padding-left:22px;
+        padding-right:22px
+    }
+
+}
+
+@media(max-width:760px) {
+    .right-column {
+        grid-template-columns:1fr
+    }
+
+}
+
+@media(max-width:650px) {
+    .detail-content {
+        padding:22px 14px
+    }
+
+    .detail-content h1 {
+        font-size:19px
+    }
+
+    .detail-card {
+        padding:16px
+    }
+
+    .info-grid {
+        gap:9px
+    }
+
+    .info-tile {
+        padding:11px
+    }
+
+    .card-heading {
+        flex-wrap:wrap
+    }
+
+    .parameter-heading strong {
+        max-width:68%
+    }
+
+}
+
+/* ===================================
+   ICON KEPUTUSAN HASIL VERIFIKASI
+=================================== */
+.decision-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+}
+
+/* UKURAN ICON */
+.decision-icon {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+}
+
+/* ICON CENTANG HIJAU */
+.decision-icon.icon-valid {
+    color: #07845e;
+}
+
+/* ICON SILANG MERAH */
+.decision-icon.icon-invalid {
+    color: #dc3545;
+}
+
+/* ==========================================
+   ICON LAPORAN MEMENUHI SYARAT
+========================================== */
+/* Posisi ikon dan tulisan */
+.decision-notice strong {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Icon centang bergerigi */
+.notice-check-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    color: #009b70;
+    fill: none;
+}
+
+/* =========================================
+   PENYESUAIAN POSISI PANAH DROPDOWN X1 & X2
+========================================= */
+.parameter select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23263348' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 14px;
+    padding-right: 36px;
+}
+
+/* =========================================
+   ICON TERKUNCI FREKUENSI PENGGUNAAN X3
+========================================= */
+/* Icon gembok */
+.lock-icon {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    color: #39465c;
+}
+
+/* Icon di samping Terkunci Sistem */
+.locked-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Posisi icon dalam kotak Sering */
+.locked-value .lock-icon {
+    width: 17px;
+    height: 17px;
+}
+
+/* =========================================
+   ICON AC PADA NAMA FASILITAS
+========================================= */
+/* Posisi icon dan tulisan */
+.facility-name {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Icon kipas AC */
+.facility-ac-icon {
+    width: 17px;
+    height: 17px;
+    color: #0054D6;
+    flex-shrink: 0;
+}
+
+/* =========================================
+   ICON LOKASI FASILITAS
+========================================= */
+/* Posisi ikon dan tulisan */
+.facility-location {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Ukuran dan warna ikon lokasi */
+.facility-location-icon {
+    width: 17px;
+    height: 17px;
+    color: #54719e;
+    flex-shrink: 0;
+}
+

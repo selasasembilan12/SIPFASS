@@ -1,0 +1,419 @@
+/* HALAMAN PROFIL PETUGAS SIPFAS */
+/* Area utama halaman Profil Saya dan jarak kontennya */
+.profile-content {
+    padding-top: 25px;
+}
+
+/* Tulisan navigasi kecil Pengaturan Akun > Profil Petugas */
+.profile-content .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0 0 7px;
+    color: #596273;
+    font-size: 11px;
+}
+.profile-content .crumb-separator {
+    color: #8a94a5;
+}
+.profile-content .breadcrumb strong {
+    color: #0757dc;
+    font-weight: 650;
+}
+
+/* Judul utama Profil Petugas dan warna teksnya */
+.profile-content .page-heading h1 {
+    margin: 0;
+    color: #20242b;
+    font-size: 23px;
+    line-height: 1.3;
+    font-weight: 750;
+    letter-spacing: -.35px;
+}
+
+/* Kartu putih besar pembungkus informasi akun dan formulir */
+.profile-panel {
+    width: min(100%, 850px);
+    margin: 24px auto 0;
+    padding: 32px;
+    background: #fff;
+    border: 1px solid #edf0f5;
+    border-radius: 13px;
+    box-shadow: 0 3px 12px rgba(25, 42, 67, .06);
+}
+
+/* Susunan foto inisial, nama, dan jabatan petugas */
+.profile-summary {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    min-height: 74px;
+}
+/* Lingkaran avatar RH: ukuran, warna biru, dan tulisan putih */
+.large-avatar {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    flex: 0 0 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #2864f0;
+    color: #fff;
+    font-size: 19px;
+    font-weight: 700;
+    box-shadow: 0 2px 5px rgba(20, 45, 90, .18);
+}
+/* Ikon centang hijau yang menunjukkan akun terverifikasi */
+.verified-mark {
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #08734e;
+}
+.verified-mark svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: #fff;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+/* Tulisan nama petugas beserta ukuran dan warnanya */
+.profile-identity h2 {
+    margin: 0 0 2px;
+    color: #20242b;
+    font-size: 20px;
+    line-height: 1.25;
+    font-weight: 750;
+}
+/* Tulisan instansi di bawah nama petugas */
+.profile-identity p {
+    margin: 0 0 8px;
+    color: #586170;
+    font-size: 11px;
+}
+/* Label jabatan Petugas Sarana Prasarana dan warna kotaknya */
+.role-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 20px;
+    padding: 3px 12px;
+    border-radius: 14px;
+    background: #dce5ff;
+    color: #1b3158;
+    font-size: 11px;
+    font-weight: 650;
+}
+/* Garis pemisah antara ringkasan profil dan informasi akun */
+.profile-divider {
+    height: 1px;
+    margin: 26px 0 32px;
+    background: #e1e5eb;
+}
+#profileForm {
+    width: 100%;
+}
+.field-group {
+    margin: 0 0 17px;
+}
+/* Judul kolom Nama Lengkap, Username, Email, dan Peran */
+.field-group > label {
+    display: block;
+    margin: 0 0 7px;
+    color: #24282e;
+    font-size: 13px;
+    line-height: 1.3;
+    font-weight: 650;
+}
+/* Kotak latar abu-abu untuk menampilkan data akun */
+.input-wrap {
+    position: relative;
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 14px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: #f0f2f5;
+}
+.input-wrap > svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+    fill: none;
+    stroke: #535d6b;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+/* Warna dan jenis huruf tulisan di dalam kolom profil */
+.input-wrap input {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #26364c;
+    font: 500 13px Inter, Arial, sans-serif;
+}
+.readonly-field input {
+    cursor: default;
+}
+#fullName {
+    font-weight: 650;
+}
+/* Warna biru khusus untuk tulisan alamat email */
+#email {
+    color: #0757dc;
+}
+/* Warna kotak biru muda pada informasi peran akun */
+.role-value {
+    background: #e5ecff;
+}
+.role-value input {
+    color: #465064;
+    font-weight: 600;
+}
+.role-value > svg:first-child {
+    stroke: #68758d;
+}
+.role-value .lock-icon {
+    width: 16px;
+    height: 16px;
+    margin-left: auto;
+}
+/* Tulisan keterangan bahwa peran ditentukan administrator */
+.field-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 7px 0 0;
+    color: #5b6370;
+    font-size: 10px;
+    line-height: 1.45;
+}
+.field-note svg {
+    width: 13px;
+    height: 13px;
+    flex: 0 0 13px;
+    fill: none;
+    stroke: #66738a;
+    stroke-width: 1.8;
+}
+.role-note {
+    color: #424b5d;
+    font-weight: 500;
+}
+.password-divider {
+    margin: 30px 0 22px;
+}
+/* Bagian judul dan keterangan Ganti Kata Sandi */
+.password-heading {
+    margin-bottom: 18px;
+}
+.password-heading h3 {
+    display: inline;
+    margin: 0 7px 0 0;
+    color: #24282e;
+    font-size: 13px;
+    font-weight: 700;
+}
+.password-heading > span {
+    color: #4e5664;
+    font-size: 11px;
+}
+.password-heading p {
+    margin: 5px 0 0;
+    color: #626b78;
+    font-size: 11px;
+}
+.password-group {
+    margin-bottom: 17px;
+}
+/* Kotak pengisian kata sandi */
+.password-input {
+    background: #f0f2f5;
+}
+/* Warna garis dan bayangan saat kolom kata sandi dipilih */
+.password-input:focus-within {
+    border-color: #8eafff;
+    box-shadow: 0 0 0 3px rgba(40,100,240,.08);
+}
+.password-input input::placeholder {
+    color: #9aa3b1;
+    opacity: 1;
+}
+/* Tombol ikon mata untuk tampilkan atau sembunyikan kata sandi */
+.toggle-password {
+    width: 25px;
+    height: 30px;
+    flex: 0 0 25px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #4c5562;
+    cursor: pointer;
+}
+.toggle-password svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+/* Posisi tombol Simpan Perubahan di kanan formulir */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 39px;
+}
+/* Tombol Simpan Perubahan: ukuran, warna biru, dan teks putih */
+.save-button {
+    min-width: 194px;
+    height: 45px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 8px;
+    background: #2864f0;
+    color: #fff;
+    font: 650 12px Inter, Arial, sans-serif;
+    cursor: pointer;
+    transition: background .18s ease, transform .18s ease;
+}
+/* Warna tombol Simpan Perubahan saat diarahkan kursor */
+.save-button:hover {
+    background: #1853d8;
+}
+.save-button:active {
+    transform: translateY(1px);
+}
+.save-button svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+/* Tulisan pesan berhasil setelah menyimpan perubahan */
+.form-feedback {
+    min-height: 16px;
+    margin: 9px 0 0;
+    text-align: right;
+    color: #08734e;
+    font-size: 11px;
+}
+/* Warna merah untuk pesan kesalahan formulir */
+.form-feedback.error {
+    color: #c0393b;
+}
+
+/* Penyesuaian ukuran kartu pada layar besar */
+@media (min-width: 1400px) {
+    .profile-panel {
+        width: min(100%, 900px);
+    }
+}
+/* Penyesuaian jarak kartu pada tablet */
+@media (max-width: 900px) {
+    .profile-panel {
+        padding: 27px;
+    }
+}
+/* Tampilan responsif untuk layar HP */
+@media (max-width: 650px) {
+    .profile-content {
+        padding: 23px 14px 32px;
+    }
+    .profile-content .page-heading h1 {
+        font-size: 20px;
+    }
+    .profile-panel {
+        margin-top: 18px;
+        padding: 22px 17px;
+        border-radius: 11px;
+    }
+    .profile-summary {
+        gap: 15px;
+    }
+    .large-avatar {
+        width: 60px;
+        height: 60px;
+        flex-basis: 60px;
+        font-size: 17px;
+    }
+    .profile-identity h2 {
+        font-size: 16px;
+    }
+    .profile-identity p {
+        font-size: 10px;
+        line-height: 1.5;
+    }
+    .role-chip {
+        font-size: 9px;
+    }
+    .profile-divider {
+        margin: 23px 0 25px;
+    }
+    .field-group > label {
+        font-size: 12px;
+    }
+    .input-wrap {
+        height: 43px;
+        padding: 0 11px;
+        gap: 9px;
+    }
+    .input-wrap input {
+        font-size: 12px;
+    }
+    .password-heading h3 {
+        font-size: 12px;
+    }
+    .password-heading > span, .password-heading p {
+        font-size: 10px;
+    }
+    .form-actions {
+        margin-top: 28px;
+    }
+    .save-button {
+        width: 100%;
+    }
+}
+/* Penyesuaian tambahan untuk HP berlayar kecil */
+@media (max-width: 380px) {
+    .profile-summary {
+        align-items: flex-start;
+    }
+    .profile-identity h2 {
+        font-size: 14px;
+    }
+    .profile-identity p {
+        max-width: 190px;
+    }
+    .password-heading > span {
+        display: block;
+        margin-top: 4px;
+    }
+}

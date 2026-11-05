@@ -1,0 +1,425 @@
+/* =========================================================
+   HALAMAN VERIFIKASI OTP PEMULIHAN SIPFAS
+   Konsisten dengan Login, Pemulihan, dan Verifikasi SIPFAS.
+========================================================= */
+
+/* PALET WARNA: mengikuti warna biru, navy, dan latar SIPFAS. */
+:root {
+    --blue: #0755d5;
+    --blue-hover: #0645bc;
+    --text: #26364b;
+    --muted: #52627b;
+    --page-bg: #f1f5f9;
+    --otp-bg: #eef3f9;
+    --error: #dc4545;
+}
+
+/* PENGATURAN DASAR: menyamakan perhitungan ukuran elemen. */
+* {
+    box-sizing: border-box;
+}
+
+/* LATAR HALAMAN: memenuhi layar dengan font Inter. */
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+}
+
+body {
+    min-height: 100vh;
+    background: var(--page-bg);
+    color: var(--text);
+    font-family: 'Inter', Arial, sans-serif;
+}
+
+/* PEMBUNGKUS HALAMAN: memusatkan kartu verifikasi OTP. */
+.otp-page {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 20px;
+}
+
+/* KARTU OTP: ukuran, jarak dalam, dan sudut mengikuti gambar referensi. */
+.otp-card {
+    width: 100%;
+    max-width: 460px;
+    min-height: 467px;
+    padding: 27px 32px 30px;
+    background: #ffffff;
+    border: 1px solid #e8edf3;
+    border-radius: 13px;
+    box-shadow: 0 2px 5px rgba(31, 50, 76, 0.025);
+    text-align: center;
+}
+
+/* =========================
+   LOGO DAN IDENTITAS SIPFAS
+========================= */
+
+/* AREA BRAND: menyejajarkan logo dengan nama aplikasi. */
+.brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 18px;
+}
+
+/* LOGO SIPFAS: menggunakan aset asli dari folder assets. */
+.brand-logo {
+    display: block;
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+/* TEKS BRAND: menyusun nama SIPFAS dan institusi secara vertikal. */
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
+    line-height: 1.2;
+    text-align: left;
+}
+
+/* NAMA APLIKASI SIPFAS. */
+.brand-text strong {
+    color: #1d3b60;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+/* NAMA INSTITUSI. */
+.brand-text span {
+    color: #1d3b60;
+    font-size: 13px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+/* =========================
+   JUDUL DAN EMAIL TUJUAN
+========================= */
+
+/* AREA JUDUL: mengatur jarak judul, deskripsi, dan email. */
+.otp-header {
+    width: 100%;
+    margin-bottom: 23px;
+    text-align: center;
+}
+
+/* JUDUL VERIFIKASI OTP PEMULIHAN. */
+.otp-header h1 {
+    margin: 0 0 6px;
+    color: #20252d;
+    font-size: 27px;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.8px;
+}
+
+/* DESKRIPSI PENGIRIMAN KODE OTP. */
+.otp-header p {
+    max-width: 350px;
+    margin: 0 auto;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+/* LABEL EMAIL: kapsul abu-abu muda dengan ikon amplop. */
+.email-badge {
+    width: fit-content;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 17px auto 0;
+    padding: 5px 14px;
+    border-radius: 20px;
+    background: #eef3f9;
+    color: #20252d;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* IKON EMAIL PADA LABEL ALAMAT. */
+.email-icon {
+    display: block;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: #075bea;
+}
+
+/* =========================
+   INPUT KODE OTP
+========================= */
+
+/* FORM OTP: menampung delapan kotak kode. */
+#otpForm {
+    width: 100%;
+}
+
+/* SUSUNAN DELAPAN KOTAK OTP: rata dengan jarak seragam. */
+.otp-inputs {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 9px;
+}
+
+/* KOTAK OTP: latar abu-abu kebiruan dengan sudut membulat. */
+.otp-input {
+    width: 100%;
+    min-width: 0;
+    height: 49px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    outline: none;
+    background: var(--otp-bg);
+    color: #26364d;
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 600;
+    text-align: center;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+/* EFEK FOKUS: menandai kotak OTP yang sedang aktif. */
+.otp-input:focus {
+    border-color: var(--blue);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(40, 100, 240, 0.09);
+}
+
+/* PESAN VALIDASI: tampil di antara kotak OTP dan timer. */
+.otp-message {
+    min-height: 0;
+    margin: 0;
+    color: var(--error);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.otp-message:not(:empty) {
+    margin: 0 0 7px;
+}
+
+/* =========================
+   TIMER MASA BERLAKU
+========================= */
+
+/* BARIS TIMER: label di kiri dan hitung mundur di kanan. */
+.timer-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 3px 7px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* IKON DAN TEKS MASA BERLAKU. */
+.timer-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+/* IKON STOPWATCH. */
+.clock-icon {
+    display: block;
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    color: #52627b;
+}
+
+/* ANGKA TIMER BERWARNA BIRU. */
+.timer-value {
+    color: #0750d5;
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+/* =========================
+   TOMBOL VERIFIKASI
+========================= */
+
+/* TOMBOL UTAMA: bidang biru dengan teks putih dan ikon panah. */
+.verify-button {
+    width: 100%;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.verify-button:hover {
+    background: var(--blue-hover);
+}
+
+.verify-button:active {
+    transform: translateY(1px);
+}
+
+/* IKON PANAH PADA TOMBOL VERIFIKASI. */
+.arrow-icon {
+    display: block;
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+}
+
+/* =========================
+   KIRIM ULANG KODE
+========================= */
+
+/* BARIS KIRIM ULANG: teks dan tombol berada di tengah. */
+.resend-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 18px;
+    color: #64748b;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+/* TOMBOL KIRIM ULANG: aktif setelah timer habis. */
+.resend-button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #2860e8;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.resend-button:hover:not(:disabled) {
+    text-decoration: underline;
+}
+
+.resend-button:disabled {
+    color: #9bb8f5;
+    cursor: not-allowed;
+}
+
+/* =========================
+   KEMBALI KE PEMULIHAN AKUN
+========================= */
+
+/* TAUTAN KEMBALI: ikon panah dan teks sejajar. */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 15px;
+    color: #343d50;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.back-link:hover {
+    color: var(--blue);
+}
+
+/* IKON PANAH KEMBALI. */
+.back-icon {
+    display: block;
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+/* =========================
+   RESPONSIVE / LAYAR KECIL
+========================= */
+
+/* PENYESUAIAN KARTU PADA TABLET DAN PONSEL. */
+@media (max-width: 520px) {
+    .otp-page {
+        padding: 22px 15px;
+    }
+
+    .otp-card {
+        min-height: auto;
+        padding: 27px 20px 30px;
+        border-radius: 13px;
+    }
+
+    .otp-header h1 {
+        font-size: 23px;
+    }
+
+    .otp-inputs {
+        gap: 6px;
+    }
+
+    .otp-input {
+        height: 43px;
+        border-radius: 7px;
+        font-size: 17px;
+    }
+}
+
+/* PENYESUAIAN UNTUK PONSEL DENGAN LAYAR SANGAT KECIL. */
+@media (max-width: 360px) {
+    .otp-card {
+        padding-right: 14px;
+        padding-left: 14px;
+    }
+
+    .otp-inputs {
+        gap: 4px;
+    }
+
+    .otp-input {
+        height: 39px;
+    }
+
+    .otp-header h1 {
+        font-size: 21px;
+    }
+}
+
+/* LAYAR PENDEK: halaman dapat digulir tanpa memotong kartu. */
+@media (max-height: 620px) {
+    .otp-page {
+        align-items: flex-start;
+    }
+}

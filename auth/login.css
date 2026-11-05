@@ -1,0 +1,371 @@
+/* =========================================================
+   HALAMAN LOGIN SIPFAS
+   Mengikuti identitas visual halaman Admin dan Petugas.
+========================================================= */
+
+/* PALET WARNA: diselaraskan dengan warna biru, navy, dan latar dashboard SIPFAS. */
+:root {
+    --blue: #2864f0;
+    --blue-hover: #1f56dc;
+    --text: #344256;
+    --muted: #687d9d;
+    --placeholder: #91a3bf;
+    --border: #dce4ef;
+    --page-bg: #f1f5f9;
+}
+
+/* PENGATURAN DASAR: ukuran elemen dan perilaku box model. */
+* {
+    box-sizing: border-box;
+}
+
+/* LATAR HALAMAN: memenuhi layar dan menggunakan font Inter. */
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Inter', Arial, sans-serif;
+    color: var(--text);
+    background: var(--page-bg);
+}
+
+/* PEMBUNGKUS LOGIN: memusatkan kartu secara horizontal dan vertikal. */
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+}
+
+/* KARTU PUTIH LOGIN: ukuran, jarak dalam, sudut, garis tepi, dan bayangan. */
+.login-card {
+    width: 100%;
+    max-width: 460px;
+    padding: 37px 40px 40px;
+    background: #ffffff;
+    border: 1px solid #e0e7f0;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(31, 50, 76, 0.09);
+}
+
+/* =========================
+   LOGO DAN IDENTITAS SIPFAS
+========================= */
+
+/* AREA BRAND: menyejajarkan logo dengan dua baris nama identitas. */
+.brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 27px;
+}
+
+/* LOGO SIPFAS: memakai gambar logo asli dari folder assets. */
+.brand-logo {
+    display: block;
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+/* TEKS BRAND: menyusun nama SIPFAS dan nama institusi secara vertikal. */
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
+    line-height: 1.2;
+}
+
+/* NAMA APLIKASI SIPFAS. */
+.brand-text strong {
+    color: #1d3b60;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+/* NAMA INSTITUSI DI BAWAH SIPFAS. */
+.brand-text span {
+    color: #1d3b60;
+    font-size: 13px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+/* =========================
+   JUDUL DAN DESKRIPSI LOGIN
+========================= */
+
+/* AREA SAPAAN: jarak antara identitas brand dan formulir. */
+.welcome {
+    margin-bottom: 27px;
+    text-align: center;
+}
+
+/* JUDUL SELAMAT DATANG: ukuran dan ketebalan judul utama. */
+.welcome h1 {
+    margin: 0 0 6px;
+    color: #344256;
+    font-size: 23px;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.6px;
+}
+
+/* DESKRIPSI LOGIN: teks penjelas di bawah judul. */
+.welcome p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* =========================
+   FORM DAN KOLOM INPUT
+========================= */
+
+/* FORM LOGIN: mengatur susunan seluruh kolom input. */
+.login-form {
+    width: 100%;
+}
+
+/* KELOMPOK INPUT: jarak label dengan kolom dan antar kolom. */
+.form-group {
+    margin-bottom: 18px;
+}
+
+/* LABEL INPUT: tulisan Nama Pengguna dan Kata Sandi. */
+.form-group label {
+    display: block;
+    margin-bottom: 7px;
+    color: #344256;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* KOTAK INPUT: menyatukan ikon dan kolom dalam satu bingkai. */
+.input-wrapper {
+    width: 100%;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* EFEK FOKUS INPUT: garis biru lembut saat kolom dipilih. */
+.input-wrapper:focus-within {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(40, 100, 240, 0.09);
+}
+
+/* IKON INPUT: ukuran dan warna ikon username serta gembok. */
+.input-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: #777f8d;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* KOLOM TEKS INPUT: mengisi ruang yang tersedia di dalam kotak. */
+.input-wrapper input {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+}
+
+/* TEKS PLACEHOLDER: petunjuk pengisian username dan password. */
+.input-wrapper input::placeholder {
+    color: var(--placeholder);
+    opacity: 1;
+}
+
+/* TOMBOL IKON MATA: berada di sisi kanan kolom kata sandi. */
+.toggle-password {
+    width: 23px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #8da0bb;
+    cursor: pointer;
+}
+
+/* SVG IKON MATA: ukuran dan ketebalan garis ikon. */
+.toggle-password svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* EFEK HOVER IKON MATA. */
+.toggle-password:hover {
+    color: var(--blue);
+}
+
+/* =========================
+   LUPA KATA SANDI
+========================= */
+
+/* POSISI TAUTAN LUPA PASSWORD: rata kanan di bawah kolom kata sandi. */
+.forgot-password {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: -2px;
+    margin-bottom: 25px;
+}
+
+/* TAUTAN LUPA KATA SANDI: warna biru seperti aksen SIPFAS. */
+.forgot-password a {
+    color: #0054d6;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+/* EFEK HOVER TAUTAN LUPA PASSWORD. */
+.forgot-password a:hover {
+    color: var(--blue-hover);
+    text-decoration: underline;
+}
+
+/* =========================
+   TOMBOL MASUK
+========================= */
+
+/* TOMBOL LOGIN: bidang biru utama dengan teks dan ikon panah. */
+.login-button {
+    width: 100%;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+/* IKON PANAH PADA TOMBOL MASUK. */
+.login-button svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* EFEK HOVER TOMBOL MASUK. */
+.login-button:hover {
+    background: var(--blue-hover);
+}
+
+/* EFEK KLIK TOMBOL MASUK. */
+.login-button:active {
+    transform: translateY(1px);
+}
+
+/* =========================
+   PEMBATAS DAN PENDAFTARAN
+========================= */
+
+/* GARIS PEMBATAS: memisahkan tombol masuk dari informasi pendaftaran. */
+.card-divider {
+    width: 100%;
+    height: 1px;
+    margin: 31px 0 17px;
+    background: #edf1f6;
+}
+
+/* TEKS BELUM PUNYA AKUN: rata tengah di bagian bawah kartu. */
+.register-text {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+/* TAUTAN DAFTAR SEKARANG: diberi aksen biru dan jarak dari teks sebelumnya. */
+.register-text a {
+    margin-left: 5px;
+    color: #0054d6;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+/* EFEK HOVER TAUTAN PENDAFTARAN. */
+.register-text a:hover {
+    color: var(--blue-hover);
+    text-decoration: underline;
+}
+
+/* =========================
+   RESPONSIVE / LAYAR KECIL
+========================= */
+
+/* PENYESUAIAN KARTU LOGIN PADA TABLET DAN PONSEL. */
+@media (max-width: 520px) {
+    .login-page {
+        padding: 20px 15px;
+    }
+
+    .login-card {
+        max-width: 100%;
+        padding: 32px 25px 34px;
+        border-radius: 13px;
+    }
+
+    .brand {
+        margin-bottom: 25px;
+    }
+
+    .welcome h1 {
+        font-size: 21px;
+    }
+
+    .welcome p {
+        font-size: 12px;
+    }
+}
+
+/* PENYESUAIAN TAMBAHAN UNTUK PONSEL DENGAN TINGGI LAYAR PENDEK. */
+@media (max-height: 650px) {
+    .login-page {
+        align-items: flex-start;
+    }
+}

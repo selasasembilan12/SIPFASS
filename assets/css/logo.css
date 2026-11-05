@@ -11,6 +11,7 @@
 /* Variabel ukuran logo */
 :root {
   --logo-size: 46px;
+  --logo-size: 52px;
   --logo-gap: 1px;
 }
 

@@ -1,0 +1,416 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Profil Pelapor | SIPFAS</title>
+
+    <!-- FONT INTER -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- CSS PROFIL -->
+    <link rel="stylesheet" href="Profil.css">
+</head>
+
+<body>
+
+<div class="app-container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <!-- LOGO SIPFAS -->
+        <a href="../Dashboard/dashboard.html" class="sidebar-logo">
+            <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS">
+
+            <div class="sidebar-brand">
+                <strong>SIPFAS</strong>
+                <span>Informatika UNKHAIR</span>
+            </div>
+        </a>
+
+        <!-- NAVIGASI -->
+        <nav class="sidebar-navigation">
+
+            <a href="../Dashboard/dashboard.html" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                </svg>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="../Laporan/Laporan.html" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="9"/>
+                    <path d="M12 8v8M8 12h8"/>
+                </svg>
+                <span>Buat Laporan</span>
+            </a>
+
+            <a href="../Riwayat-laporan/Riwayat-laporan.html" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <rect x="5" y="4" width="14" height="17" rx="1.5"/>
+                    <path d="M9 4V2h6v2M9 9h6M9 13h6M9 17h4"/>
+                </svg>
+                <span>Laporan Saya</span>
+            </a>
+
+            <a href="Profil.html" class="nav-item active">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="3.5"/>
+                    <path d="M5 20v-1.5A4.5 4.5 0 0 1 9.5 14h5a4.5 4.5 0 0 1 4.5 4.5V20Z"/>
+                </svg>
+                <span>Profil</span>
+            </a>
+
+        </nav>
+
+        <!-- KELUAR -->
+        <a href="../../../auth/Login.html" class="logout-link">
+            <svg viewBox="0 0 24 24">
+                <path d="M10 17l5-5-5-5"/>
+                <path d="M15 12H3"/>
+                <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/>
+            </svg>
+            <span>Keluar</span>
+        </a>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- HEADER -->
+        <header class="top-header">
+
+            <div class="system-title">
+                <span class="system-dot"></span>
+                <span>SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS</span>
+            </div>
+
+            <div class="header-profile">
+                <span class="header-name">Ahmad Fauzi</span>
+
+                <div class="header-avatar">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="8" r="3"/>
+                        <path d="M5 20v-1a7 7 0 0 1 14 0v1"/>
+                    </svg>
+                </div>
+            </div>
+
+        </header>
+
+        <!-- KONTEN PROFIL -->
+        <section class="page-content">
+
+            <!-- BREADCRUMB -->
+            <div class="breadcrumb">
+                <span>Pengaturan Akun</span>
+                <span class="breadcrumb-separator">›</span>
+                <strong>Profil Pelapor</strong>
+            </div>
+
+            <!-- JUDUL HALAMAN -->
+            <h1 class="page-title">Profil Pelapor</h1>
+
+            <!-- KARTU PROFIL -->
+            <section class="profile-card">
+
+                <!-- IDENTITAS PENGGUNA -->
+                <div class="profile-identity">
+
+                    <div class="profile-photo">
+                        <!-- Foto profil belum tersedia -->
+                    </div>
+
+                    <div class="identity-information">
+                        <h2>Ahmad Fauzi</h2>
+                        <p>NIM: 07352011045</p>
+                        <span class="role-badge">Pelapor</span>
+                    </div>
+
+                </div>
+
+                <div class="section-divider"></div>
+
+                <!-- FORM PROFIL -->
+                <form class="profile-form">
+
+                    <!-- NAMA LENGKAP -->
+                    <div class="form-group">
+
+                        <label for="nama">Nama Lengkap</label>
+
+                        <div class="input-wrapper">
+
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="12" cy="8" r="3"/>
+                                <path d="M5 20v-1a7 7 0 0 1 14 0v1"/>
+                            </svg>
+
+                            <input
+                                type="text"
+                                id="nama"
+                                name="nama"
+                                value="Ahmad Fauzi"
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <!-- NIM -->
+                    <div class="form-group">
+
+                        <div class="label-row">
+                            <label for="nim">NIM</label>
+
+                            <span class="field-note">
+                                <svg viewBox="0 0 24 24">
+                                    <rect x="5" y="10" width="14" height="11" rx="2"/>
+                                    <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                                </svg>
+                                Tidak dapat diubah
+                            </span>
+                        </div>
+
+                        <div class="input-wrapper locked-input">
+
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <rect x="3" y="7" width="18" height="14" rx="1.5"/>
+                                <path d="M9 7V4h6v3M8 12h3v3H8zM14 12h3M14 16h3"/>
+                            </svg>
+
+                            <input
+                                type="text"
+                                id="nim"
+                                name="nim"
+                                value="07352011045"
+                                readonly
+                            >
+
+                            <svg class="trailing-lock" viewBox="0 0 24 24">
+                                <rect x="5" y="10" width="14" height="11" rx="2"/>
+                                <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                            </svg>
+
+                        </div>
+
+                    </div>
+
+                    <!-- USERNAME -->
+                    <div class="form-group">
+
+                        <div class="label-row">
+                            <label for="username">Nama Pengguna (Username)</label>
+
+                            <span class="field-note">
+                                <svg viewBox="0 0 24 24">
+                                    <rect x="5" y="10" width="14" height="11" rx="2"/>
+                                    <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                                </svg>
+                                Tetap
+                            </span>
+                        </div>
+
+                        <div class="input-wrapper locked-input">
+
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <rect x="3" y="4" width="18" height="16" rx="2"/>
+                                <circle cx="12" cy="10" r="2.5"/>
+                                <path d="M7 17c1-2 2.5-3 5-3s4 1 5 3"/>
+                            </svg>
+
+                            <input
+                                type="text"
+                                id="username"
+                                name="username"
+                                value="07352011045"
+                                readonly
+                            >
+
+                            <svg class="trailing-lock" viewBox="0 0 24 24">
+                                <rect x="5" y="10" width="14" height="11" rx="2"/>
+                                <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                            </svg>
+
+                        </div>
+
+                    </div>
+
+                    <!-- EMAIL -->
+                    <div class="form-group">
+
+                        <label for="email">Email</label>
+
+                        <div class="input-wrapper">
+
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <rect x="3" y="5" width="18" height="14" rx="2"/>
+                                <path d="m4 7 8 6 8-6"/>
+                            </svg>
+
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                value="ahmad.fauzi@unkhair.ac.id"
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <!-- PEMBATAS -->
+                    <div class="section-divider password-divider"></div>
+
+                    <!-- BAGIAN GANTI PASSWORD -->
+                    <div class="password-heading">
+
+                        <h3>
+                            Ganti Kata Sandi
+                            <span>(Opsional, isi jika ingin mengubah kata sandi)</span>
+                        </h3>
+
+                        <p>
+                            Biarkan kosong jika tidak ingin memperbarui kata sandi Anda saat ini.
+                        </p>
+
+                    </div>
+
+                    <!-- PASSWORD SAAT INI -->
+                    <div class="form-group">
+
+                        <label for="password-current">Kata Sandi Saat Ini</label>
+
+                        <div class="input-wrapper password-input">
+
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="8" cy="15" r="4"/>
+                                <path d="m11 12 9-9 2 2-2 2 2 2-3 3-2-2-3 3"/>
+                            </svg>
+
+                            <input
+                                type="password"
+                                id="password-current"
+                                name="password-current"
+                                placeholder="Masukkan kata sandi saat ini"
+                            >
+
+                            <button type="button" class="password-toggle" aria-label="Tampilkan kata sandi">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <!-- PASSWORD BARU -->
+                    <div class="form-group">
+
+                        <label for="password-new">Kata Sandi Baru</label>
+
+                        <div class="input-wrapper password-input">
+
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <rect x="5" y="10" width="14" height="11" rx="2"/>
+                                <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+                            </svg>
+
+                            <input
+                                type="password"
+                                id="password-new"
+                                name="password-new"
+                                placeholder="Minimal 8 karakter"
+                            >
+
+                            <button type="button" class="password-toggle" aria-label="Tampilkan kata sandi">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+
+                        </div>
+
+                        <p class="input-help">
+                            Minimal 8 karakter kombinasi huruf dan angka
+                        </p>
+
+                    </div>
+
+                    <!-- KONFIRMASI PASSWORD -->
+                    <div class="form-group">
+
+                        <label for="password-confirm">Konfirmasi Kata Sandi Baru</label>
+
+                        <div class="input-wrapper password-input">
+
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M12 7v5l3 2"/>
+                                <path d="M5 4 3 7M3 7h4"/>
+                            </svg>
+
+                            <input
+                                type="password"
+                                id="password-confirm"
+                                name="password-confirm"
+                                placeholder="Ulangi kata sandi baru"
+                            >
+
+                            <button type="button" class="password-toggle" aria-label="Tampilkan kata sandi">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <!-- TOMBOL AKSI -->
+                    <div class="form-actions">
+
+                        <a href="../Dashboard/dashboard.html" class="cancel-button">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M9 14 4 9l5-5"/>
+                                <path d="M4 9h10a6 6 0 0 1 0 12h-2"/>
+                            </svg>
+                            Batal
+                        </a>
+
+                        <button type="submit" class="save-button">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M5 3h12l4 4v14H3V3h2Z"/>
+                                <path d="M7 3v6h10V3M7 21v-8h10v8"/>
+                            </svg>
+                            Simpan Perubahan
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </section>
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+</html>

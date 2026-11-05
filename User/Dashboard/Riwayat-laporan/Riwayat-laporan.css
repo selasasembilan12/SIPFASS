@@ -1,0 +1,813 @@
+
+/* =====================================================
+   HALAMAN RIWAYAT LAPORAN - SIPFAS
+   ===================================================== */
+
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* PALET WARNA */
+:root {
+    --navy: #1e3b60;
+    --blue: #2864f0;
+    --blue-hover: #1f56dc;
+    --text: #20252d;
+    --muted: #687d9d;
+    --page-bg: #f5f7fa;
+    --border: #e4e8ef;
+}
+
+/* BODY */
+body {
+    font-family: 'Inter', Arial, sans-serif;
+    color: var(--text);
+    background: var(--page-bg);
+    min-height: 100vh;
+}
+
+/* LAYOUT UTAMA */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+/* =====================================================
+   SIDEBAR
+   ===================================================== */
+
+.sidebar {
+    width: 248px;
+    min-width: 248px;
+    min-height: 100vh;
+    background: var(--navy);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 10;
+}
+
+/* LOGO SIPFAS */
+.sidebar-logo {
+    height: 72px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1px;
+    padding: 0 32px;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255,255,255,0.10);
+    flex-shrink: 0;
+}
+
+
+.sidebar-logo img {
+    display: block;
+    width: 62px;
+    height: 62px;
+
+    object-fit: contain;
+    object-position: center;
+
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+
+    transform: translateY(2px);
+}
+
+
+/* TEKS BRAND */
+.sidebar-brand {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
+    min-width: 0;
+    line-height: 1.2;
+}
+
+.sidebar-brand strong {
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.sidebar-brand span {
+    color: #b9cce2;
+    font-size: 10px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+/* NAVIGASI */
+.sidebar-navigation {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 25px 8px;
+}
+
+.nav-item {
+    height: 37px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 14px;
+    border-radius: 9px;
+    color: #91a9c9;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.nav-item svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+}
+
+.nav-item:hover {
+    background: rgba(255,255,255,0.08);
+    color: #ffffff;
+}
+
+.nav-item.active {
+    background: #3267f5;
+    color: #ffffff;
+}
+
+/* KELUAR */
+.logout-link {
+    margin-top: auto;
+    height: 55px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 23px;
+    margin-bottom: 8px;
+    color: #91a9c9;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.logout-link svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.logout-link:hover {
+    color: #ffffff;
+}
+
+/* =====================================================
+   MAIN CONTENT
+   ===================================================== */
+
+.main-content {
+    flex: 1;
+    min-width: 0;
+    margin-left: 248px;
+    min-height: 100vh;
+}
+
+/* HEADER */
+.top-header {
+    height: 72px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    border-bottom: 1px solid #edf0f4;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.025);
+}
+
+/* IDENTITAS SISTEM */
+.system-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #454c58;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+.system-dot {
+    width: 8px;
+    height: 8px;
+    background: #075bea;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* PROFIL HEADER */
+.header-profile {
+    display: flex;
+    align-items: center;
+    gap: 17px;
+}
+
+.header-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #20252d;
+}
+
+.header-avatar {
+    width: 33px;
+    height: 33px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0754c9;
+    border-radius: 50%;
+}
+
+.header-avatar svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* =====================================================
+   KONTEN HALAMAN
+   ===================================================== */
+
+.page-content {
+    padding: 0 32px 40px;
+}
+
+/* BREADCRUMB */
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 21px;
+    color: #454c58;
+    font-size: 11px;
+    font-weight: 400;
+}
+
+.breadcrumb-separator {
+    color: #858d9b;
+    font-size: 15px;
+}
+
+/* LINK LAPORAN SAYA */
+.breadcrumb a {
+    color: #075bea;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+    color: #003da8;
+    text-decoration: underline;
+}
+
+/* JUDUL HALAMAN */
+.page-title {
+    margin: 1px 0 24px;
+    color: #20252d;
+    font-size: 23px;
+    line-height: 1.3;
+    font-weight: 700;
+    letter-spacing: -0.6px;
+}
+
+/* =====================================================
+   KARTU RIWAYAT LAPORAN
+   ===================================================== */
+
+.report-card {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #e1e5eb;
+    border-radius: 12px;
+    padding: 24px 24px 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+/* =====================================================
+   TOOLBAR
+   ===================================================== */
+
+.table-toolbar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 32px;
+}
+
+/* KOLOM PENCARIAN */
+.search-box {
+    width: 360px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border: 1px solid #d8dce5;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.search-box svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: #737b89;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+}
+
+.search-box input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text);
+}
+
+.search-box input::placeholder {
+    color: #858b98;
+}
+
+/* FILTER DAN REFRESH */
+.toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+/* FILTER STATUS */
+.filter-box {
+    width: 210px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 11px;
+    border: 1px solid #d8dce5;
+    border-radius: 9px;
+    background: #ffffff;
+}
+
+.filter-box > svg:first-child {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: #727987;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+}
+
+.filter-box select {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: none;
+    outline: none;
+    appearance: none;
+    background: transparent;
+    color: #30343b;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.filter-box .select-arrow {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: #737b89;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
+}
+
+/* TOMBOL REFRESH */
+.refresh-button {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d8dce5;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #454c58;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.refresh-button svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.refresh-button:hover {
+    color: var(--blue);
+    background: #f5f8ff;
+    border-color: var(--blue);
+}
+
+/* =====================================================
+   TABEL LAPORAN
+   ===================================================== */
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.report-table {
+    width: 100%;
+    min-width: 850px;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+/* LEBAR KOLOM */
+.report-table th:nth-child(1) {
+    width: 14%;
+}
+
+.report-table th:nth-child(2) {
+    width: 13%;
+}
+
+.report-table th:nth-child(3) {
+    width: 30%;
+}
+
+.report-table th:nth-child(4) {
+    width: 13%;
+}
+
+.report-table th:nth-child(5) {
+    width: 17%;
+}
+
+.report-table th:nth-child(6) {
+    width: 13%;
+}
+
+/* HEADER TABEL */
+.report-table thead {
+    background: #f0f2f5;
+}
+
+.report-table th {
+    height: 49px;
+    padding: 0 12px;
+    color: #454a53;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.35px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* BARIS DATA */
+.report-table tbody tr {
+    height: 57px;
+    border-bottom: 1px solid #e9edf2;
+}
+
+.report-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.report-table td {
+    padding: 0 12px;
+    font-size: 13px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* KODE LAPORAN */
+.report-code {
+    color: #092d57;
+    font-family: monospace;
+    font-size: 13px !important;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+/* TANGGAL */
+.report-date {
+    color: #454c58;
+    font-size: 12px !important;
+}
+
+/* FASILITAS */
+.facility-name {
+    color: #20252d;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left !important;
+}
+
+/* =====================================================
+   BADGE PRIORITAS
+   ===================================================== */
+
+.priority-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 27px;
+    padding: 0 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* PRIORITAS TINGGI */
+.priority-high {
+    color: #d52222;
+    background: #fff1f0;
+    border: 1px solid #ffa7a4;
+}
+
+.priority-high .badge-dot {
+    background: #df2424;
+}
+
+/* PRIORITAS SEDANG */
+.priority-medium {
+    color: #b96b00;
+    background: #fff8e7;
+    border: 1px solid #ffc94d;
+}
+
+.priority-medium .badge-dot {
+    background: #f39a00;
+}
+
+/* PRIORITAS RENDAH */
+.priority-low {
+    color: #008c69;
+    background: #edfff8;
+    border: 1px solid #74e7bd;
+}
+
+.priority-low .badge-dot {
+    background: #00a779;
+}
+
+/* =====================================================
+   BADGE STATUS
+   ===================================================== */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 27px;
+    padding: 0 11px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* MENUNGGU VERIFIKASI */
+.status-waiting {
+    color: #a84b00;
+    background: #fff9e9;
+    border: 1px solid #ffd76c;
+}
+
+/* DIPROSES */
+.status-process {
+    color: #075bea;
+    background: #eff6ff;
+    border: 1px solid #b5d2ff;
+}
+
+/* SELESAI */
+.status-completed {
+    color: #008d69;
+    background: #effff8;
+    border: 1px solid #8cecc9;
+}
+
+/* TIDAK VALID */
+.status-invalid {
+    min-height: 19px;
+    padding: 0 9px;
+    gap: 4px;
+    color: #b50000;
+    background: #ffd9d6;
+    font-size: 10px;
+}
+
+.status-invalid svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* =====================================================
+   TOMBOL DETAIL
+   ===================================================== */
+
+.detail-button {
+    min-width: 74px;
+    height: 33px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 10px;
+    border-radius: 7px;
+    background: #dce2ff;
+    color: #092a55;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.detail-button svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.detail-button:hover {
+    background: #c7d2fe;
+    color: #003db8;
+}
+
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
+
+@media (max-width: 900px) {
+
+    .sidebar {
+        width: 220px;
+        min-width: 220px;
+    }
+
+    .main-content {
+        margin-left: 220px;
+    }
+
+    .page-content {
+        padding: 0 22px 30px;
+    }
+
+    .search-box {
+        width: 280px;
+    }
+}
+
+@media (max-width: 650px) {
+
+    .sidebar {
+        width: 75px;
+        min-width: 75px;
+    }
+
+    .sidebar-logo {
+        padding: 0;
+        justify-content: center;
+    }
+
+    .sidebar-logo img {
+        width: 38px;
+        height: 38px;
+    }
+
+    .sidebar-brand,
+    .nav-item span,
+    .logout-link span {
+        display: none;
+    }
+
+    .sidebar-navigation {
+        padding: 20px 8px;
+    }
+
+    .nav-item {
+        justify-content: center;
+        padding: 0;
+    }
+
+    .logout-link {
+        justify-content: center;
+        padding: 0;
+    }
+
+    .main-content {
+        margin-left: 75px;
+    }
+
+    .top-header {
+        padding: 0 15px;
+    }
+
+    .system-title {
+        font-size: 9px;
+    }
+
+    .header-name {
+        display: none;
+    }
+
+    .page-content {
+        padding: 0 15px 25px;
+    }
+
+    .report-card {
+        padding: 17px 13px;
+    }
+
+    .table-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+        margin-bottom: 20px;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+
+    .toolbar-actions {
+        justify-content: flex-end;
+    }
+
+    .filter-box {
+        flex: 1;
+        max-width: 230px;
+    }
+
+    .page-title {
+        font-size: 21px;
+    }
+}

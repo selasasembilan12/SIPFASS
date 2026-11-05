@@ -1,0 +1,285 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Detail Laporan | SIPFAS</title>
+
+    <!-- FONT INTER -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- CSS DETAIL LAPORAN -->
+    <link rel="stylesheet" href="Detail-laporan.css">
+</head>
+
+<body>
+
+<div class="app-container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <!-- LOGO SIPFAS -->
+        <a href="../Dashboard/dashboard.html" class="sidebar-logo">
+
+            <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS">
+
+            <div class="sidebar-brand">
+                <strong>SIPFAS</strong>
+                <span>Informatika UNKHAIR</span>
+            </div>
+
+        </a>
+
+        <!-- NAVIGASI -->
+        <nav class="sidebar-navigation">
+
+            <a href="../Dashboard/dashboard.html" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                </svg>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="../Laporan/Laporan.html" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="9"/>
+                    <path d="M12 8v8M8 12h8"/>
+                </svg>
+                <span>Buat Laporan</span>
+            </a>
+
+            <a href="../Laporan-saya/Laporan-saya.html" class="nav-item active">
+                <svg viewBox="0 0 24 24">
+                    <rect x="5" y="4" width="14" height="17" rx="1.5"/>
+                    <path d="M9 4V2h6v2M9 9h6M9 13h6M9 17h4"/>
+                </svg>
+                <span>Laporan Saya</span>
+            </a>
+
+            <a href="../Profil/Profil.html" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="3.5"/>
+                    <path d="M5 20v-1.5A4.5 4.5 0 0 1 9.5 14h5a4.5 4.5 0 0 1 4.5 4.5V20Z"/>
+                </svg>
+                <span>Profil</span>
+            </a>
+
+        </nav>
+
+        <!-- KELUAR -->
+        <a href="../../../auth/Login.html" class="logout-link">
+
+            <svg viewBox="0 0 24 24">
+                <path d="M10 17l5-5-5-5"/>
+                <path d="M15 12H3"/>
+                <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/>
+            </svg>
+
+            <span>Keluar</span>
+
+        </a>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- HEADER -->
+        <header class="top-header">
+
+            <div class="system-title">
+                <span class="system-dot"></span>
+                <span>SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS</span>
+            </div>
+
+            <div class="header-profile">
+
+                <span class="header-name">Ahmad Fauzi</span>
+
+                <div class="header-avatar">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="8" r="3"/>
+                        <path d="M5 20v-1a7 7 0 0 1 14 0v1"/>
+                    </svg>
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- ISI HALAMAN -->
+        <section class="page-content">
+
+            <!-- KEMBALI KE HALAMAN KONFIRMASI LAPORAN -->
+<a href="../Konfirmasi-laporan/Konfirmasi-laporan.html" class="back-link">
+
+    <svg viewBox="0 0 24 24">
+        <path d="M19 12H5M11 18l-6-6 6-6"/>
+    </svg>
+
+    <span>Kembali ke Laporan Saya</span>
+
+</a>
+
+
+            <!-- JUDUL DAN STATUS -->
+            <div class="page-heading">
+
+                <h1>Detail Laporan #LP-2024-085</h1>
+
+                <div class="main-status">
+                    <span class="status-dot"></span>
+                    <span>Diproses</span>
+                </div>
+
+            </div>
+
+
+            <!-- KARTU INFORMASI LAPORAN -->
+            <section class="information-card">
+
+                <h2>Informasi Laporan</h2>
+
+                <div class="card-divider"></div>
+
+
+                <div class="report-grid">
+
+                    <!-- NAMA FASILITAS -->
+                    <div class="report-field">
+
+                        <span class="field-label">Nama Fasilitas</span>
+
+                        <strong>Unit AC Split 2 PK Panasonic</strong>
+
+                    </div>
+
+
+                    <!-- LOKASI -->
+                    <div class="report-field">
+
+                        <span class="field-label">Lokasi Fasilitas</span>
+
+                        <strong>Ruang Kuliah IF-301, Gedung Informatika Lt. 3</strong>
+
+                    </div>
+
+
+                    <!-- TANGGAL -->
+                    <div class="report-field">
+
+                        <span class="field-label">Tanggal Laporan</span>
+
+                        <strong>22 Oktober 2024, 09:30 WIT</strong>
+
+                    </div>
+
+
+                    <!-- PRIORITAS -->
+                    <div class="report-field">
+
+                        <span class="field-label">Rekomendasi Prioritas</span>
+
+                        <div class="priority-information">
+
+                            <span class="priority-badge">Tinggi</span>
+
+                            <span class="priority-description">
+                                (Rekomendasi awal sistem)
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- DESKRIPSI KERUSAKAN -->
+                <div class="description-section">
+
+                    <h3>Deskripsi Kerusakan</h3>
+
+                    <div class="description-box">
+
+                        AC mengeluarkan suara bising mendengung dan hembusan angin tidak dingin sama sekali sejak perkuliahan jam pertama pagi. Suhu ruangan gerah dan mengganggu kenyamanan mahasiswa.
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- KARTU STATUS LAPORAN -->
+            <section class="status-card">
+
+                <h2>Status Laporan</h2>
+
+                <div class="card-divider"></div>
+
+
+                <!-- STATUS VERIFIKASI -->
+                <div class="status-information">
+
+                    <div class="status-description">
+
+                        <span>Status Verifikasi</span>
+
+                        <strong> diverifikasi oleh Petugas Sarpras</strong>
+
+                    </div>
+
+                    <div class="verification-badge">
+
+                        <span class="status-dot"></span>
+
+                        <span>Valid</span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- STATUS PENANGANAN -->
+                <div class="status-information">
+
+                    <div class="status-description">
+
+                        <span>Status Penanganan</span>
+
+                        <strong>Teknisi sedang melakukan perbaikan di lokasi</strong>
+
+                    </div>
+
+                    <div class="handling-badge">
+
+                        <span class="status-dot"></span>
+
+                        <span>Diproses</span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+</html>
