@@ -1,0 +1,392 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard | SIPFAS</title>
+
+    <!-- FONT INTER -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- CSS DASHBOARD -->
+    <link rel="stylesheet" href="Dashboard.css">
+</head>
+
+<body>
+
+<div class="dashboard-container">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar">
+
+        <!-- LOGO SIPFAS -->
+        <a href="dashboard.html" class="sidebar-logo">
+            <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS">
+
+            <div class="sidebar-brand">
+                <strong>SIPFAS</strong>
+                <span>Informatika UNKHAIR</span>
+            </div>
+        </a>
+
+        <!-- NAVIGASI -->
+        <nav class="sidebar-navigation">
+
+            <a href="dashboard.html" class="nav-item active">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                </svg>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="../Laporan/Laporan.html" class="nav-item">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9"/>
+                    <path d="M12 7v10M7 12h10"/>
+                </svg>
+                <span>Buat Laporan</span>
+            </a>
+
+            <a href="../Riwayat-laporan/Riwayat-laporan.html" class="nav-item">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="5" y="4" width="14" height="17" rx="1.5"/>
+                    <path d="M9 4V2h6v2M9 9h6M9 13h6M9 17h4"/>
+                </svg>
+                <span>Laporan Saya</span>
+            </a>
+
+            <a href="../Profil/Profil.html" class="nav-item">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="7" r="3.5"/>
+                    <path d="M4.5 20c.5-4 3.1-6 7.5-6s7 2 7.5 6z"/>
+                </svg>
+                <span>Profil</span>
+            </a>
+
+        </nav>
+
+        <!-- KELUAR -->
+        <a href="../../../auth/Login.html" class="logout-link">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M10 17l5-5-5-5"/>
+                <path d="M15 12H3"/>
+                <path d="M12 3h8v18h-8"/>
+            </svg>
+            <span>Keluar</span>
+        </a>
+
+    </aside>
+
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <div class="main-content">
+
+        <!-- HEADER -->
+        <header class="top-header">
+
+            <div class="system-title">
+                <span class="system-dot"></span>
+                <span>SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS</span>
+            </div>
+
+            <div class="header-profile">
+                <span class="header-name">Ahmad Fauzi</span>
+
+                <div class="header-avatar">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="8" r="3.5"/>
+                        <path d="M5 20c.5-4 2.8-6 7-6s6.5 2 7 6"/>
+                    </svg>
+                </div>
+            </div>
+
+        </header>
+
+
+        <!-- KONTEN DASHBOARD -->
+        <main class="dashboard-content">
+
+            <!-- JUDUL DASHBOARD -->
+            <section class="welcome-section">
+
+                <h1>Selamat Datang, Ahmad Fauzi</h1>
+
+                <a href="../Laporan/Laporan.html" class="create-report-button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="M12 7v10M7 12h10"/>
+                    </svg>
+                    <span>Buat Laporan Kerusakan</span>
+                </a>
+
+            </section>
+
+
+            <!-- ================= STATISTIK ================= -->
+            <section class="statistics-grid">
+
+                <!-- TOTAL LAPORAN -->
+                <div class="stat-card">
+
+                    <div class="stat-top">
+                        <div>
+                            <h3>Total Laporan</h3>
+                            <strong class="stat-number total-number">12</strong>
+                        </div>
+
+                        <div class="stat-icon icon-total">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M6 3h9l4 4v14H6z"/>
+                                <path d="M15 3v5h4M9 13h7M9 17h7"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="stat-description">
+                        <span class="dot dot-blue"></span>
+                        <span>Total laporan</span>
+                    </div>
+
+                </div>
+
+
+                <!-- MENUNGGU -->
+                <div class="stat-card">
+
+                    <div class="stat-top">
+                        <div>
+                            <h3>Menunggu</h3>
+                            <strong class="stat-number waiting-number">3</strong>
+                        </div>
+
+                        <div class="stat-icon icon-waiting">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <rect x="4" y="4" width="13" height="16" rx="2"/>
+                                <path d="M8 2v4M13 2v4M7 10h7"/>
+                                <circle cx="17" cy="16" r="5"/>
+                                <path d="M17 13v3l2 1"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="stat-description">
+                        <span class="dot dot-orange"></span>
+                        <span>Menunggu verifikasi</span>
+                    </div>
+
+                </div>
+
+
+                <!-- DIPROSES -->
+                <div class="stat-card">
+
+                    <div class="stat-top">
+                        <div>
+                            <h3>Diproses</h3>
+                            <strong class="stat-number process-number">2</strong>
+                        </div>
+
+                        <div class="stat-icon icon-process">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3 18l3 3 5.3-5.3a5 5 0 0 0 6.4-6.4L14 13l-3-3z"/>
+                                <path d="m15 3 6 6"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="stat-description">
+                        <span class="dot dot-blue"></span>
+                        <span>Sedang diproses</span>
+                    </div>
+
+                </div>
+
+
+                <!-- SELESAI -->
+                <div class="stat-card">
+
+                    <div class="stat-top">
+                        <div>
+                            <h3>Selesai</h3>
+                            <strong class="stat-number completed-number">7</strong>
+                        </div>
+
+                        <div class="stat-icon icon-completed">
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="m7 12 3.5 3.5L17 9"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="stat-description no-dot">
+                        <span>Laporan selesai</span>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= LAPORAN TERBARU ================= -->
+            <section class="recent-reports">
+
+                <div class="section-heading">
+
+                    <span class="heading-indicator"></span>
+
+                    <div>
+                        <h2>Laporan Terbaru</h2>
+                        <p>5 aktivitas permohonan sarana terakhir Anda</p>
+                    </div>
+
+                </div>
+
+
+                <div class="table-container">
+
+                    <table class="report-table">
+
+                        <thead>
+                            <tr>
+                                <th>FASILITAS</th>
+                                <th>TANGGAL</th>
+                                <th>STATUS</th>
+                                <th>AKSI</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <!-- LAPORAN 1 -->
+                            <tr>
+                                <td>
+                                    <div class="facility-name">
+                                        <svg viewBox="0 0 24 24">
+                                            <rect x="3" y="5" width="15" height="14" rx="1"/>
+                                            <path d="m18 9 3-2v10l-3-2"/>
+                                        </svg>
+                                        <strong>Proyektor Lab Komputer 2</strong>
+                                    </div>
+                                </td>
+                                <td>24 Okt 2024</td>
+                                <td>
+                                    <span class="status-badge status-waiting">
+                                        <span class="status-dot"></span>Menunggu
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="../Detail-laporan/Detail-laporan.html" class="detail-link">Detail ›</a>
+                                </td>
+                            </tr>
+
+
+                            <!-- LAPORAN 2 -->
+                            <tr>
+                                <td>
+                                    <div class="facility-name">
+                                        <svg viewBox="0 0 24 24">
+                                            <circle cx="12" cy="12" r="2"/>
+                                            <path d="M12 10c-2-6 1-8 3-7s2 4-1 8M14 12c6-2 8 1 7 3s-4 2-8-1M12 14c2 6-1 8-3 7s-2-4 1-8M10 12c-6 2-8-1-7-3s4-2 8 1"/>
+                                        </svg>
+                                        <strong>AC Ruang Kuliah IF-301</strong>
+                                    </div>
+                                </td>
+                                <td>22 Okt 2024</td>
+                                <td>
+                                    <span class="status-badge status-processing">
+                                        <span class="status-dot"></span>Diproses
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="../Detail-laporan/Detail-laporan.html" class="detail-link">Detail ›</a>
+                                </td>
+                            </tr>
+
+
+                            <!-- LAPORAN 3 -->
+                            <tr>
+                                <td>
+                                    <div class="facility-name">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="m5 19 12-12 3 3L8 22H5z"/>
+                                            <path d="m14 6 3-3 4 4-3 3M4 7l3-3 4 4-3 3"/>
+                                        </svg>
+                                        <strong>Papan Tulis Ruang Sidang</strong>
+                                    </div>
+                                </td>
+                                <td>18 Okt 2024</td>
+                                <td>
+                                    <span class="status-badge status-completed">Selesai</span>
+                                </td>
+                                <td>
+                                    <a href="../Detail-laporan/Detail-laporan.html" class="detail-link">Detail ›</a>
+                                </td>
+                            </tr>
+
+
+                            <!-- LAPORAN 4 -->
+                            <tr>
+                                <td>
+                                    <div class="facility-name">
+                                        <svg viewBox="0 0 24 24">
+                                            <path d="M9 3v7M15 3v7M7 10h10v3a5 5 0 0 1-10 0zM12 18v4"/>
+                                        </svg>
+                                        <strong>Stop Kontak Lab Jaringan</strong>
+                                    </div>
+                                </td>
+                                <td>15 Okt 2024</td>
+                                <td>
+                                    <span class="status-badge status-completed">Selesai</span>
+                                </td>
+                                <td>
+                                    <a href="../Detail-laporan/Detail-laporan.html" class="detail-link">Detail ›</a>
+                                </td>
+                            </tr>
+
+
+                            <!-- LAPORAN 5 -->
+                            <tr>
+                                <td>
+                                    <div class="facility-name">
+                                        <svg viewBox="0 0 24 24">
+                                            <rect x="4" y="7" width="16" height="11" rx="2"/>
+                                            <path d="M7 7V4h10v3M7 18v3M17 18v3M8 12h8"/>
+                                        </svg>
+                                        <strong>Kursi Kuliah Gedung B R-102</strong>
+                                    </div>
+                                </td>
+                                <td>10 Okt 2024</td>
+                                <td>
+                                    <span class="status-badge status-invalid">
+                                        <span class="invalid-icon">⊗</span>Tidak Valid
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="../Detail-laporan/Detail-laporan.html" class="detail-link">Detail ›</a>
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+</body>
+</html>

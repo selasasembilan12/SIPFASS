@@ -1,0 +1,854 @@
+
+/* =========================================================
+   SIPFAS - DASHBOARD PELAPOR
+   DESAIN SESUAI REFERENSI
+========================================================= */
+
+
+/* ================= WARNA DAN RESET ================= */
+
+:root {
+    --navy: #1e3b5d;
+    --blue: #3268ed;
+    --blue-icon: #0754ed;
+    --background: #f6f8fb;
+    --dark-text: #082c50;
+    --normal-text: #454b56;
+    --muted-text: #667085;
+    --white: #ffffff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+}
+
+body {
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 14px;
+    color: var(--normal-text);
+    background: var(--background);
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+
+/* ================= LAYOUT UTAMA ================= */
+
+.dashboard-container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+}
+
+
+/* ================= SIDEBAR ================= */
+
+.sidebar {
+    width: 248px;
+    min-width: 248px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--navy);
+    color: #ffffff;
+}
+
+
+/* LOGO SIPFAS */
+
+.sidebar-logo {
+    width: 100%;
+    height: 72px;
+    padding: 0 27px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1px;
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.09);
+}
+
+
+
+.sidebar-logo img {
+    display: block;
+    width: 62px;
+    height: 62px;
+
+    object-fit: contain;
+    object-position: center;
+
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+
+    transform: translateY(2px);
+}
+
+
+
+.sidebar-brand {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
+    min-width: 0;
+    line-height: 1.2;
+}
+
+.sidebar-brand strong {
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.sidebar-brand span {
+    color: #b9cce2;
+    font-size: 10px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+
+/* MENU SIDEBAR */
+
+.sidebar-navigation {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 24px 8px 0;
+}
+
+.nav-item {
+    width: 100%;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 0 14px;
+    border-radius: 9px;
+    color: #91a9ca;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.2s ease;
+}
+
+.nav-item svg {
+    display: block;
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.nav-item:hover {
+    background: rgba(255,255,255,0.10);
+    color: #ffffff;
+}
+
+.nav-item.active {
+    background: #3268ed;
+    color: #ffffff;
+}
+
+
+/* TOMBOL KELUAR */
+
+.logout-link {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: auto;
+    padding: 18px 22px 32px;
+    color: #91a9ca;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.2s ease;
+}
+
+.logout-link svg {
+    display: block;
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.logout-link:hover {
+    color: #ffffff;
+}
+
+
+/* ================= MAIN CONTENT ================= */
+
+.main-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* ================= HEADER ================= */
+
+.top-header {
+    width: 100%;
+    height: 72px;
+    min-height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    background: #ffffff;
+    border-bottom: 1px solid #edf0f4;
+    box-shadow: 0 2px 5px rgba(20,40,70,0.025);
+}
+
+.system-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #424955;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.45px;
+    white-space: nowrap;
+}
+
+.system-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #0754d6;
+    flex-shrink: 0;
+}
+
+
+/* PROFIL HEADER */
+
+.header-profile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.header-name {
+    color: #20252d;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.header-avatar {
+    width: 33px;
+    height: 33px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background: #0754c9;
+    color: #ffffff;
+}
+
+.header-avatar svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+
+/* ================= KONTEN DASHBOARD ================= */
+
+.dashboard-content {
+    flex: 1;
+    width: 100%;
+    padding: 23px 32px 40px;
+    background: var(--background);
+}
+
+
+/* JUDUL DAN TOMBOL */
+
+.welcome-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 46px;
+}
+
+.welcome-section h1 {
+    color: var(--dark-text);
+    font-size: 23px;
+    line-height: 1.4;
+    font-weight: 700;
+    letter-spacing: -0.7px;
+}
+
+.create-report-button {
+    height: 44px;
+    min-width: 226px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 17px;
+    border-radius: 9px;
+    background: #3268ed;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background 0.2s ease;
+}
+
+.create-report-button:hover {
+    background: #2056d8;
+}
+
+.create-report-button svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+
+/* ================= EMPAT KARTU STATISTIK ================= */
+
+.statistics-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 34px;
+}
+
+.stat-card {
+    height: 153px;
+    min-width: 0;
+    padding: 24px 18px 19px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: #ffffff;
+    border: 1px solid #edf0f4;
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(20,40,70,0.025);
+}
+
+
+/* BAGIAN ATAS KARTU */
+
+.stat-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+}
+
+.stat-top h3 {
+    margin-bottom: 6px;
+    color: #454a54;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.stat-number {
+    display: block;
+    font-size: 27px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.total-number {
+    color: #082c50;
+}
+
+.waiting-number {
+    color: #e47700;
+}
+
+.process-number {
+    color: #0754d6;
+}
+
+.completed-number {
+    color: #0da64d;
+}
+
+
+/* IKON STATISTIK */
+
+.stat-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 9px;
+    flex-shrink: 0;
+}
+
+.stat-icon svg {
+    width: 23px;
+    height: 23px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.icon-total {
+    color: #0754ed;
+    background: #dfe4ff;
+}
+
+.icon-waiting {
+    color: #d97700;
+    background: #fff1c6;
+}
+
+.icon-process {
+    color: #0754ed;
+    background: #dfe4ff;
+}
+
+.icon-completed {
+    color: #08a64b;
+    background: #dcfce9;
+}
+
+
+/* DESKRIPSI STATISTIK */
+
+.stat-description {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: #454b56;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.stat-description.no-dot {
+    padding-left: 0;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.dot-blue {
+    background: #0754ed;
+}
+
+.dot-orange {
+    background: #e47700;
+}
+
+
+/* ================= LAPORAN TERBARU ================= */
+
+.recent-reports {
+    width: 100%;
+    min-height: 443px;
+    padding: 24px 23px 26px;
+    background: #ffffff;
+    border: 1px solid #edf0f4;
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(20,40,70,0.025);
+}
+
+
+/* JUDUL LAPORAN */
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 25px;
+}
+
+.heading-indicator {
+    width: 10px;
+    height: 24px;
+    background: #0754ed;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.section-heading h2 {
+    margin-bottom: 4px;
+    color: #082c50;
+    font-size: 17px;
+    line-height: 1.3;
+    font-weight: 650;
+}
+
+.section-heading p {
+    color: #555c67;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
+/* ================= TABEL ================= */
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+.report-table th:nth-child(1),
+.report-table td:nth-child(1) {
+    width: 39%;
+}
+
+.report-table th:nth-child(2),
+.report-table td:nth-child(2) {
+    width: 19%;
+    text-align: center;
+}
+
+.report-table th:nth-child(3),
+.report-table td:nth-child(3) {
+    width: 23%;
+    text-align: center;
+}
+
+.report-table th:nth-child(4),
+.report-table td:nth-child(4) {
+    width: 19%;
+    text-align: right;
+}
+
+
+/* HEADER TABEL */
+
+.report-table thead th {
+    height: 44px;
+    padding: 0 16px;
+    background: #f1f3f6;
+    color: #484e58;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.25px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.report-table thead th:first-child {
+    padding-left: 32px;
+    border-radius: 9px 0 0 9px;
+}
+
+.report-table thead th:last-child {
+    padding-right: 31px;
+    border-radius: 0 9px 9px 0;
+}
+
+
+/* ISI TABEL */
+
+.report-table tbody tr {
+    height: 51px;
+}
+
+.report-table tbody td {
+    height: 51px;
+    padding: 0 16px;
+    color: #454b56;
+    font-size: 13px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.report-table tbody td:first-child {
+    padding-left: 16px;
+}
+
+
+/* NAMA FASILITAS */
+
+.facility-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.facility-name svg {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: #777f8d;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.facility-name strong {
+    color: #082c50;
+    font-size: 12px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* ================= STATUS LAPORAN ================= */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 20px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    display: inline-block;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.status-waiting {
+    color: #b95b00;
+    background: #fff8e5;
+}
+
+.status-processing {
+    color: #082c75;
+    background: #dfe4ff;
+}
+
+.status-completed {
+    color: #079c49;
+    background: #edfcf3;
+}
+
+.status-invalid {
+    color: #b91c1c;
+    background: #ffdedb;
+}
+
+.invalid-icon {
+    font-size: 13px;
+    line-height: 1;
+}
+
+
+/* LINK DETAIL */
+
+.detail-link {
+    display: inline-block;
+    color: #0054e9;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.detail-link:hover {
+    color: #003eb3;
+    text-decoration: underline;
+}
+
+
+/* ================= RESPONSIVE TABLET ================= */
+
+@media (min-width: 761px) {
+
+    .sidebar {
+        width: 248px;
+        min-width: 248px;
+    }
+
+    .statistics-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+}
+
+
+/* ================= RESPONSIVE MOBILE ================= */
+
+@media (max-width: 760px) {
+
+    .dashboard-container {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        min-width: 100%;
+        min-height: auto;
+    }
+
+    .sidebar-logo {
+        height: 64px;
+        padding: 0 18px;
+    }
+
+    .sidebar-navigation {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 10px;
+        gap: 5px;
+    }
+
+    .logout-link {
+        display: none;
+    }
+
+    .top-header {
+        height: 60px;
+        min-height: 60px;
+        padding: 0 14px;
+    }
+
+    .system-title {
+        max-width: 65%;
+        font-size: 8px;
+        letter-spacing: 0;
+        white-space: normal;
+    }
+
+    .header-profile {
+        gap: 8px;
+    }
+
+    .header-name {
+        font-size: 11px;
+    }
+
+    .dashboard-content {
+        padding: 22px 14px 30px;
+    }
+
+    .welcome-section {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 24px;
+    }
+
+    .welcome-section h1 {
+        font-size: 20px;
+    }
+
+    .create-report-button {
+        width: 100%;
+    }
+
+    .statistics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 22px;
+    }
+
+    .stat-card {
+        height: 140px;
+        padding: 17px 14px;
+    }
+
+    .stat-top h3 {
+        font-size: 12px;
+    }
+
+    .stat-number {
+        font-size: 24px;
+    }
+
+    .stat-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .stat-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .stat-description {
+        font-size: 10px;
+    }
+
+    .recent-reports {
+        min-height: auto;
+        padding: 19px 14px;
+    }
+
+    .report-table {
+        min-width: 750px;
+    }
+
+}
+
+
+/* ================= MOBILE KECIL ================= */
+
+@media (max-width: 380px) {
+
+    .statistics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        height: 125px;
+    }
+
+    .welcome-section h1 {
+        font-size: 18px;
+    }
+
+}
