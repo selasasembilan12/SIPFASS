@@ -676,8 +676,12 @@ td {
 }
 
 .sidebar-logo .brand-text strong {
-    display: block;
-    white-space: nowrap;
+  display: block;
+  white-space: nowrap;
+
+  /* Membuat tulisan SIPFAS tebal dan putih */
+  color: #ffffff;
+  font-weight: 800;
 }
 
 .sidebar-logo .brand-text span {
@@ -1688,4 +1692,3 @@ td {
     color: #54719e;
     flex-shrink: 0;
 }
-

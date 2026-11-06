@@ -1,234 +1,388 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil Petugas | SIPFAS</title>
+
     <link rel="stylesheet" href="../../../assets/css/logo.css">
     <link rel="stylesheet" href="../Penanganan/Penanganan.css">
     <link rel="stylesheet" href="Profil-Saya.css">
 </head>
+
 <body>
-<!-- Pembungkus utama halaman Profil Saya Petugas -->
-<div class="app">
-    <!-- Sidebar kiri untuk navigasi antarhalaman petugas -->
-    <aside class="sidebar" id="sidebar">
-        <!-- Logo SIPFAS dan tulisan identitas aplikasi -->
-        <div class="sidebar-logo">
-            <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS">
-            <div class="brand-text"><strong>SIPFAS</strong><span>Informatika UNKHAIR</span></div>
-        </div>
 
-        <!-- Daftar menu sidebar: Dashboard, Verifikasi, Penanganan, Riwayat, dan Profil -->
-        <nav class="nav-menu">
-            <a href="../Dashboard/Dashboard.html" class="nav-link">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="2" y="2" width="8" height="9" rx=".3"/>
-                    <rect x="14" y="2" width="8" height="7" rx=".3"/>
-                    <rect x="2" y="15" width="8" height="7" rx=".3"/>
-                    <rect x="14" y="12" width="8" height="10" rx=".3"/>
-                </svg><span>Dashboard</span>
-            </a>
-            <a href="../Verifikasi-Laporan/Verifikasi-Laporan.html" class="nav-link">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="3" y="3" width="18" height="18" rx="1.5"/>
-                    <path d="M6.5 8H10M6.5 12H10M6.5 16H10M13 12.5l2.5 2.5 4-5"/>
-                </svg><span>Verifikasi Laporan</span>
-            </a>
-            <a href="../Penanganan/Penanganan.html" class="nav-link">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <g transform="translate(24 0) scale(-1 1)">
-                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.1-3.1a6 6 0 0 1-7.9 7.9l-6.4 6.4a2 2 0 0 1-2.8-2.8l6.4-6.4a6 6 0 0 1 7.9-7.9z"/>
-                    </g>
-                </svg><span>Penanganan</span>
-            </a>
-            <a href="../Riwayat-Laporan/Riwayat-Laporan.html" class="nav-link">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M3.5 12a8.5 8.5 0 1 0 2.2-5.7L3.5 8M3.5 3.5V8H8M12 7v5l3 2"/>
-                </svg><span>Riwayat Perbaikan</span>
-            </a>
-            <a href="Profil-Saya.html" class="nav-link active" aria-current="page">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="7" r="3.5"/>
-                    <path d="M3 20v-1.5c0-3 2.5-5 5.5-5h7c3 0 5.5 2 5.5 5V20H3z"/>
-                </svg><span>Profil</span>
-            </a>
-        </nav>
+    <!-- Pembungkus utama halaman Profil Saya Petugas -->
+    <div class="app">
 
-        <!-- Tautan tombol Keluar pada bagian bawah sidebar -->
-        <a href="../../index.html" class="logout-link" id="logoutLink">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M10 17l5-5-5-5M15 12H3M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>
-            </svg><span>Keluar</span>
-        </a>
-    </aside>
+        <!-- Sidebar kiri untuk navigasi antarhalaman petugas -->
+        <aside class="sidebar" id="sidebar">
 
-    <div class="workspace">
-        <!-- Header atas: nama sistem informasi dan identitas pengguna -->
-        <header class="topbar">
-            <button class="menu-toggle" id="menuToggle" aria-label="Buka menu">
-                <span></span><span></span><span></span>
-            </button>
-            <div class="system-name"><span class="system-dot"></span>
-                SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS
+            <!-- Logo SIPFAS dan tulisan identitas aplikasi -->
+            <div class="sidebar-logo">
+                <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS">
+
+                <div class="brand-text">
+                    <strong>SIPFAS</strong>
+                    <span>Informatika UNKHAIR</span>
+                </div>
             </div>
-            <!-- Nama petugas dan ikon profil di kanan atas -->
-            <a href="Profil-Saya.html" class="profile-area">
-                <span class="profile-name">Rahmat Hidayat, S.T.</span>
-                <span class="profile-avatar">
+
+            <!-- Daftar menu sidebar: Dashboard, Verifikasi, Penanganan, Riwayat, dan Profil -->
+            <nav class="nav-menu">
+
+                <a href="../Dashboard/Dashboard.html" class="nav-link">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <circle cx="12" cy="7.5" r="3.2"/>
-                        <path d="M4.5 19V18c0-3.2 3-5 7.5-5s7.5 1.8 7.5 5v1h-15z"/>
+                        <rect x="2" y="2" width="8" height="9" rx=".3"/>
+                        <rect x="14" y="2" width="8" height="7" rx=".3"/>
+                        <rect x="2" y="15" width="8" height="7" rx=".3"/>
+                        <rect x="14" y="12" width="8" height="10" rx=".3"/>
                     </svg>
-                </span>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="../Verifikasi-Laporan/Verifikasi-Laporan.html" class="nav-link">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="3" y="3" width="18" height="18" rx="1.5"/>
+                        <path d="M6.5 8H10M6.5 12H10M6.5 16H10M13 12.5l2.5 2.5 4-5"/>
+                    </svg>
+                    <span>Verifikasi Laporan</span>
+                </a>
+
+                <a href="../Penanganan/Penanganan.html" class="nav-link">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <g transform="translate(24 0) scale(-1 1)">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.1-3.1a6 6 0 0 1-7.9 7.9l-6.4 6.4a2 2 0 0 1-2.8-2.8l6.4-6.4a6 6 0 0 1 7.9-7.9z"/>
+                        </g>
+                    </svg>
+                    <span>Penanganan</span>
+                </a>
+
+                <a href="../Riwayat-Laporan/Riwayat-Laporan.html" class="nav-link">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M3.5 12a8.5 8.5 0 1 0 2.2-5.7L3.5 8M3.5 3.5V8H8M12 7v5l3 2"/>
+                    </svg>
+                    <span>Riwayat Perbaikan</span>
+                </a>
+
+                <a href="Profil-Saya.html" class="nav-link active" aria-current="page">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="7" r="3.5"/>
+                        <path d="M3 20v-1.5c0-3 2.5-5 5.5-5h7c3 0 5.5 2 5.5 5V20H3z"/>
+                    </svg>
+                    <span>Profil</span>
+                </a>
+
+            </nav>
+
+            <!-- Tautan tombol Keluar pada bagian bawah sidebar -->
+            <a href="../../index.html" class="logout-link" id="logoutLink">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M10 17l5-5-5-5M15 12H3M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>
+                </svg>
+                <span>Keluar</span>
             </a>
-        </header>
 
-        <!-- Konten utama halaman Profil Petugas -->
-        <main class="main-content profile-content">
-            <!-- Tulisan navigasi Pengaturan Akun dan Profil Petugas -->
-            <div class="breadcrumb">
-                <span>Pengaturan Akun</span><span class="crumb-separator">›</span>
-                <strong>Profil Petugas</strong>
-            </div>
-            <div class="page-heading">
-                <h1>Profil Petugas</h1>
-            </div>
+        </aside>
 
-            <!-- Kartu putih utama berisi ringkasan profil dan formulir akun -->
-            <section class="profile-panel" aria-label="Informasi profil petugas">
-                <!-- Ringkasan akun: avatar, nama lengkap, instansi, dan peran -->
-                <div class="profile-summary">
-                    <!-- Avatar besar dengan inisial petugas dan tanda verifikasi -->
-                    <div class="large-avatar" aria-label="Inisial Rahmat Hidayat">
-                        RH
-                        <span class="verified-mark" title="Akun petugas terverifikasi">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 12 2.5 2.5L16.5 8.5"/><path d="M12 2.8 14.4 4l2.7-.1 1.2 2.4 2.2 1.5-.5 2.7.5 2.7-2.2 1.5-1.2 2.4-2.7-.1-2.4 1.2-2.4-1.2-2.7.1-1.2-2.4-2.2-1.5.5-2.7-.5-2.7 2.2-1.5 1.2-2.4 2.7.1z"/></svg>
-                        </span>
-                    </div>
-                    <div class="profile-identity">
-                        <h2>Rahmat Hidayat, S.T.</h2>
-                        <p>Program Studi Informatika — Universitas Khairun</p>
-                        <span class="role-chip">Petugas Sarana Prasarana</span>
-                    </div>
+        <div class="workspace">
+
+            <!-- Header atas: nama sistem informasi dan identitas pengguna -->
+            <header class="topbar">
+
+                <button class="menu-toggle" id="menuToggle" aria-label="Buka menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <div class="system-name">
+                    <span class="system-dot"></span>
+                    SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS
                 </div>
 
-                <div class="profile-divider"></div>
+                <!-- Nama petugas dan ikon profil di kanan atas -->
+                <a href="Profil-Saya.html" class="profile-area">
+                    <span class="profile-name">Rahmat Hidayat, S.T.</span>
 
-                <!-- Form informasi akun dan penggantian kata sandi -->
-                <form id="profileForm" novalidate>
-                    <div class="field-group">
-                        <label for="fullName">Nama Lengkap</label>
-                        <div class="input-wrap readonly-field">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.2"/><path d="M4 20v-1.5c0-3.2 3.2-5 8-5s8 1.8 8 5V20H4z"/></svg>
-                            <input id="fullName" type="text" value="Rahmat Hidayat, S.T." readonly>
+                    <span class="profile-avatar">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="12" cy="7.5" r="3.2"/>
+                            <path d="M4.5 19V18c0-3.2 3-5 7.5-5s7.5 1.8 7.5 5v1h-15z"/>
+                        </svg>
+                    </span>
+                </a>
+
+            </header>
+
+            <!-- Konten utama halaman Profil Petugas -->
+            <main class="main-content profile-content">
+
+                <!-- Tulisan navigasi Pengaturan Akun dan Profil Petugas -->
+                <div class="breadcrumb">
+                    <span>Pengaturan Akun</span>
+                    <span class="crumb-separator">›</span>
+                    <strong>Profil Petugas</strong>
+                </div>
+
+                <div class="page-heading">
+                    <h1>Profil Petugas</h1>
+                </div>
+
+                <!-- Kartu putih utama berisi ringkasan profil dan formulir akun -->
+                <section class="profile-panel" aria-label="Informasi profil petugas">
+
+                    <!-- Ringkasan akun: avatar, nama lengkap, instansi, dan peran -->
+                    <div class="profile-summary">
+
+                        <!-- Avatar besar dengan inisial petugas dan tanda verifikasi -->
+                        <div class="large-avatar" aria-label="Inisial Rahmat Hidayat">
+                            RH
+
+                            <span class="verified-mark" title="Akun petugas terverifikasi">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="m8 12 2.5 2.5L16.5 8.5"/>
+                                    <path d="M12 2.8 14.4 4l2.7-.1 1.2 2.4 2.2 1.5-.5 2.7.5 2.7-2.2 1.5-1.2 2.4-2.7-.1-2.4 1.2-2.4-1.2-2.7.1-1.2-2.4-2.2-1.5.5-2.7-.5-2.7 2.2-1.5 1.2-2.4 2.7.1z"/>
+                                </svg>
+                            </span>
                         </div>
-                    </div>
 
-                    <div class="field-group">
-                        <label for="username">Nama Pengguna (Username)</label>
-                        <div class="input-wrap readonly-field">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7.5"/><path d="M16.5 16.5 21 21M11 8v6M8 11h6"/></svg>
-                            <input id="username" type="text" value="rahmat.sarpras" readonly>
+                        <div class="profile-identity">
+                            <h2>Rahmat Hidayat, S.T.</h2>
+                            <p>Program Studi Informatika — Universitas Khairun</p>
+                            <span class="role-chip">Petugas Sarana Prasarana</span>
                         </div>
+
                     </div>
 
-                    <div class="field-group">
-                        <label for="email">Email</label>
-                        <div class="input-wrap readonly-field">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="m4 7 8 6 8-6"/></svg>
-                            <input id="email" type="email" value="rahmat.sarpras@unkhair.ac.id" readonly>
+                    <div class="profile-divider"></div>
+
+                    <!-- Form informasi akun dan penggantian kata sandi -->
+                    <form id="profileForm" novalidate>
+
+                        <div class="field-group">
+                            <label for="fullName">Nama Lengkap</label>
+
+                            <div class="input-wrap readonly-field">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <circle cx="12" cy="7" r="3.2"/>
+                                    <path d="M4 20v-1.5c0-3.2 3.2-5 8-5s8 1.8 8 5V20H4z"/>
+                                </svg>
+
+                                <input id="fullName" type="text" value="Rahmat Hidayat, S.T." readonly>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Kolom peran akun yang hanya dapat dilihat, bukan diubah -->
-                    <div class="field-group role-field">
-                        <label for="role">Peran Akun Sistem</label>
-                        <div class="input-wrap role-value">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 19 5v6c0 4.5-3 8-7 10-4-2-7-5.5-7-10V5l7-2.2z"/><path d="m9 12 2 2 4-4"/></svg>
-                            <input id="role" type="text" value="Petugas Sarana Prasarana" readonly>
-                            <svg class="lock-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg>
+                        <div class="field-group">
+                            <label for="username">Nama Pengguna (Username)</label>
+
+                            <div class="input-wrap readonly-field">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <text
+                                        x="12"
+                                        y="17"
+                                        text-anchor="middle"
+                                        font-size="19"
+                                        font-family="Arial, sans-serif"
+                                        font-weight="600"
+                                        fill="#535d6b"
+                                        stroke="none"
+                                    >@</text>
+                                </svg>
+
+                                <input id="username" type="text" value="rahmat.sarpras" readonly>
+                            </div>
                         </div>
-                        <p class="field-note role-note">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/></svg>
-                            Peran ditentukan oleh Administrator sistem dan tidak dapat diubah secara mandiri.
-                        </p>
-                    </div>
 
-                    <div class="profile-divider password-divider"></div>
+                        <div class="field-group">
+                            <label for="email">Email</label>
 
-                    <!-- Judul dan petunjuk bagian Ganti Kata Sandi -->
-                    <div class="password-heading">
-                        <h3>Ganti Kata Sandi</h3>
-                        <span>(Opsional, isi jika ingin mengubah kata sandi)</span>
-                        <p>Biarkan kosong jika tidak ingin memperbarui kata sandi Anda saat ini.</p>
-                    </div>
+                            <div class="input-wrap readonly-field">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <rect x="3" y="5" width="18" height="14" rx="1.5"/>
+                                    <path d="m4 7 8 6 8-6"/>
+                                </svg>
 
-                    <!-- Input kata sandi saat ini -->
-                    <div class="field-group password-group">
-                        <label for="currentPassword">Kata Sandi Saat Ini</label>
-                        <div class="input-wrap password-input">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9 2 2-2 2 1.5 1.5-2 2L18 9l-4 4"/></svg>
-                            <input id="currentPassword" type="password" autocomplete="current-password" placeholder="Masukkan kata sandi saat ini">
-                            <button type="button" class="toggle-password" aria-label="Tampilkan kata sandi saat ini" data-target="currentPassword">
-                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                                <input id="email" type="email" value="rahmat.sarpras@unkhair.ac.id" readonly>
+                            </div>
+                        </div>
+
+                        <!-- Kolom peran akun yang hanya dapat dilihat, bukan diubah -->
+                        <div class="field-group role-field">
+                            <label for="role">Peran Akun Sistem</label>
+
+                            <div class="input-wrap role-value">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M12 2.8 19 5v6c0 4.5-3 8-7 10-4-2-7-5.5-7-10V5l7-2.2z"/>
+                                    <path d="m9 12 2 2 4-4"/>
+                                </svg>
+
+                                <input id="role" type="text" value="Petugas Sarana Prasarana" readonly>
+
+                                <svg class="lock-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                    <rect x="5" y="10" width="14" height="11" rx="1.5"/>
+                                    <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>
+                                </svg>
+                            </div>
+
+                            <p class="field-note role-note">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="9"/>
+                                    <path d="M12 11v5M12 7.5h.01"/>
+                                </svg>
+                                Peran ditentukan oleh Administrator sistem dan tidak dapat diubah secara mandiri.
+                            </p>
+                        </div>
+
+                        <div class="profile-divider password-divider"></div>
+
+                        <!-- Judul dan petunjuk bagian Ganti Kata Sandi -->
+                        <div class="password-heading">
+                            <h3>Ganti Kata Sandi</h3>
+                            <span>(Opsional, isi jika ingin mengubah kata sandi)</span>
+                            <p>Biarkan kosong jika tidak ingin memperbarui kata sandi Anda saat ini.</p>
+                        </div>
+
+                        <!-- Input kata sandi saat ini -->
+                        <div class="field-group password-group">
+                            <label for="currentPassword">Kata Sandi Saat Ini</label>
+
+                            <div class="input-wrap password-input">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <circle cx="8" cy="15" r="4"/>
+                                    <path d="m11 12 9-9 2 2-2 2 1.5 1.5-2 2L18 9l-4 4"/>
+                                </svg>
+
+                                <input
+                                    id="currentPassword"
+                                    type="password"
+                                    autocomplete="current-password"
+                                    placeholder="Masukkan kata sandi saat ini"
+                                >
+
+                                <button
+                                    type="button"
+                                    class="toggle-password"
+                                    aria-label="Tampilkan kata sandi saat ini"
+                                    data-target="currentPassword"
+                                >
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="field-group password-group">
+                            <label for="newPassword">Kata Sandi Baru</label>
+
+                            <div class="input-wrap password-input">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <rect x="4" y="10" width="16" height="11" rx="1.5"/>
+                                    <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>
+                                </svg>
+
+                                <input
+                                    id="newPassword"
+                                    type="password"
+                                    autocomplete="new-password"
+                                    placeholder="Minimal 8 karakter"
+                                >
+
+                                <button
+                                    type="button"
+                                    class="toggle-password"
+                                    aria-label="Tampilkan kata sandi baru"
+                                    data-target="newPassword"
+                                >
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <p class="field-note">Minimal 8 karakter kombinasi huruf dan angka</p>
+                        </div>
+
+                        <div class="field-group password-group">
+                            <label for="confirmPassword">Konfirmasi Kata Sandi Baru</label>
+
+                            <div class="input-wrap password-input">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+
+                                    <!-- Panah melingkar menghadap kiri -->
+                                    <path d="M7.5 5.5A8.5 8.5 0 1 1 4 12"/>
+                                    <path d="M4 4.5V9h4.5"/>
+
+                                    <!-- Badan gembok -->
+                                    <rect x="10.25" y="12.4" width="4.5" height="4.2" rx="0.9"/>
+
+                                    <!-- Lengkungan gembok -->
+                                    <path d="M11.3 12.4v-1.3a1.2 1.2 0 0 1 2.4 0v1.3"/>
+
+                                    <!-- Lubang kunci -->
+                                    <path d="M12.5 14v1.3"/>
+
+                                </svg>
+
+                                <input
+                                    id="confirmPassword"
+                                    type="password"
+                                    autocomplete="new-password"
+                                    placeholder="Ulangi kata sandi baru"
+                                >
+
+                                <button
+                                    type="button"
+                                    class="toggle-password"
+                                    aria-label="Tampilkan konfirmasi kata sandi"
+                                    data-target="confirmPassword"
+                                >
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+                                        <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tombol Simpan Perubahan untuk mengirim formulir -->
+                        <div class="form-actions">
+                            <button type="submit" class="save-button">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M5 3h12l4 4v14H3V3h2z"/>
+                                    <path d="M7 3v6h10V3M7 21v-8h10v8"/>
+                                </svg>
+                                Simpan Perubahan
                             </button>
                         </div>
-                    </div>
 
-                    <div class="field-group password-group">
-                        <label for="newPassword">Kata Sandi Baru</label>
-                        <div class="input-wrap password-input">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg>
-                            <input id="newPassword" type="password" autocomplete="new-password" placeholder="Minimal 8 karakter">
-                            <button type="button" class="toggle-password" aria-label="Tampilkan kata sandi baru" data-target="newPassword">
-                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
-                            </button>
-                        </div>
-                        <p class="field-note">Minimal 8 karakter kombinasi huruf dan angka</p>
-                    </div>
+                        <!-- Area pesan keberhasilan atau kesalahan penyimpanan -->
+                        <p
+                            class="form-feedback"
+                            id="formFeedback"
+                            role="status"
+                            aria-live="polite"
+                        ></p>
 
-                    <div class="field-group password-group">
-                        <label for="confirmPassword">Konfirmasi Kata Sandi Baru</label>
-                        <div class="input-wrap password-input">
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-    <!-- Panah melingkar menghadap kiri -->
-    <path d="M7.5 5.5A8.5 8.5 0 1 1 4 12"/>
-    <path d="M4 4.5V9h4.5"/>
+                    </form>
 
-    <!-- Badan gembok -->
-<rect x="10.25" y="12.4" width="4.5" height="4.2" rx="0.9"/>
+                </section>
 
-<!-- Lengkungan gembok -->
-<path d="M11.3 12.4v-1.3a1.2 1.2 0 0 1 2.4 0v1.3"/>
+            </main>
 
-<!-- Lubang kunci -->
-<path d="M12.5 14v1.3"/>
-</svg>
-                            <input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Ulangi kata sandi baru">
-                            <button type="button" class="toggle-password" aria-label="Tampilkan konfirmasi kata sandi" data-target="confirmPassword">
-                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
-                            </button>
-                        </div>
-                    </div>
+        </div>
 
-                    <!-- Tombol Simpan Perubahan untuk mengirim formulir -->
-                    <div class="form-actions">
-                        <button type="submit" class="save-button">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h12l4 4v14H3V3h2z"/><path d="M7 3v6h10V3M7 21v-8h10v8"/></svg>
-                            Simpan Perubahan
-                        </button>
-                    </div>
-                    <!-- Area pesan keberhasilan atau kesalahan penyimpanan -->
-                    <p class="form-feedback" id="formFeedback" role="status" aria-live="polite"></p>
-                </form>
-            </section>
-        </main>
     </div>
-</div>
-<!-- Lapisan latar ketika sidebar dibuka di layar kecil -->
-<div class="page-overlay" id="pageOverlay"></div>
-<!-- File JavaScript pengelola interaksi form dan menu -->
-<script src="Profil-Saya.js"></script>
+
+    <!-- Lapisan latar ketika sidebar dibuka di layar kecil -->
+    <div class="page-overlay" id="pageOverlay"></div>
+
+    <!-- File JavaScript pengelola interaksi form dan menu -->
+    <script src="Profil-Saya.js"></script>
+
 </body>
 </html>

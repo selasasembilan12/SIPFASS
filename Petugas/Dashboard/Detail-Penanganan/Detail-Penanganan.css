@@ -757,9 +757,12 @@ td {
 }
 
 .sidebar-logo .brand-text strong {
-     display: block;
-     white-space: nowrap;
+  display: block;
+  white-space: nowrap;
 
+  /* Membuat tulisan SIPFAS tebal dan putih */
+  color: #ffffff;
+  font-weight: 800;
 }
 
 .sidebar-logo .brand-text span {
@@ -2091,9 +2094,22 @@ td {
 }
 
 .verified-mark {
-     font-size:12px;
-     font-weight:800;
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     width: 20px;
+     height: 20px;
+     flex-shrink: 0;
+}
 
+.verified-mark svg {
+     width: 20px;
+     height: 20px;
+     fill: none;
+     stroke: currentColor;
+     stroke-width: 2.2;
+     stroke-linecap: round;
+     stroke-linejoin: round;
 }
 
 .description-block h3 {
@@ -2697,4 +2713,36 @@ left: 0;
          font-size:10px;
 
     }
+}
+
+/* Menghilangkan titik abu-abu pada status */
+.status-pill::before {
+    display: none;
+}
+/* Menurunkan posisi panah agar sejajar dengan tulisan */
+.back-link span {
+    position: relative;
+    top: -2px;
+}
+/* PERBAIKAN IKON JAM TANGGAL PEMBARUAN */
+.updated-field svg {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: #526f9c;
+    stroke-width: 2.3;
+    flex-shrink: 0;
+}
+
+/* Lingkaran luar dibuat putus-putus */
+.updated-field svg circle {
+    stroke-dasharray: 2.5 2.5;
+    stroke-linecap: round;
+}
+
+/* Jarum jam dibuat garis utuh */
+.updated-field svg path {
+    stroke-dasharray: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
