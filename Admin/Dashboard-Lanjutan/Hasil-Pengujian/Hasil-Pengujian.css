@@ -753,6 +753,8 @@ svg {
 
 /* =========================================================
    13. CONFUSION MATRIX
+   Perbaikan alignment 6 kolom sesuai referensi Figma.
+   Bagian lain halaman tidak terpengaruh.
 ========================================================= */
 
 .matrix-wrap {
@@ -762,7 +764,6 @@ svg {
 
 .matrix-table {
   width: 100%;
-
   border-collapse: collapse;
   table-layout: fixed;
 
@@ -770,51 +771,73 @@ svg {
   font-size: 8px;
 }
 
+/* Pembagian lebar 6 kolom secara konsisten */
+.matrix-table col.actual-col {
+  width: 10%;
+}
+
+.matrix-table col.label-col {
+  width: 17%;
+}
+
+.matrix-table col.prediction-col {
+  width: 19%;
+}
+
+.matrix-table col.total-col {
+  width: 16%;
+}
+
 .matrix-table th,
 .matrix-table td {
   height: 27px;
   padding: 5px 6px;
+  vertical-align: middle;
 }
 
-/* Header matrix */
-
+/* Header utama */
 .matrix-table thead th {
   background: #f0f2f5;
   color: #56616c;
 
   font-size: 7px;
   font-weight: 700;
+  text-align: center;
 }
 
+/* Header MATRIKS */
 .matrix-table .matrix-label {
-  width: 17%;
-
   text-align: left;
   color: #737d88;
 }
 
+/* Header PREDIKSI C4.5 */
 .matrix-table .matrix-super {
   color: #183653;
   font-size: 7px;
+  text-align: center;
 }
 
+/* Header Rendah, Sedang, Tinggi */
 .matrix-table thead tr:nth-child(2) th {
   color: var(--primary);
   font-size: 7px;
+  text-align: center;
 }
 
+/* Header Total */
 .matrix-table .total-head {
-  width: 12%;
   color: #59636e;
+  text-align: center;
 }
 
-/* Label aktual */
-
+/* Label AKTUAL */
 .matrix-table .actual-label {
-  width: 10%;
-
   background: #e9edf1;
   color: #183653;
+
+  text-align: center;
+  vertical-align: middle;
 }
 
 .actual-label span {
@@ -828,8 +851,7 @@ svg {
   letter-spacing: 0.4px;
 }
 
-/* Label baris */
-
+/* Label baris Rendah, Sedang, Tinggi */
 .matrix-table .row-label {
   background: #f0f2f5;
 
@@ -841,34 +863,46 @@ svg {
   text-align: left;
 }
 
-/* Sel matrix */
-
+/* Angka matriks */
 .matrix-table td {
   background: #ffffff;
   color: #58616c;
 
+  text-align: center;
+
   border-bottom: 1px solid #f0f2f5;
 }
 
+/* Angka diagonal utama */
 .matrix-table .correct-cell {
   background: #dce7fb;
   color: var(--primary);
   font-weight: 800;
 }
 
+/* Kolom total per kelas */
 .matrix-table .total-cell {
   background: #f0f2f5;
   color: #434c57;
   font-weight: 700;
 }
 
+/* Baris total prediksi */
 .matrix-table .matrix-total-row th,
 .matrix-table .matrix-total-row td {
   background: #f0f2f5;
   color: #434c57;
   font-weight: 700;
+  text-align: center;
 }
 
+/* Geser tulisan Total Prediksi ke kiri */
+.matrix-table .matrix-total-row .row-label {
+  text-align: left;
+  padding-left: 12px;
+}
+
+/* Sel total keseluruhan */
 .matrix-table .grand-total {
   background: #dce2ff !important;
   color: #15356c !important;
@@ -876,7 +910,6 @@ svg {
 }
 
 /* Legend confusion matrix */
-
 .matrix-legend {
   display: flex;
   align-items: center;
@@ -906,7 +939,6 @@ svg {
   height: 8px;
 
   display: inline-block;
-
   border-radius: 2px;
 }
 
