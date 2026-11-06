@@ -3,7 +3,7 @@
    Mengikuti identitas visual halaman Admin dan Petugas.
 ========================================================= */
 
-/* PALET WARNA: diselaraskan dengan warna biru, navy, dan latar dashboard SIPFAS. */
+/* PALET WARNA */
 :root {
     --blue: #2864f0;
     --blue-hover: #1f56dc;
@@ -14,12 +14,12 @@
     --page-bg: #f1f5f9;
 }
 
-/* PENGATURAN DASAR: ukuran elemen dan perilaku box model. */
+/* PENGATURAN DASAR */
 * {
     box-sizing: border-box;
 }
 
-/* LATAR HALAMAN: memenuhi layar dan menggunakan font Inter. */
+/* LATAR HALAMAN */
 body {
     margin: 0;
     min-height: 100vh;
@@ -28,7 +28,7 @@ body {
     background: var(--page-bg);
 }
 
-/* PEMBUNGKUS LOGIN: memusatkan kartu secara horizontal dan vertikal. */
+/* PEMBUNGKUS LOGIN */
 .login-page {
     min-height: 100vh;
     display: flex;
@@ -37,7 +37,7 @@ body {
     padding: 32px 20px;
 }
 
-/* KARTU PUTIH LOGIN: ukuran, jarak dalam, sudut, garis tepi, dan bayangan. */
+/* KARTU LOGIN */
 .login-card {
     width: 100%;
     max-width: 460px;
@@ -52,7 +52,6 @@ body {
    LOGO DAN IDENTITAS SIPFAS
 ========================= */
 
-/* AREA BRAND: menyejajarkan logo dengan dua baris nama identitas. */
 .brand {
     display: flex;
     align-items: center;
@@ -61,7 +60,6 @@ body {
     margin-bottom: 27px;
 }
 
-/* LOGO SIPFAS: memakai gambar logo asli dari folder assets. */
 .brand-logo {
     display: block;
     width: 44px;
@@ -70,7 +68,6 @@ body {
     flex-shrink: 0;
 }
 
-/* TEKS BRAND: menyusun nama SIPFAS dan nama institusi secara vertikal. */
 .brand-text {
     display: flex;
     flex-direction: column;
@@ -79,7 +76,6 @@ body {
     line-height: 1.2;
 }
 
-/* NAMA APLIKASI SIPFAS. */
 .brand-text strong {
     color: #1d3b60;
     font-size: 19px;
@@ -87,7 +83,6 @@ body {
     letter-spacing: -0.5px;
 }
 
-/* NAMA INSTITUSI DI BAWAH SIPFAS. */
 .brand-text span {
     color: #1d3b60;
     font-size: 13px;
@@ -99,13 +94,11 @@ body {
    JUDUL DAN DESKRIPSI LOGIN
 ========================= */
 
-/* AREA SAPAAN: jarak antara identitas brand dan formulir. */
 .welcome {
     margin-bottom: 27px;
     text-align: center;
 }
 
-/* JUDUL SELAMAT DATANG: ukuran dan ketebalan judul utama. */
 .welcome h1 {
     margin: 0 0 6px;
     color: #344256;
@@ -115,7 +108,6 @@ body {
     letter-spacing: -0.6px;
 }
 
-/* DESKRIPSI LOGIN: teks penjelas di bawah judul. */
 .welcome p {
     margin: 0;
     color: var(--muted);
@@ -127,17 +119,14 @@ body {
    FORM DAN KOLOM INPUT
 ========================= */
 
-/* FORM LOGIN: mengatur susunan seluruh kolom input. */
 .login-form {
     width: 100%;
 }
 
-/* KELOMPOK INPUT: jarak label dengan kolom dan antar kolom. */
 .form-group {
     margin-bottom: 18px;
 }
 
-/* LABEL INPUT: tulisan Nama Pengguna dan Kata Sandi. */
 .form-group label {
     display: block;
     margin-bottom: 7px;
@@ -146,7 +135,7 @@ body {
     font-weight: 600;
 }
 
-/* KOTAK INPUT: menyatukan ikon dan kolom dalam satu bingkai. */
+/* KOTAK INPUT */
 .input-wrapper {
     width: 100%;
     height: 45px;
@@ -160,13 +149,13 @@ body {
     transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-/* EFEK FOKUS INPUT: garis biru lembut saat kolom dipilih. */
+/* EFEK FOKUS INPUT */
 .input-wrapper:focus-within {
     border-color: var(--blue);
     box-shadow: 0 0 0 3px rgba(40, 100, 240, 0.09);
 }
 
-/* IKON INPUT: ukuran dan warna ikon username serta gembok. */
+/* IKON INPUT */
 .input-icon {
     width: 18px;
     height: 18px;
@@ -178,7 +167,7 @@ body {
     stroke-linejoin: round;
 }
 
-/* KOLOM TEKS INPUT: mengisi ruang yang tersedia di dalam kotak. */
+/* KOLOM TEKS INPUT */
 .input-wrapper input {
     width: 100%;
     min-width: 0;
@@ -192,13 +181,13 @@ body {
     font-size: 13px;
 }
 
-/* TEKS PLACEHOLDER: petunjuk pengisian username dan password. */
+/* PLACEHOLDER */
 .input-wrapper input::placeholder {
     color: var(--placeholder);
     opacity: 1;
 }
 
-/* TOMBOL IKON MATA: berada di sisi kanan kolom kata sandi. */
+/* TOMBOL IKON MATA */
 .toggle-password {
     width: 23px;
     height: 28px;
@@ -213,7 +202,6 @@ body {
     cursor: pointer;
 }
 
-/* SVG IKON MATA: ukuran dan ketebalan garis ikon. */
 .toggle-password svg {
     width: 19px;
     height: 19px;
@@ -224,16 +212,96 @@ body {
     stroke-linejoin: round;
 }
 
-/* EFEK HOVER IKON MATA. */
 .toggle-password:hover {
     color: var(--blue);
+}
+
+/* =========================
+   DROPDOWN JENIS PENGGUNA
+========================= */
+
+/* KOTAK DROPDOWN */
+.select-wrapper {
+    position: relative;
+    width: 100%;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* EFEK FOKUS DROPDOWN */
+.select-wrapper:focus-within {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(40, 100, 240, 0.09);
+}
+
+/* IKON PENGGUNA */
+.select-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: #8da0bb;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* PILIHAN DROPDOWN */
+.select-wrapper select {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    padding: 0 25px 0 0;
+    border: none;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+/* WARNA PLACEHOLDER DROPDOWN */
+.select-wrapper select:invalid {
+    color: var(--text);
+}
+
+/* OPSI DROPDOWN */
+.select-wrapper select option {
+    color: var(--text);
+    background: #ffffff;
+    font-size: 13px;
+}
+
+/* PANAH DROPDOWN */
+.select-arrow {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    width: 17px;
+    height: 17px;
+    transform: translateY(-50%);
+    fill: none;
+    stroke: #687d9d;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: none;
 }
 
 /* =========================
    LUPA KATA SANDI
 ========================= */
 
-/* POSISI TAUTAN LUPA PASSWORD: rata kanan di bawah kolom kata sandi. */
 .forgot-password {
     display: flex;
     justify-content: flex-end;
@@ -241,7 +309,6 @@ body {
     margin-bottom: 25px;
 }
 
-/* TAUTAN LUPA KATA SANDI: warna biru seperti aksen SIPFAS. */
 .forgot-password a {
     color: #0054d6;
     font-size: 12px;
@@ -249,7 +316,6 @@ body {
     text-decoration: none;
 }
 
-/* EFEK HOVER TAUTAN LUPA PASSWORD. */
 .forgot-password a:hover {
     color: var(--blue-hover);
     text-decoration: underline;
@@ -259,7 +325,6 @@ body {
    TOMBOL MASUK
 ========================= */
 
-/* TOMBOL LOGIN: bidang biru utama dengan teks dan ikon panah. */
 .login-button {
     width: 100%;
     height: 45px;
@@ -278,7 +343,6 @@ body {
     transition: background 0.2s, transform 0.2s;
 }
 
-/* IKON PANAH PADA TOMBOL MASUK. */
 .login-button svg {
     width: 17px;
     height: 17px;
@@ -289,12 +353,10 @@ body {
     stroke-linejoin: round;
 }
 
-/* EFEK HOVER TOMBOL MASUK. */
 .login-button:hover {
     background: var(--blue-hover);
 }
 
-/* EFEK KLIK TOMBOL MASUK. */
 .login-button:active {
     transform: translateY(1px);
 }
@@ -303,7 +365,6 @@ body {
    PEMBATAS DAN PENDAFTARAN
 ========================= */
 
-/* GARIS PEMBATAS: memisahkan tombol masuk dari informasi pendaftaran. */
 .card-divider {
     width: 100%;
     height: 1px;
@@ -311,7 +372,6 @@ body {
     background: #edf1f6;
 }
 
-/* TEKS BELUM PUNYA AKUN: rata tengah di bagian bawah kartu. */
 .register-text {
     margin: 0;
     color: var(--muted);
@@ -320,7 +380,6 @@ body {
     text-align: center;
 }
 
-/* TAUTAN DAFTAR SEKARANG: diberi aksen biru dan jarak dari teks sebelumnya. */
 .register-text a {
     margin-left: 5px;
     color: #0054d6;
@@ -328,7 +387,6 @@ body {
     text-decoration: none;
 }
 
-/* EFEK HOVER TAUTAN PENDAFTARAN. */
 .register-text a:hover {
     color: var(--blue-hover);
     text-decoration: underline;
@@ -338,8 +396,8 @@ body {
    RESPONSIVE / LAYAR KECIL
 ========================= */
 
-/* PENYESUAIAN KARTU LOGIN PADA TABLET DAN PONSEL. */
 @media (max-width: 520px) {
+
     .login-page {
         padding: 20px 15px;
     }
@@ -363,8 +421,9 @@ body {
     }
 }
 
-/* PENYESUAIAN TAMBAHAN UNTUK PONSEL DENGAN TINGGI LAYAR PENDEK. */
+/* PENYESUAIAN LAYAR DENGAN TINGGI PENDEK */
 @media (max-height: 650px) {
+
     .login-page {
         align-items: flex-start;
     }
