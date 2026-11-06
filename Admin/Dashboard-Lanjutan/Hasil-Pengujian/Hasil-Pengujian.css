@@ -1,30 +1,52 @@
+/* =========================================================
+   SIPFAS - HASIL PENGUJIAN C4.5
+   FINAL CSS
+   Referensi Sidebar: Dashboard Admin SIPFAS
+========================================================= */
+
+/* =========================================================
+   01. VARIABEL GLOBAL
+========================================================= */
 
 :root {
   --font-main: "Inter", sans-serif;
+
   --navy: #203f65;
   --navy-dark: #193858;
+
   --primary: #0758e8;
   --primary-hover: #064bc4;
+
   --page-bg: #f4f7fb;
   --white: #ffffff;
+
   --text-main: #20262d;
   --text-secondary: #68717c;
   --text-muted: #929ba7;
+
   --border: #edf0f4;
   --table-head: #f0f2f5;
+
   --red: #d92d35;
   --red-soft: #ffe1df;
+
   --blue: #0758e8;
-  --blue-soft: #e1e7ff;
+  --blue-soft: #dfe8ff;
+
   --purple: #6a57d5;
-  --purple-soft: #e0e5ff;
+  --purple-soft: #e5e5ff;
+
   --green: #15845b;
   --green-soft: #d3f6e8;
+
+  /* SAMA DENGAN DASHBOARD */
   --sidebar-width: 240px;
-  --topbar-height: 66px;
+  --topbar-height: 54px;
 }
 
-/* RESET */
+/* =========================================================
+   02. RESET DAN PENGATURAN DASAR
+========================================================= */
 
 * {
   margin: 0;
@@ -38,9 +60,11 @@ html {
 
 body {
   min-width: 320px;
+
   font-family: var(--font-main);
   background: var(--page-bg);
   color: var(--text-main);
+
   font-size: 12px;
   line-height: 1.5;
 }
@@ -61,169 +85,181 @@ button {
   cursor: pointer;
 }
 
+/* Pengaturan SVG global */
+
 svg {
   display: block;
+
   width: 14px;
   height: 14px;
+
   max-width: 100%;
   flex-shrink: 0;
+
   fill: none;
   stroke: currentColor;
+
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-/* LAYOUT UTAMA */
+/* =========================================================
+   03. LAYOUT UTAMA
+========================================================= */
 
 .app-layout {
   display: flex;
+
   width: 100%;
   min-height: 100vh;
+
   overflow-x: hidden;
 }
 
-/* =================================================
-   SIDEBAR SIPFAS - MENGIKUTI DASHBOARD
-================================================= */
+/* =========================================================
+   04. SIDEBAR SIPFAS
+   SAMA DENGAN DASHBOARD ADMIN
+========================================================= */
 
 .sidebar {
   width: var(--sidebar-width);
   min-width: var(--sidebar-width);
-  max-width: var(--sidebar-width);
-  flex: 0 0 var(--sidebar-width);
+
   min-height: 100vh;
+
   display: flex;
   flex-direction: column;
+
   position: relative;
   z-index: 10;
+
   flex-shrink: 0;
+
   background: var(--navy);
   color: #dce7f5;
 }
 
+/* Garis pemisah sisi kanan sidebar */
+
 .sidebar::after {
   content: "";
+
   position: absolute;
   top: 0;
   right: 0;
+
   width: 1px;
   height: 100%;
-  background: rgba(255,255,255,0.08);
-  pointer-events: none;
+
+  background: rgba(255, 255, 255, 0.08);
 }
 
-/* LOGO SIPFAS */
+/*
+  LOGO SIDEBAR:
+  Tidak mendefinisikan ulang .sidebar-logo dan img.
+  Ukuran logo mengikuti logo.css global.
+*/
 
-.sidebar-logo {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 1px;
-  width: 100%;
-  height: 68px;
-  min-height: 68px;
-  padding: 0 14px;
-  box-sizing: border-box;
-  flex-shrink: 0;
-  text-decoration: none;
-}
-
-.sidebar-logo img {
-  display: block;
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  object-position: center;
-  flex: 0 0 40px;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  transform: translateY(3px);
-}
-
-.sidebar-brand {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 1px;
-  min-width: 0;
-  line-height: 1.2;
-}
-
-.sidebar-brand strong {
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-}
-
-.sidebar-brand span {
-  color: #b9cce2;
-  font-size: 10px;
-  font-weight: 400;
-  white-space: nowrap;
-}
+/* Garis pemisah logo */
 
 .sidebar-brand-divider {
   width: 100%;
   height: 1px;
+
   flex-shrink: 0;
+
   margin: 0 0 5px;
-  background: rgba(255,255,255,0.22);
+
+  background: rgba(255, 255, 255, 0.22);
 }
 
-/* NAVIGASI SIDEBAR */
+/* =========================================================
+   05. KELOMPOK MENU SIDEBAR
+   SAMA DENGAN DASHBOARD ADMIN
+========================================================= */
+
+/*
+  Menghilangkan kotak layout pembungkus navigasi.
+  .nav-group menjadi item Flexbox langsung dari .sidebar.
+*/
 
 .sidebar-nav {
   display: contents;
 }
+
+/* Kelompok menu */
 
 .nav-group {
   padding: 0 11px;
   margin-top: 8px;
 }
 
+/* Judul kelompok menu */
+
 .nav-title {
   color: #91aac7;
+
   font-size: 7px;
   font-weight: 700;
+
   letter-spacing: 0.45px;
+
   padding: 8px 5px 6px;
 }
+
+/* Link navigasi */
 
 .nav-link {
   width: 100%;
   min-height: 26px;
+
   display: flex;
   align-items: center;
+
   gap: 8px;
+
   padding: 5px 8px;
   margin-bottom: 2px;
+
   border-radius: 6px;
+
   color: #d5e2f1;
+
   font-size: 9px;
   font-weight: 500;
-  transition: background 0.18s ease, color 0.18s ease;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
 }
 
+/* Efek hover menu */
+
 .nav-link:hover {
-  background: rgba(255,255,255,0.09);
+  background: rgba(255, 255, 255, 0.09);
   color: #ffffff;
 }
+
+/* Menu aktif */
 
 .nav-link.active {
   background: var(--primary);
   color: #ffffff;
+
   font-weight: 700;
 }
+
+/* Area ikon navigasi */
 
 .nav-icon {
   width: 13px;
   height: 13px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   flex: 0 0 13px;
 }
 
@@ -232,81 +268,119 @@ svg {
   height: 13px;
 }
 
+/* =========================================================
+   06. MENU AKUN SIDEBAR
+========================================================= */
+
 .sidebar-bottom {
   margin-top: auto;
+
   padding: 8px 11px 9px;
-  border-top: 1px solid rgba(255,255,255,0.09);
+
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
 }
 
 .sidebar-bottom .nav-title {
   padding-top: 0;
 }
 
+/* Fokus navigasi */
+
 .nav-link:focus-visible {
   outline: 2px solid #8bb5ff;
   outline-offset: 2px;
 }
 
-/* MAIN AREA */
+/* =========================================================
+   07. MAIN AREA
+========================================================= */
 
 .main-area {
   flex: 1;
   min-width: 0;
+
   display: flex;
   flex-direction: column;
 }
 
-/* TOPBAR */
+/* =========================================================
+   08. TOPBAR
+   SAMA DENGAN DASHBOARD ADMIN
+========================================================= */
 
 .topbar {
   height: 66px;
   min-height: 64px;
+
   padding: 0 20px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   background: var(--white);
   border-bottom: 1px solid var(--border);
+
   flex-shrink: 0;
 }
+
+/* Identitas sistem */
 
 .topbar-system {
   display: flex;
   align-items: center;
+
   gap: 8px;
+
   color: #58616c;
+
   font-size: 8px;
   font-weight: 500;
+
   letter-spacing: 0.15px;
 }
+
+/* Titik biru */
 
 .topbar-dot {
   width: 6px;
   height: 6px;
+
   border-radius: 50%;
+
   background: var(--primary);
+
   flex-shrink: 0;
 }
+
+/* Profil pengguna */
 
 .topbar-user {
   display: flex;
   align-items: center;
+
   gap: 8px;
 }
 
 .topbar-user-name {
   color: #25303c;
+
   font-size: 8px;
   font-weight: 600;
 }
 
+/* Avatar pengguna */
+
 .topbar-user-avatar {
   width: 23px;
   height: 23px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   border-radius: 50%;
+
   background: var(--primary);
   color: #ffffff;
 }
@@ -316,30 +390,43 @@ svg {
   height: 13px;
 }
 
-/* KONTEN HALAMAN */
+/* =========================================================
+   09. KONTEN HALAMAN
+========================================================= */
 
 .content {
   flex: 1;
   min-width: 0;
-  padding: 30px 26px 24px;
+
+  padding: 17px 20px 24px;
 }
+
+/* Header halaman */
 
 .page-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   margin-bottom: 14px;
 }
+
+/* Badge eksperimen */
 
 .heading-badge {
   display: inline-flex;
   align-items: center;
+
   gap: 5px;
+
   padding: 3px 8px;
   margin-bottom: 5px;
+
   border-radius: 12px;
+
   background: #e4edff;
   color: #0758e8;
+
   font-size: 7px;
   font-weight: 600;
 }
@@ -347,23 +434,32 @@ svg {
 .badge-dot {
   width: 5px;
   height: 5px;
+
   border-radius: 50%;
   background: var(--primary);
 }
 
+/* Judul halaman */
+
 .page-heading h1 {
   color: #20262d;
+
   font-size: 17px;
   font-weight: 750;
+
   line-height: 1.3;
   letter-spacing: -0.35px;
 }
 
-/* KARTU METRIK */
+/* =========================================================
+   10. KARTU METRIK
+========================================================= */
 
 .metrics-grid {
   display: grid;
+
   grid-template-columns: repeat(5, minmax(0, 1fr));
+
   gap: 10px;
   margin-bottom: 14px;
 }
@@ -371,32 +467,47 @@ svg {
 .metric-card {
   min-width: 0;
   min-height: 97px;
+
   padding: 11px 13px 10px;
+
   display: flex;
   flex-direction: column;
+
   border: 1px solid #eef1f5;
   border-radius: 9px;
+
   background: #ffffff;
 }
+
+/* Bagian atas kartu */
 
 .metric-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 6px;
+
   color: #68717c;
+
   font-size: 7px;
   font-weight: 600;
+
   letter-spacing: 0.25px;
 }
+
+/* Ikon metrik */
 
 .metric-icon {
   width: 23px;
   height: 23px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   flex: 0 0 23px;
+
   border-radius: 6px;
 }
 
@@ -420,12 +531,18 @@ svg {
   color: #d92d35;
 }
 
+/* Angka metrik */
+
 .metric-value {
   display: block;
+
   margin-top: 4px;
+
   color: #20262d;
+
   font-size: 19px;
   font-weight: 750;
+
   line-height: 1.25;
   letter-spacing: -0.3px;
 }
@@ -438,9 +555,13 @@ svg {
   color: var(--red);
 }
 
+/* Deskripsi metrik */
+
 .metric-description {
   margin-top: 1px;
+
   color: #737d88;
+
   font-size: 7px;
   line-height: 1.5;
 }
@@ -450,19 +571,26 @@ svg {
   font-weight: 800;
 }
 
+/* Progress bar */
+
 .progress-track {
   width: 100%;
   height: 4px;
+
   margin-top: auto;
+
   position: relative;
   overflow: hidden;
+
   border-radius: 10px;
+
   background: #e7e9ec;
 }
 
 .progress-fill {
   display: block;
   height: 100%;
+
   border-radius: 10px;
 }
 
@@ -478,11 +606,15 @@ svg {
   background: var(--red);
 }
 
+/* Rasio data */
+
 .ratio-legend {
   display: flex;
   align-items: center;
+
   gap: 10px;
   margin-top: auto;
+
   color: #68717c;
   font-size: 7px;
 }
@@ -496,7 +628,9 @@ svg {
 .ratio-legend i {
   width: 6px;
   height: 6px;
+
   display: inline-block;
+
   border-radius: 50%;
 }
 
@@ -508,20 +642,28 @@ svg {
   background: #4285f4;
 }
 
-/* PANEL DAN ANALISIS */
+/* =========================================================
+   11. PANEL UMUM
+========================================================= */
 
 .panel {
   min-width: 0;
+
   padding: 13px 14px;
+
   border: 1px solid #edf0f4;
   border-radius: 9px;
+
   background: #ffffff;
 }
+
+/* Header panel */
 
 .panel-heading {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+
   gap: 10px;
   margin-bottom: 11px;
 }
@@ -529,27 +671,38 @@ svg {
 .panel-heading h2 {
   display: flex;
   align-items: center;
+
   gap: 6px;
+
   color: #20262d;
+
   font-size: 10px;
   font-weight: 700;
+
   line-height: 1.4;
 }
 
 .panel-heading p {
   margin-top: 3px;
+
   color: #737d88;
+
   font-size: 7px;
   line-height: 1.5;
 }
 
+/* Ikon judul panel */
+
 .heading-icon {
   width: 14px;
   height: 14px;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   flex: 0 0 14px;
+
   color: var(--primary);
 }
 
@@ -558,21 +711,34 @@ svg {
   height: 14px;
 }
 
+/* Label panel */
+
 .panel-tag {
   padding: 3px 7px;
+
   border-radius: 4px;
+
   background: #f0f1f3;
   color: #5e6670;
+
   font-size: 6px;
   font-weight: 600;
+
   white-space: nowrap;
 }
 
+/* =========================================================
+   12. GRID ANALISIS
+========================================================= */
+
 .analysis-grid {
   display: grid;
+
   grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+
   gap: 14px;
   margin-bottom: 14px;
+
   align-items: stretch;
 }
 
@@ -580,11 +746,16 @@ svg {
 .prediction-panel {
   min-width: 0;
   min-height: 283px;
+
   display: flex;
   flex-direction: column;
 }
 
-/* CONFUSION MATRIX */
+/* =========================================================
+   13. CONFUSION MATRIX
+   Perbaikan alignment 6 kolom sesuai referensi Figma.
+   Bagian lain halaman tidak terpengaruh.
+========================================================= */
 
 .matrix-wrap {
   width: 100%;
@@ -595,108 +766,165 @@ svg {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
+
   text-align: center;
   font-size: 8px;
+}
+
+/* Pembagian lebar 6 kolom secara konsisten */
+.matrix-table col.actual-col {
+  width: 10%;
+}
+
+.matrix-table col.label-col {
+  width: 17%;
+}
+
+.matrix-table col.prediction-col {
+  width: 19%;
+}
+
+.matrix-table col.total-col {
+  width: 16%;
 }
 
 .matrix-table th,
 .matrix-table td {
   height: 27px;
   padding: 5px 6px;
+  vertical-align: middle;
 }
 
+/* Header utama */
 .matrix-table thead th {
   background: #f0f2f5;
   color: #56616c;
+
   font-size: 7px;
   font-weight: 700;
+  text-align: center;
 }
 
+/* Header MATRIKS */
 .matrix-table .matrix-label {
-  width: 17%;
   text-align: left;
   color: #737d88;
 }
 
+/* Header PREDIKSI C4.5 */
 .matrix-table .matrix-super {
   color: #183653;
   font-size: 7px;
+  text-align: center;
 }
 
+/* Header Rendah, Sedang, Tinggi */
 .matrix-table thead tr:nth-child(2) th {
   color: var(--primary);
   font-size: 7px;
+  text-align: center;
 }
 
+/* Header Total */
 .matrix-table .total-head {
-  width: 12%;
   color: #59636e;
+  text-align: center;
 }
 
+/* Label AKTUAL */
 .matrix-table .actual-label {
-  width: 10%;
   background: #e9edf1;
   color: #183653;
+
+  text-align: center;
+  vertical-align: middle;
 }
 
 .actual-label span {
   display: inline-block;
+
   writing-mode: vertical-rl;
   transform: rotate(180deg);
+
   font-size: 7px;
   font-weight: 750;
   letter-spacing: 0.4px;
 }
 
+/* Label baris Rendah, Sedang, Tinggi */
 .matrix-table .row-label {
   background: #f0f2f5;
+
   color: #434c57;
+
   font-size: 8px;
   font-weight: 600;
+
   text-align: left;
 }
 
+/* Angka matriks */
 .matrix-table td {
   background: #ffffff;
   color: #58616c;
+
+  text-align: center;
+
   border-bottom: 1px solid #f0f2f5;
 }
 
+/* Angka diagonal utama */
 .matrix-table .correct-cell {
   background: #dce7fb;
   color: var(--primary);
   font-weight: 800;
 }
 
+/* Kolom total per kelas */
 .matrix-table .total-cell {
   background: #f0f2f5;
   color: #434c57;
   font-weight: 700;
 }
 
+/* Baris total prediksi */
 .matrix-table .matrix-total-row th,
 .matrix-table .matrix-total-row td {
   background: #f0f2f5;
   color: #434c57;
   font-weight: 700;
+  text-align: center;
 }
 
+/* Geser tulisan Total Prediksi ke kiri */
+.matrix-table .matrix-total-row .row-label {
+  text-align: left;
+  padding-left: 12px;
+}
+
+/* Sel total keseluruhan */
 .matrix-table .grand-total {
   background: #dce2ff !important;
   color: #15356c !important;
   font-weight: 800;
 }
 
+/* Legend confusion matrix */
 .matrix-legend {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 8px;
+
   margin-top: auto;
   padding: 6px 8px;
+
   border-radius: 5px;
+
   background: #f0f2f5;
   color: #68717c;
+
   font-size: 7px;
 }
 
@@ -709,6 +937,7 @@ svg {
 .matrix-legend i {
   width: 8px;
   height: 8px;
+
   display: inline-block;
   border-radius: 2px;
 }
@@ -721,11 +950,15 @@ svg {
   background: #ffd5d2;
 }
 
-/* DETAIL PREDIKSI DATA UJI */
+/* =========================================================
+   14. DETAIL PREDIKSI DATA UJI
+========================================================= */
 
 .prediction-note {
   padding-top: 3px;
+
   color: #737d88;
+
   font-size: 6px;
   white-space: nowrap;
 }
@@ -737,8 +970,10 @@ svg {
 
 .prediction-table {
   width: 100%;
+
   border-collapse: collapse;
   table-layout: auto;
+
   text-align: left;
   white-space: nowrap;
 }
@@ -750,7 +985,9 @@ svg {
 .prediction-table th {
   height: 27px;
   padding: 5px 7px;
+
   color: #5d6570;
+
   font-size: 6px;
   font-weight: 750;
 }
@@ -758,7 +995,9 @@ svg {
 .prediction-table td {
   height: 32px;
   padding: 5px 7px;
+
   border-bottom: 1px solid #f0f2f5;
+
   color: #434c57;
   font-size: 7px;
 }
@@ -769,18 +1008,23 @@ svg {
 
 .prediction-table td:first-child strong {
   color: #173d6b;
+
   font-size: 7px;
   font-weight: 750;
 }
 
-/* BADGE KLASIFIKASI */
+/* Badge klasifikasi */
 
 .class-badge {
   display: inline-block;
+
   min-width: 39px;
   padding: 3px 6px;
+
   border-radius: 3px;
+
   text-align: center;
+
   font-size: 6px;
   font-weight: 700;
 }
@@ -800,12 +1044,15 @@ svg {
   color: #16845d;
 }
 
-/* STATUS PREDIKSI */
+/* Status prediksi */
 
 .status-badge {
   display: inline-block;
+
   padding: 3px 6px;
+
   border-radius: 3px;
+
   font-size: 6px;
   font-weight: 700;
 }
@@ -820,18 +1067,23 @@ svg {
   color: #cf3734;
 }
 
-/* FOOTER TABEL */
+/* Footer tabel */
 
 .prediction-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 8px;
+
   margin-top: auto;
   padding-top: 10px;
+
   color: #737d88;
   font-size: 7px;
 }
+
+/* Pagination */
 
 .pagination {
   display: flex;
@@ -843,13 +1095,18 @@ svg {
 .page-control {
   min-width: 19px;
   height: 19px;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   padding: 0 5px;
+
   border-radius: 4px;
+
   background: #f0f1f3;
   color: #58616c;
+
   font-size: 7px;
   font-weight: 600;
 }
@@ -868,7 +1125,9 @@ svg {
   color: #ffffff;
 }
 
-/* EVALUASI DOMAIN */
+/* =========================================================
+   15. EVALUASI DOMAIN
+========================================================= */
 
 .domain-panel {
   margin-bottom: 0;
@@ -879,16 +1138,21 @@ svg {
   margin-bottom: 11px;
 }
 
+/* Ringkasan domain */
+
 .domain-summary {
   display: flex;
   align-items: center;
+
   gap: 7px;
   white-space: nowrap;
 }
 
 .domain-summary span {
   padding: 5px 8px;
+
   border-radius: 5px;
+
   font-size: 7px;
 }
 
@@ -910,61 +1174,84 @@ svg {
   color: var(--red);
 }
 
+/* Grid tiga blok */
+
 .domain-grid {
   display: grid;
+
   grid-template-columns: repeat(3, minmax(0, 1fr));
+
   gap: 10px;
 }
 
 .domain-card {
   min-width: 0;
+
   padding: 10px;
+
   border-radius: 6px;
+
   background: #f0f2f5;
 }
+
+/* Judul blok */
 
 .domain-card-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 5px;
   margin-bottom: 7px;
 }
 
 .domain-card-heading strong {
   color: #303942;
+
   font-size: 8px;
   font-weight: 700;
 }
 
 .domain-card-heading span {
   padding: 3px 6px;
+
   border-radius: 4px;
+
   background: #e1e4e8;
   color: #59636e;
+
   font-size: 6px;
   font-weight: 600;
 }
 
+/* Daftar aturan */
+
 .rule-list {
   display: flex;
   flex-direction: column;
+
   gap: 5px;
 }
 
 .rule-row {
   min-height: 23px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 5px;
+
   padding: 4px 6px;
+
   border-radius: 4px;
+
   background: #ffffff;
 }
 
 .rule-row > span {
   min-width: 0;
+
   color: #68717c;
   font-size: 6px;
 }
@@ -972,6 +1259,7 @@ svg {
 .rule-row > strong {
   font-size: 6px;
   font-weight: 700;
+
   text-align: right;
   white-space: nowrap;
 }
@@ -988,41 +1276,60 @@ svg {
   color: #d92d35;
 }
 
-/* CATATAN DOMAIN */
+/* Catatan domain */
 
 .domain-note {
   display: flex;
   align-items: center;
+
   gap: 7px;
+
   margin-top: 10px;
   padding: 7px 9px;
+
   border-radius: 5px;
+
   background: #f0f2f5;
 }
 
 .note-icon {
   width: 12px;
   height: 12px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   flex: 0 0 12px;
+
   border: 1px solid var(--primary);
   border-radius: 50%;
+
   color: var(--primary);
+
   font-size: 8px;
   font-weight: 700;
 }
 
 .domain-note p {
   color: #68717c;
+
   font-size: 6px;
   line-height: 1.5;
 }
 
-/* RESPONSIVE TABLET */
+/* =========================================================
+   16. RESPONSIVE TABLET
+========================================================= */
 
 @media (max-width: 1200px) {
+  /* Sidebar mengikuti standar Dashboard */
+
+  .sidebar {
+    width: 185px;
+    min-width: 185px;
+  }
+
   .content {
     padding: 15px;
   }
@@ -1041,18 +1348,9 @@ svg {
   }
 }
 
-/* SIDEBAR TABLET */
-
-@media (max-width: 1100px) {
-  .sidebar {
-    width: 185px;
-    min-width: 185px;
-    max-width: 185px;
-    flex-basis: 185px;
-  }
-}
-
-/* RESPONSIVE MOBILE */
+/* =========================================================
+   17. RESPONSIVE MOBILE
+========================================================= */
 
 @media (max-width: 700px) {
   .app-layout {
@@ -1063,31 +1361,23 @@ svg {
   .sidebar {
     width: 100%;
     min-width: 0;
-    max-width: 100%;
     min-height: auto;
-    flex: 0 0 auto;
   }
+
+  /*
+    Logo tetap mengikuti logo.css global.
+    Navigasi disembunyikan pada mobile.
+  */
 
   .sidebar-nav,
   .sidebar-bottom {
     display: none;
   }
 
-  .sidebar-logo {
-    height: 62px;
-    min-height: 62px;
-    padding: 0 12px;
-  }
-
-  .sidebar-logo img {
-    width: 36px;
-    height: 36px;
-    flex-basis: 36px;
-  }
-
   .topbar {
     height: 48px;
     min-height: 48px;
+
     padding: 0 12px;
   }
 
@@ -1142,7 +1432,9 @@ svg {
   }
 }
 
-/* RESPONSIVE LAYAR KECIL */
+/* =========================================================
+   18. RESPONSIVE LAYAR KECIL
+========================================================= */
 
 @media (max-width: 420px) {
   .metrics-grid {
