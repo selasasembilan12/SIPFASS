@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Pelatihan C4.5 | SIPFAS</title>
+
+    <!-- FONT INTER -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- CSS LOGO GLOBAL -->
+    <link rel="stylesheet" href="../../assets/css/logo.css" />
+
+    <!-- CSS HALAMAN -->
+    <link rel="stylesheet" href="pelatihan-c45.css" />
+  </head>
+
+  <body>
+    <div class="app-layout">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <a href="../Dashboard/Dashboard.html" class="sidebar-logo">
+          <img src="../../assets/images/logo-sipfas.png" alt="Logo SIPFAS" />
+
+          <div class="sidebar-brand">
+            <strong>SIPFAS</strong>
+            <span>Informatika UNKHAIR</span>
+          </div>
+        </a>
+
+        <div class="sidebar-brand-divider"></div>
+
+        <!-- NAVIGASI -->
+        <nav class="sidebar-nav">
+          <!-- MENU UTAMA -->
+          <div class="nav-group">
+            <p class="nav-title">MENU UTAMA</p>
+
+            <a href="../Dashboard/Dashboard.html" class="nav-link">
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+              </span>
+              <span>Dashboard</span>
+            </a>
+          </div>
+
+          <!-- MANAJEMEN DATA -->
+          <div class="nav-group">
+            <p class="nav-title">MANAJEMEN DATA</p>
+
+            <a
+              href="../Manajemen-Pengguna/Manajemen-Pengguna.html"
+              class="nav-link"
+            >
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+                  <circle cx="9.5" cy="7" r="3.5" />
+                  <path d="M17 11a3.5 3.5 0 0 0 0-7" />
+                  <path d="M21 21v-2a4 4 0 0 0-3-3.87" />
+                </svg>
+              </span>
+              <span>Manajemen Pengguna</span>
+            </a>
+
+            <a
+              href="../Kategori-Fasilitas/Kategori-Fasilitas.html"
+              class="nav-link"
+            >
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 3L20 10H4L12 3Z" />
+                  <rect x="3" y="14" width="6" height="6" />
+                  <circle cx="17" cy="17" r="3" />
+                </svg>
+              </span>
+              <span>Kategori Fasilitas</span>
+            </a>
+
+            <a href="../Data-Fasilitas/Data-Fasilitas.html" class="nav-link">
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="4" width="16" height="12" rx="1" />
+                  <path d="M2 19H15" />
+                  <rect x="15" y="12" width="7" height="9" rx="1" />
+                </svg>
+              </span>
+              <span>Data Fasilitas</span>
+            </a>
+          </div>
+
+          <!-- KLASIFIKASI C4.5 -->
+          <div class="nav-group">
+            <p class="nav-title">KLASIFIKASI C4.5</p>
+
+            <a href="../Dataset-C45/dataset-c45.html" class="nav-link">
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M3 9h18M3 15h18M9 3v18" />
+                </svg>
+              </span>
+              <span>Dataset C4.5</span>
+            </a>
+
+            <a
+              href="pelatihan-c45.html"
+              class="nav-link active"
+              aria-current="page"
+            >
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M9 18h6M10 21h4" />
+                  <path
+                    d="M12 2a7 7 0 0 0-5 11.9V16a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2.1A7 7 0 0 0 12 2z"
+                  />
+                  <path d="M12 14v-5m-2.5 2.5L12 9l2.5 2.5" />
+                </svg>
+              </span>
+              <span>Pelatihan C4.5</span>
+            </a>
+
+            <a href="../Hasil-Pengujian/hasil-pengujian.html" class="nav-link">
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="18" height="18" rx="1" />
+                  <path d="M7 16v-4M12 16V7M17 16v-7" />
+                </svg>
+              </span>
+              <span>Hasil Pengujian</span>
+            </a>
+          </div>
+
+          <!-- LAPORAN -->
+          <div class="nav-group">
+            <p class="nav-title">LAPORAN</p>
+
+            <a
+              href="../Laporan-Pemeliharaan/laporan-pemeliharaan.html"
+              class="nav-link"
+            >
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M6 2.5h8l5 5V21H6z" />
+                  <path d="M14 2.5V8h5M9 13h7M9 17h7" />
+                </svg>
+              </span>
+              <span>Laporan Pemeliharaan</span>
+            </a>
+          </div>
+        </nav>
+
+        <!-- MENU AKUN -->
+        <div class="sidebar-bottom">
+          <p class="nav-title">AKUN</p>
+
+          <a href="../Profil-Saya/profil-saya.html" class="nav-link">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8.5" r="3.5" />
+                <path d="M5 20c.7-3 3.2-4.5 7-4.5s6.3 1.5 7 4.5" />
+              </svg>
+            </span>
+            <span>Profil Saya</span>
+          </a>
+
+          <a href="#" class="nav-link">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M10 7H6V17H10" />
+                <path d="M14 8L18 12L14 16M18 12H9" />
+              </svg>
+            </span>
+            <span>Keluar</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- AREA UTAMA -->
+      <div class="main-area">
+        <!-- TOPBAR -->
+        <header class="topbar">
+          <div class="topbar-system">
+            <span class="topbar-dot"></span>
+            <span>SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS</span>
+          </div>
+
+          <a href="../Profil-Saya/profil-saya.html" class="topbar-user">
+            <span class="topbar-user-name"> Ahmad Fauzi, S.Kom. </span>
+
+            <span class="topbar-user-avatar">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8.5" r="3.5" />
+                <path d="M5 20c.7-3 3.2-4.5 7-4.5s6.3 1.5 7 4.5" />
+              </svg>
+            </span>
+          </a>
+        </header>
+
+        <!-- KONTEN HALAMAN -->
+        <main class="content">
+          <!-- HEADER HALAMAN -->
+          <section class="page-heading">
+            <div>
+              <div class="breadcrumb">
+                <span>SIPFAS</span>
+                <span>/</span>
+                <span>Klasifikasi C4.5</span>
+                <span>/</span>
+                <strong>Pelatihan C4.5</strong>
+              </div>
+
+              <h1>Pelatihan Algoritma C4.5</h1>
+
+              <p class="page-subtitle">
+                Pembentukan Decision Tree prioritas pemeliharaan fasilitas
+                menggunakan rumus Entropy dan Gain Ratio.
+              </p>
+            </div>
+
+            <div class="heading-actions">
+              <a class="btn btn-primary" href="#evaluasi-atribut">
+                <svg viewBox="0 0 24 24">
+                  <path d="M9 18h6M10 21h4" />
+                  <path
+                    d="M12 2a7 7 0 0 0-5 11.9V16a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2.1A7 7 0 0 0 12 2z"
+                  />
+                  <path d="M12 14v-5m-2.5 2.5L12 9l2.5 2.5" />
+                </svg>
+                <span>Mulai Pelatihan C4.5</span>
+              </a>
+
+              <a
+                class="btn btn-light"
+                href="../Hasil-Pengujian/hasil-pengujian.html"
+              >
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="18" height="18" rx="1" />
+                  <path d="M7 16v-4M12 16V7M17 16v-7" />
+                </svg>
+                <span>Lihat Hasil Pengujian</span>
+              </a>
+            </div>
+          </section>
+
+          <!-- KARTU STATISTIK -->
+          <section class="stats-grid">
+            <!-- TOTAL DATASET -->
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Total Dataset</span>
+
+                <span class="stat-icon blue">
+                  <svg viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <path d="M3 9h18M3 15h18M9 3v18" />
+                  </svg>
+                </span>
+              </div>
+
+              <div class="stat-value">100</div>
+
+              <p>Fasilitas terdata di laboratorium &amp; ruang kuliah</p>
+            </article>
+
+            <!-- DATA PELATIHAN -->
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Data Pelatihan (Train)</span>
+
+                <span class="stat-icon blue">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M9 18h6M10 21h4" />
+                    <path
+                      d="M12 2a7 7 0 0 0-5 11.9V16a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2.1A7 7 0 0 0 12 2z"
+                    />
+                    <path d="M12 14v-5m-2.5 2.5L12 9l2.5 2.5" />
+                  </svg>
+                </span>
+              </div>
+
+              <div class="stat-value">80 <small>80.0%</small></div>
+
+              <p>Digunakan untuk menghitung Gain Ratio</p>
+            </article>
+
+            <!-- DATA VALIDASI -->
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Data Validasi (Test)</span>
+
+                <span class="stat-icon gray">
+                  <svg viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="18" height="18" rx="1" />
+                    <path d="M7 16v-4M12 16V7M17 16v-7" />
+                  </svg>
+                </span>
+              </div>
+
+              <div class="stat-value">
+                20 <small class="muted">20.0%</small>
+              </div>
+
+              <p>Untuk validasi matriks konfusi</p>
+            </article>
+
+            <!-- ROOT NODE -->
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Root Node Terpilih</span>
+
+                <span class="stat-icon blue">
+                  <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="5" r="2.5" />
+                    <circle cx="5" cy="19" r="2.5" />
+                    <circle cx="19" cy="19" r="2.5" />
+                    <path d="M12 7.5v4M5 16.5v-3h14v3M12 11.5v2" />
+                  </svg>
+                </span>
+              </div>
+
+              <div class="stat-value stat-root">Tingkat Kerusakan</div>
+
+              <p class="root-note">Gain Ratio: 0.250 (Tertinggi)</p>
+            </article>
+          </section>
+
+          <!-- LANDASAN MATEMATIKA -->
+          <section class="panel formula-panel">
+            <div class="section-heading">
+              <div class="section-title-group">
+                <span class="section-icon">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M5 5h14M5 12h14M5 19h14" />
+                    <path d="M9 3l-4 18M19 3l-4 18" />
+                  </svg>
+                </span>
+
+                <div>
+                  <h2>Landasan Matematika C4.5</h2>
+                </div>
+              </div>
+
+              <span class="section-note">
+                Integrasi Pengukuran Entropy Data
+              </span>
+            </div>
+
+            <div class="formula-grid">
+              <article class="formula-card">
+                <h3>1. ENTROPY HIMPUNAN (S)</h3>
+                <div class="formula-code">Entropy(S) = -Σ (Pᵢ × log₂(Pᵢ))</div>
+                <p>
+                  Mengukur ketidakmurnian atau heterogenitas kelas sasaran
+                  prioritas pemeliharaan.
+                </p>
+              </article>
+
+              <article class="formula-card">
+                <h3>2. INFORMATION GAIN</h3>
+                <div class="formula-code">
+                  Gain(S, A) = Ent(S) - Σ (|Sᵢ|/|S| × Ent(Sᵢ))
+                </div>
+                <p>
+                  Penurunan entropi setelah dataset dibagi berdasarkan atribut
+                  kandidat (A).
+                </p>
+              </article>
+
+              <article class="formula-card">
+                <h3>3. SPLIT INFORMATION</h3>
+                <div class="formula-code">
+                  SplitInfo(S, A) = -Σ (|Sᵢ|/|S| × log₂(|Sᵢ|/|S|))
+                </div>
+                <p>
+                  Proporsi informasi pemisahan cabang untuk menghindari bias
+                  atribut multivariat.
+                </p>
+              </article>
+
+              <article class="formula-card">
+                <h3>4. GAIN RATIO</h3>
+                <div class="formula-code">
+                  GainRatio(S, A) = Gain(S, A) / SplitInfo(S, A)
+                </div>
+                <p>
+                  Kriteria pemilihan simpul: Gain Ratio terbesar pada seluruh
+                  kandidat Root / Branch Node.
+                </p>
+              </article>
+            </div>
+          </section>
+
+          <!-- TABEL EVALUASI ATRIBUT -->
+          <section class="panel evaluation-panel" id="evaluasi-atribut">
+            <div class="section-heading">
+              <div class="section-title-group">
+                <span class="section-icon">
+                  <svg viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <path d="M3 9h18M3 15h18M9 3v18" />
+                  </svg>
+                </span>
+
+                <div>
+                  <h2>Tabel Evaluasi Atribut - Node 1 (Root Calculation)</h2>
+                  <p>
+                    Hasil kalkulasi matematis terhadap 80 data latih pada simpul
+                    akar utama.
+                  </p>
+                </div>
+              </div>
+
+              <span class="entropy-pill"> Total Entropy Awal (S): 0.942 </span>
+            </div>
+
+            <div class="table-wrap">
+              <table class="evaluation-table">
+                <thead>
+                  <tr>
+                    <th>NODE</th>
+                    <th>NAMA ATRIBUT</th>
+                    <th>ENTROPY ISI</th>
+                    <th>INFO GAIN</th>
+                    <th>SPLIT INFO</th>
+                    <th>GAIN RATIO</th>
+                    <th>KEPUTUSAN SIMPUL</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr class="selected-row">
+                    <td><strong>X1</strong></td>
+                    <td class="attribute-name">
+                      Tingkat Kerusakan
+                      <span class="info-dot">i</span>
+                    </td>
+                    <td>0.942</td>
+                    <td>0.385</td>
+                    <td>1.542</td>
+                    <td><strong class="ratio">0.250</strong></td>
+                    <td>
+                      <span class="node-choice selected"
+                        >Root Node Terpilih</span
+                      >
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td>X2</td>
+                    <td class="attribute-name">Dampak Akademik</td>
+                    <td>0.942</td>
+                    <td>0.298</td>
+                    <td>1.528</td>
+                    <td><strong>0.196</strong></td>
+                    <td><span class="node-choice">Kandidat Sub-Node</span></td>
+                  </tr>
+
+                  <tr>
+                    <td>X3</td>
+                    <td class="attribute-name">Frekuensi Penggunaan</td>
+                    <td>0.942</td>
+                    <td>0.154</td>
+                    <td>1.458</td>
+                    <td><strong>0.103</strong></td>
+                    <td><span class="node-choice">Kandidat Sub-Node</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="evaluation-foot">
+              <span>
+                Kriteria Keputusan: max(GainRatio) = 0.250 pada variabel Tingkat
+                Kerusakan.
+              </span>
+
+              <span> Status Penghitungan: Konvergen (Tervalidasi) </span>
+            </div>
+          </section>
+
+          <!-- VISUALISASI POHON KEPUTUSAN -->
+          <section class="panel tree-panel">
+            <div class="section-heading tree-heading">
+              <div class="section-title-group">
+                <span class="section-icon">
+                  <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="5" r="2.5" />
+                    <circle cx="5" cy="19" r="2.5" />
+                    <circle cx="19" cy="19" r="2.5" />
+                    <path d="M12 7.5v4M5 16.5v-3h14v3M12 11.5v2" />
+                  </svg>
+                </span>
+
+                <div>
+                  <h2>Visualisasi Pohon Keputusan (Decision Tree)</h2>
+                  <p>
+                    Model klasifikasi otomatis penentuan status prioritas
+                    pemeliharaan fasilitas PST. Informatika.
+                  </p>
+                </div>
+              </div>
+
+              <div class="legend">
+                <span class="legend-high">Prioritas Tinggi</span>
+                <span class="legend-medium">Prioritas Sedang</span>
+                <span class="legend-low">Prioritas Rendah</span>
+              </div>
+            </div>
+
+            <div class="tree-canvas">
+              <!-- ROOT NODE -->
+              <div class="tree-root">
+                <span class="tree-root-icon">
+                  <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="5" r="2.5" />
+                    <circle cx="5" cy="19" r="2.5" />
+                    <circle cx="19" cy="19" r="2.5" />
+                    <path d="M12 7.5v4M5 16.5v-3h14v3M12 11.5v2" />
+                  </svg>
+                </span>
+
+                <div>
+                  <small>SIMPUL UTAMA (ROOT)</small>
+                  <strong>Tingkat Kerusakan</strong>
+                </div>
+              </div>
+
+              <!-- CABANG POHON -->
+              <div class="tree-branches">
+                <!-- CABANG BERAT -->
+                <div class="branch branch-heavy">
+                  <span class="branch-label">Berat</span>
+
+                  <div class="branch-card terminal">
+                    <span class="terminal-icon">
+                      <svg viewBox="0 0 24 24">
+                        <path d="M12 3L22 20H2L12 3Z" />
+                        <path d="M12 9v5M12 17h.01" />
+                      </svg>
+                    </span>
+
+                    <small>KEPUTUSAN KLASIFIKASI</small>
+                    <strong class="priority priority-high"
+                      >Prioritas Tinggi</strong
+                    >
+                    <small>Dukungan 28 Data Latih</small>
+                  </div>
+                </div>
+
+                <!-- CABANG SEDANG -->
+                <div class="branch branch-medium">
+                  <span class="branch-label">Sedang</span>
+
+                  <div class="branch-card">
+                    <span class="branch-icon">
+                      <svg viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="1" />
+                        <path d="M12 3v6M7 15v3M17 15v3M7 15h10M12 9v3" />
+                      </svg>
+                    </span>
+
+                    <div>
+                      <small>SUB-SIMPUL 2.1</small>
+                      <strong>Dampak Akademik</strong>
+                    </div>
+                  </div>
+
+                  <div class="leaf-pair">
+                    <div>
+                      <small>Tinggi</small>
+                      <strong class="priority priority-high">Tinggi</strong>
+                    </div>
+
+                    <div>
+                      <small>Rendah</small>
+                      <strong class="priority priority-medium">Sedang</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- CABANG RINGAN -->
+                <div class="branch branch-light">
+                  <span class="branch-label">Ringan</span>
+
+                  <div class="branch-card">
+                    <span class="branch-icon">
+                      <svg viewBox="0 0 24 24">
+                        <rect x="3" y="3" width="18" height="18" rx="1" />
+                        <path d="M12 3v6M7 15v3M17 15v3M7 15h10M12 9v3" />
+                      </svg>
+                    </span>
+
+                    <div>
+                      <small>SUB-SIMPUL 2.2</small>
+                      <strong>Frekuensi Penggunaan</strong>
+                    </div>
+                  </div>
+
+                  <div class="leaf-pair">
+                    <div>
+                      <small>Tinggi</small>
+                      <strong class="priority priority-medium">Sedang</strong>
+                    </div>
+
+                    <div>
+                      <small>Rendah</small>
+                      <strong class="priority priority-low">Rendah</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>
