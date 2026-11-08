@@ -1,15 +1,12 @@
-/* =========================================================
-   SIPFAS - RIWAYAT LAPORAN PENGGUNA
-   Penyimpanan sementara menggunakan LocalStorage
-========================================================= */
-
 // 01. Menjalankan JavaScript setelah HTML selesai dimuat.
 document.addEventListener("DOMContentLoaded", function () {
   mulaiRiwayatLaporan();
 });
 
 // 02. Nama penyimpanan yang sama dengan halaman Dashboard dan Buat Laporan.
+// 02. Menentukan nama penyimpanan laporan dan profil pengguna.
 const KUNCI_PENYIMPANAN = "sipfasReports";
+const PROFILE_KEY = "sipfasProfile";
 
 // 03. Data simulasi awal apabila LocalStorage masih kosong.
 const dataLaporanAwal = [
@@ -57,9 +54,7 @@ const dataLaporanAwal = [
   },
 ];
 
-/* =========================================================
-   04. MEMULAI HALAMAN RIWAYAT LAPORAN
-========================================================= */
+/* 04. Memulai halaman Riwayat Laporan dan sinkronisasi profil. */
 
 function mulaiRiwayatLaporan() {
   const kolomPencarian = document.querySelector(".search-box input");
@@ -67,14 +62,28 @@ function mulaiRiwayatLaporan() {
   const tombolRefresh = document.querySelector(".refresh-button");
   const isiTabel = document.querySelector(".report-table tbody");
 
-  // Memeriksa apakah elemen HTML tersedia.
+  // Memastikan seluruh elemen HTML tersedia.
   if (!kolomPencarian || !pilihanStatus || !tombolRefresh || !isiTabel) {
     console.error("Elemen Riwayat Laporan tidak ditemukan.");
     return;
   }
 
-  // Menampilkan laporan ketika halaman pertama kali dibuka.
+  // Menampilkan data profil terbaru pada bagian header.
+  perbaruiProfilRiwayat();
+
+  // Menampilkan seluruh data laporan.
   tampilkanRiwayatLaporan();
+
+  // Memperbarui nama dan laporan apabila data berubah dari tab lain.
+  window.addEventListener("storage", function (event) {
+    if (event.key === PROFILE_KEY || event.key === null) {
+      perbaruiProfilRiwayat();
+    }
+
+    if (event.key === KUNCI_PENYIMPANAN || event.key === null) {
+      tampilkanRiwayatLaporan();
+    }
+  });
 
   // Menjalankan pencarian ketika pengguna mengetik.
   kolomPencarian.addEventListener("input", tampilkanRiwayatLaporan);
@@ -86,13 +95,7 @@ function mulaiRiwayatLaporan() {
   tombolRefresh.addEventListener("click", function (event) {
     event.preventDefault();
     tampilkanRiwayatLaporan();
-  });
-
-  // Memperbarui halaman jika LocalStorage berubah dari tab lain.
-  window.addEventListener("storage", function (event) {
-    if (event.key === KUNCI_PENYIMPANAN) {
-      tampilkanRiwayatLaporan();
-    }
+    perbaruiProfilRiwayat();
   });
 }
 
@@ -535,4 +538,42 @@ function buatIkonMata() {
   ikon.append(jalur, lingkaran);
 
   return ikon;
+}
+
+/* 14. Mengambil dan memperbarui nama pengguna dari LocalStorage. */
+
+function perbaruiProfilRiwayat() {
+  try {
+    // Mengambil data profil yang tersimpan.
+    const dataProfil = localStorage.getItem(PROFILE_KEY);
+
+    if (!dataProfil) {
+      console.log("Data profil belum tersedia.");
+      return;
+    }
+
+    // Mengubah JSON menjadi objek JavaScript.
+    const profil = JSON.parse(dataProfil);
+
+    // Memastikan nama pengguna tersedia.
+    if (!profil || typeof profil.name !== "string") {
+      return;
+    }
+
+    const namaPengguna = profil.name.trim();
+
+    if (!namaPengguna) return;
+
+    // Memperbarui nama pengguna pada bagian header.
+    document.querySelectorAll(".header-name").forEach(function (elemen) {
+      elemen.textContent = namaPengguna;
+    });
+
+    console.log(
+      "Nama pengguna pada Riwayat Laporan berhasil diperbarui:",
+      namaPengguna,
+    );
+  } catch (error) {
+    console.error("Gagal memperbarui profil Riwayat Laporan:", error);
+  }
 }

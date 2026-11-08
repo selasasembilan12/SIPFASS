@@ -323,3 +323,37 @@ function prosesKirimLaporan(event, formulir) {
   // Mengarahkan pengguna ke halaman konfirmasi.
   window.location.href = "../Konfirmasi-laporan/Konfirmasi-laporan.html";
 }
+
+// 01. Menampilkan identitas terbaru pengguna pada halaman Buat Laporan.
+document.addEventListener("DOMContentLoaded", function () {
+  updateReportProfile();
+
+  // Memperbarui nama jika profil berubah dari tab lain.
+  window.addEventListener("storage", function (event) {
+    if (event.key === "sipfasProfile") {
+      updateReportProfile();
+    }
+  });
+});
+
+// 02. Mengambil dan menampilkan nama pengguna terbaru.
+function updateReportProfile() {
+  try {
+    const dataProfil = localStorage.getItem("sipfasProfile");
+
+    if (!dataProfil) return;
+
+    const profil = JSON.parse(dataProfil);
+
+    if (!profil || !profil.name) return;
+
+    // Memperbarui nama pada bagian header.
+    document.querySelectorAll(".header-name").forEach(function (elemen) {
+      elemen.textContent = profil.name;
+    });
+
+    console.log("Nama pengguna diperbarui:", profil.name);
+  } catch (error) {
+    console.error("Gagal mengambil identitas pengguna:", error);
+  }
+}

@@ -1,13 +1,13 @@
-/* 01. Menjalankan fungsi Dashboard setelah HTML selesai dimuat. */
+// 01. Menjalankan Dashboard setelah HTML selesai dimuat.
 document.addEventListener("DOMContentLoaded", function () {
   initializeDashboard();
 });
 
-/* 02. Menentukan nama penyimpanan utama seluruh data laporan. */
+// 02. Menentukan nama penyimpanan data laporan dan profil.
 const STORAGE_KEY = "sipfasReports";
+const PROFILE_KEY = "sipfasProfile";
 
-/* 03. Menyediakan data laporan awal untuk simulasi sebelum database dibuat.
-   Data awal disamakan dengan data pada halaman Riwayat Laporan. */
+// 03. Menyediakan data laporan awal untuk simulasi.
 const initialReports = [
   {
     id: "LP-2024-089",
@@ -53,72 +53,68 @@ const initialReports = [
   },
 ];
 
-/* 04. Menginisialisasi seluruh fungsi Dashboard. */
+// 04. Menginisialisasi seluruh fungsi Dashboard.
 function initializeDashboard() {
   const reportTableBody = document.querySelector(".report-table tbody");
 
-  // Memastikan tabel laporan tersedia pada halaman.
   if (!reportTableBody) {
     console.error("Tabel laporan Dashboard tidak ditemukan.");
     return;
   }
 
-  // Memuat data dan memperbarui seluruh tampilan Dashboard.
+  // Memuat data laporan dan identitas pengguna.
   refreshDashboard();
+  updateDashboardProfile();
 
-  // Memperbarui Dashboard apabila data berubah dari tab lain.
+  // Memperbarui laporan dan profil apabila data berubah dari tab lain.
   window.addEventListener("storage", function (event) {
-    if (event.key === STORAGE_KEY) {
+    if (event.key === STORAGE_KEY || event.key === null) {
       refreshDashboard();
     }
+
+    if (event.key === PROFILE_KEY || event.key === null) {
+      updateDashboardProfile();
+    }
   });
+
+  console.log("Dashboard SIPFAS berhasil dijalankan.");
 }
 
-/* 05. Mengambil data laporan dari LocalStorage. */
+// 05. Mengambil data laporan dari LocalStorage.
 function getDashboardReports() {
   try {
     const savedReports = localStorage.getItem(STORAGE_KEY);
 
-    // Menyimpan data awal apabila belum ada penyimpanan laporan.
     if (savedReports === null) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(initialReports));
-
       return [...initialReports];
     }
 
-    // Mengubah data JSON menjadi array JavaScript.
     const parsedReports = JSON.parse(savedReports);
 
-    // Memastikan data laporan berbentuk array.
     if (!Array.isArray(parsedReports)) {
       throw new Error("Format data laporan tidak valid.");
     }
 
-    // Mengembalikan seluruh data laporan yang tersimpan.
     return parsedReports.filter(function (report) {
       return report && typeof report === "object";
     });
   } catch (error) {
     console.error("Gagal mengambil data laporan:", error);
-
     return [];
   }
 }
 
-/* 06. Menyesuaikan struktur data laporan dari berbagai halaman.
-   Mendukung format Riwayat Laporan dan Buat Laporan. */
+// 06. Menyesuaikan struktur data laporan dari berbagai halaman.
 function normalizeDashboardReport(report) {
-  // Mengambil kode laporan dari beberapa kemungkinan nama properti.
   const reportId = report.id || report.kodeLaporan || report.kode_laporan || "";
 
-  // Mengambil nama fasilitas dari data laporan.
   const facilityName =
     report.facility ||
     report.namaFasilitas ||
     report.nama_fasilitas ||
     "Fasilitas tidak disebutkan";
 
-  // Mengambil tanggal laporan.
   const rawDate =
     report.date ||
     report.tanggalLaporan ||
@@ -127,7 +123,6 @@ function normalizeDashboardReport(report) {
     report.created_at ||
     "";
 
-  // Mengambil status utama laporan.
   const rawStatus =
     report.status ||
     report.mainStatus ||
@@ -137,18 +132,14 @@ function normalizeDashboardReport(report) {
 
   return {
     id: String(reportId),
-
     facility: String(facilityName),
-
     date: formatReportDate(rawDate),
-
     sortDate: parseReportDate(rawDate),
-
     status: normalizeReportStatus(rawStatus),
   };
 }
 
-/* 07. Menyamakan format status laporan agar dapat dihitung Dashboard. */
+// 07. Menyamakan format status laporan.
 function normalizeReportStatus(status) {
   const normalizedStatus = String(status).toLowerCase().trim();
 
@@ -175,22 +166,18 @@ function normalizeReportStatus(status) {
   return "waiting";
 }
 
-/* 08. Mengubah tanggal laporan ke format yang sesuai untuk Dashboard. */
+// 08. Mengubah tanggal laporan ke format Indonesia.
 function formatReportDate(dateValue) {
-  if (!dateValue) {
-    return "-";
-  }
+  if (!dateValue) return "-";
 
   const dateString = String(dateValue);
 
-  // Mempertahankan tanggal yang sudah berbentuk teks.
   if (!/^\d{4}-\d{2}-\d{2}/.test(dateString)) {
     return dateString;
   }
 
   const dateObject = new Date(dateString);
 
-  // Memformat tanggal ISO menjadi tanggal Indonesia.
   if (!isNaN(dateObject.getTime())) {
     return dateObject.toLocaleDateString("id-ID", {
       day: "2-digit",
@@ -202,22 +189,18 @@ function formatReportDate(dateValue) {
   return dateString;
 }
 
-/* 09. Mengubah tanggal laporan menjadi angka untuk pengurutan terbaru. */
+// 09. Mengubah tanggal laporan menjadi angka untuk pengurutan.
 function parseReportDate(dateValue) {
-  if (!dateValue) {
-    return 0;
-  }
+  if (!dateValue) return 0;
 
   const dateString = String(dateValue);
 
-  // Membaca tanggal berformat ISO atau format yang dikenali browser.
   const directDate = new Date(dateString);
 
   if (!isNaN(directDate.getTime())) {
     return directDate.getTime();
   }
 
-  // Menyediakan nama bulan Indonesia untuk tanggal berbentuk teks.
   const months = {
     jan: 0,
     januari: 0,
@@ -244,14 +227,11 @@ function parseReportDate(dateValue) {
     desember: 11,
   };
 
-  // Mengambil tanggal, bulan, dan tahun dari teks.
   const match = dateString.match(/(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/i);
 
   if (match) {
     const day = Number(match[1]);
-
     const month = months[match[2].toLowerCase()];
-
     const year = Number(match[3]);
 
     if (month !== undefined) {
@@ -262,48 +242,35 @@ function parseReportDate(dateValue) {
   return 0;
 }
 
-/* 10. Memuat ulang seluruh data dan tampilan Dashboard. */
+// 10. Memuat ulang seluruh data dan tampilan Dashboard.
 function refreshDashboard() {
-  // Mengambil laporan dari LocalStorage.
   const reports = getDashboardReports();
 
-  // Menyesuaikan format data agar seragam.
   const normalizedReports = reports.map(function (report) {
     return normalizeDashboardReport(report);
   });
 
-  // Mengurutkan laporan berdasarkan tanggal terbaru.
   normalizedReports.sort(function (a, b) {
     return b.sortDate - a.sortDate;
   });
 
-  // Memperbarui angka statistik Dashboard.
   renderDashboardStatistics(normalizedReports);
-
-  // Memperbarui tabel lima laporan terbaru.
   renderRecentReports(normalizedReports);
-
-  // Menampilkan informasi aktivitas laporan.
   updateActivityDescription(normalizedReports.length);
 
-  // Menampilkan informasi proses pada Console.
   console.log("===== DASHBOARD SIPFAS =====");
   console.log("Total laporan:", normalizedReports.length);
   console.log("Data laporan:", normalizedReports);
   console.log("============================");
 }
 
-/* 11. Menghitung jumlah laporan berdasarkan statusnya. */
+// 11. Menghitung jumlah laporan berdasarkan status.
 function calculateReportStatistics(reports) {
   const statistics = {
     total: reports.length,
-
     waiting: 0,
-
     processing: 0,
-
     completed: 0,
-
     invalid: 0,
   };
 
@@ -322,130 +289,97 @@ function calculateReportStatistics(reports) {
   return statistics;
 }
 
-/* 12. Menampilkan hasil perhitungan pada empat kartu statistik. */
+// 12. Memperbarui angka pada kartu statistik Dashboard.
 function renderDashboardStatistics(reports) {
   const statistics = calculateReportStatistics(reports);
 
-  // Mengambil elemen angka pada setiap kartu statistik.
   const totalElement = document.querySelector(".total-number");
-
   const waitingElement = document.querySelector(".waiting-number");
-
   const processingElement = document.querySelector(".process-number");
-
   const completedElement = document.querySelector(".completed-number");
 
-  // Memperbarui angka total laporan.
   if (totalElement) {
     totalElement.textContent = statistics.total;
   }
 
-  // Memperbarui jumlah laporan menunggu verifikasi.
   if (waitingElement) {
     waitingElement.textContent = statistics.waiting;
   }
 
-  // Memperbarui jumlah laporan yang sedang diproses.
   if (processingElement) {
     processingElement.textContent = statistics.processing;
   }
 
-  // Memperbarui jumlah laporan yang telah selesai.
   if (completedElement) {
     completedElement.textContent = statistics.completed;
   }
 }
 
-/* 13. Menampilkan lima laporan terbaru pada tabel Dashboard. */
+// 13. Menampilkan lima laporan terbaru pada tabel Dashboard.
 function renderRecentReports(reports) {
   const reportTableBody = document.querySelector(".report-table tbody");
 
-  if (!reportTableBody) {
-    return;
-  }
+  if (!reportTableBody) return;
 
-  // Menghapus data tabel lama sebelum menampilkan data terbaru.
   reportTableBody.replaceChildren();
 
-  // Mengambil maksimal lima laporan terbaru.
   const recentReports = reports.slice(0, 5);
 
-  // Menampilkan pesan apabila belum terdapat laporan.
   if (recentReports.length === 0) {
     const emptyRow = document.createElement("tr");
-
     const emptyCell = document.createElement("td");
 
     emptyCell.colSpan = 4;
-
     emptyCell.textContent = "Belum ada laporan yang dikirim.";
-
     emptyCell.style.textAlign = "center";
-
     emptyCell.style.padding = "30px";
-
     emptyCell.style.color = "#667085";
 
     emptyRow.appendChild(emptyCell);
-
     reportTableBody.appendChild(emptyRow);
 
     return;
   }
 
-  // Membuat baris tabel untuk setiap laporan terbaru.
   recentReports.forEach(function (report) {
     const row = document.createElement("tr");
 
-    // Kolom nama fasilitas.
+    // Membuat kolom nama fasilitas.
     const facilityCell = document.createElement("td");
-
     const facilityWrapper = document.createElement("div");
-
-    facilityWrapper.className = "facility-name";
-
-    // Membuat ikon fasilitas.
     const facilityIcon = createFacilityIcon();
-
     const facilityText = document.createElement("strong");
 
+    facilityWrapper.className = "facility-name";
     facilityText.textContent = report.facility;
 
     facilityWrapper.appendChild(facilityIcon);
-
     facilityWrapper.appendChild(facilityText);
-
     facilityCell.appendChild(facilityWrapper);
 
-    // Kolom tanggal laporan.
+    // Membuat kolom tanggal laporan.
     const dateCell = document.createElement("td");
-
     dateCell.textContent = report.date;
 
-    // Kolom status laporan.
+    // Membuat kolom status laporan.
     const statusCell = document.createElement("td");
-
     const statusBadge = createDashboardStatusBadge(report.status);
 
     statusCell.appendChild(statusBadge);
 
-    // Kolom tombol detail laporan.
+    // Membuat kolom tombol detail laporan.
     const actionCell = document.createElement("td");
-
     const detailLink = document.createElement("a");
 
     detailLink.className = "detail-link";
-
     detailLink.textContent = "Detail ›";
 
-    // Mengirim ID laporan melalui parameter URL.
     if (report.id) {
       detailLink.href =
         "../Detail-laporan/Detail-laporan.html?id=" +
         encodeURIComponent(report.id);
     } else {
       detailLink.href = "#";
-
       detailLink.setAttribute("aria-disabled", "true");
 
       detailLink.addEventListener("click", function (event) {
@@ -455,28 +389,23 @@ function renderRecentReports(reports) {
 
     actionCell.appendChild(detailLink);
 
-    // Menggabungkan seluruh kolom ke dalam satu baris.
+    // Menggabungkan seluruh kolom ke dalam baris tabel.
     row.appendChild(facilityCell);
-
     row.appendChild(dateCell);
-
     row.appendChild(statusCell);
-
     row.appendChild(actionCell);
 
-    // Memasukkan baris ke dalam tabel Dashboard.
     reportTableBody.appendChild(row);
   });
 }
 
-/* 14. Membuat ikon fasilitas menggunakan elemen SVG. */
+// 14. Membuat ikon fasilitas menggunakan SVG.
 function createFacilityIcon() {
   const svgNamespace = "http://www.w3.org/2000/svg";
 
   const icon = document.createElementNS(svgNamespace, "svg");
 
   icon.setAttribute("viewBox", "0 0 24 24");
-
   icon.setAttribute("aria-hidden", "true");
 
   const path = document.createElementNS(svgNamespace, "path");
@@ -488,13 +417,12 @@ function createFacilityIcon() {
   return icon;
 }
 
-/* 15. Membuat badge status sesuai perkembangan laporan. */
+// 15. Membuat badge sesuai status perkembangan laporan.
 function createDashboardStatusBadge(status) {
   const badge = document.createElement("span");
 
   badge.className = "status-badge";
 
-  // Menentukan tampilan berdasarkan status laporan.
   const statusConfiguration = {
     waiting: {
       className: "status-waiting",
@@ -522,39 +450,34 @@ function createDashboardStatusBadge(status) {
 
   badge.classList.add(configuration.className);
 
-  // Membuat titik indikator untuk status menunggu dan diproses.
+  // Menambahkan titik indikator status.
   if (status === "waiting" || status === "processing") {
     const dot = document.createElement("span");
 
     dot.className = "status-dot";
-
     badge.appendChild(dot);
   }
 
-  // Membuat ikon khusus untuk laporan tidak valid.
+  // Menambahkan ikon laporan tidak valid.
   if (status === "invalid") {
     const invalidIcon = document.createElement("span");
 
     invalidIcon.className = "invalid-icon";
-
     invalidIcon.textContent = "⊗";
 
     badge.appendChild(invalidIcon);
   }
 
-  // Menampilkan keterangan status laporan.
   badge.appendChild(document.createTextNode(configuration.label));
 
   return badge;
 }
 
-/* 16. Memperbarui keterangan jumlah aktivitas laporan terbaru. */
+// 16. Memperbarui keterangan jumlah aktivitas laporan.
 function updateActivityDescription(totalReports) {
   const description = document.querySelector(".section-heading p");
 
-  if (!description) {
-    return;
-  }
+  if (!description) return;
 
   if (totalReports === 0) {
     description.textContent = "Belum ada aktivitas permohonan sarana Anda.";
@@ -567,5 +490,44 @@ function updateActivityDescription(totalReports) {
       " dari " +
       totalReports +
       " laporan terbaru Anda.";
+  }
+}
+
+// 17. Mengambil dan menampilkan identitas terbaru pengguna.
+function updateDashboardProfile() {
+  try {
+    const dataProfil = localStorage.getItem(PROFILE_KEY);
+
+    if (!dataProfil) {
+      console.log("Data profil belum tersedia.");
+      return;
+    }
+
+    const profil = JSON.parse(dataProfil);
+
+    if (!profil || typeof profil !== "object") {
+      console.error("Format data profil tidak valid.");
+      return;
+    }
+
+    const namaPengguna = String(profil.name || "").trim();
+
+    if (!namaPengguna) return;
+
+    // Memperbarui nama pada bagian header Dashboard.
+    document.querySelectorAll(".header-name").forEach(function (elemen) {
+      elemen.textContent = namaPengguna;
+    });
+
+    // Memperbarui nama pada bagian sapaan Dashboard.
+    const sapaan = document.querySelector(".welcome-name");
+
+    if (sapaan) {
+      sapaan.textContent = "Selamat Datang, " + namaPengguna;
+    }
+
+    console.log("Identitas pengguna berhasil diperbarui:", namaPengguna);
+  } catch (error) {
+    console.error("Gagal memperbarui identitas pengguna:", error);
   }
 }
