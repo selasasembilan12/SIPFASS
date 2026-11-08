@@ -1,318 +1,223 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Konfirmasi Pengiriman | SIPFAS</title>
 
     <!-- FONT INTER -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- CSS KONFIRMASI -->
-    <link rel="stylesheet" href="Konfirmasi-laporan.css">
-</head>
+    <link rel="stylesheet" href="Konfirmasi-laporan.css" />
+  </head>
 
-<body>
-
-<div class="app-container">
-
-    <!-- ================= SIDEBAR ================= -->
-    <aside class="sidebar">
-
+  <body>
+    <div class="app-container">
+      <!-- ================= SIDEBAR ================= -->
+      <aside class="sidebar">
         <!-- LOGO SIPFAS -->
         <a href="../Dashboard/dashboard.html" class="sidebar-logo">
+          <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS" />
 
-            <img src="../../../assets/images/logo-sipfas.png"
-                 alt="Logo SIPFAS">
-
-            <div class="sidebar-brand">
-                <strong>SIPFAS</strong>
-                <span>Informatika UNKHAIR</span>
-            </div>
-
+          <div class="sidebar-brand">
+            <strong>SIPFAS</strong>
+            <span>Informatika UNKHAIR</span>
+          </div>
         </a>
-
 
         <!-- MENU NAVIGASI -->
         <nav class="sidebar-navigation">
+          <!-- DASHBOARD -->
+          <a href="../Dashboard/dashboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+            </svg>
 
-            <!-- DASHBOARD -->
-            <a href="../Dashboard/dashboard.html" class="nav-item">
+            <span>Dashboard</span>
+          </a>
 
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="3" y="3" width="7" height="7"/>
-                    <rect x="14" y="3" width="7" height="7"/>
-                    <rect x="3" y="14" width="7" height="7"/>
-                    <rect x="14" y="14" width="7" height="7"/>
-                </svg>
+          <!-- BUAT LAPORAN -->
+          <a href="../Laporan/laporan.html" class="nav-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 8v8M8 12h8" />
+            </svg>
 
-                <span>Dashboard</span>
+            <span>Buat Laporan</span>
+          </a>
 
-            </a>
+          <!-- LAPORAN SAYA -->
+          <a href="../Riwayat-laporan/Riwayat-laporan.html" class="nav-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="5" y="4" width="14" height="17" rx="1" />
+              <path d="M9 4V2h6v2M9 9h6M9 13h6M9 17h4" />
+            </svg>
 
+            <span>Laporan Saya</span>
+          </a>
 
-            <!-- BUAT LAPORAN -->
-            <a href="../Laporan/laporan.html" class="nav-item">
+          <!-- PROFIL -->
+          <a href="../Profil/profil.html" class="nav-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="7" r="4" />
+              <path d="M4 21v-2a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v2z" />
+            </svg>
 
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9"/>
-                    <path d="M12 8v8M8 12h8"/>
-                </svg>
-
-                <span>Buat Laporan</span>
-
-            </a>
-
-
-            <!-- LAPORAN SAYA -->
-            <a href="../Riwayat-laporan/Riwayat-laporan.html" class="nav-item">
-
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="5" y="4" width="14" height="17" rx="1"/>
-                    <path d="M9 4V2h6v2M9 9h6M9 13h6M9 17h4"/>
-                </svg>
-
-                <span>Laporan Saya</span>
-
-            </a>
-
-
-            <!-- PROFIL -->
-            <a href="../Profil/profil.html" class="nav-item">
-
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="7" r="4"/>
-                    <path d="M4 21v-2a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v2z"/>
-                </svg>
-
-                <span>Profil</span>
-
-            </a>
-
+            <span>Profil</span>
+          </a>
         </nav>
-
 
         <!-- KELUAR -->
         <a href="../../../auth/Login.html" class="logout-link">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <path d="M16 17l5-5-5-5" />
+            <path d="M21 12H9" />
+          </svg>
 
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <path d="M16 17l5-5-5-5"/>
-                <path d="M21 12H9"/>
-            </svg>
-
-            <span>Keluar</span>
-
+          <span>Keluar</span>
         </a>
+      </aside>
 
-    </aside>
-
-
-    <!-- ================= KONTEN UTAMA ================= -->
-    <main class="main-content">
-
-
+      <!-- ================= KONTEN UTAMA ================= -->
+      <main class="main-content">
         <!-- HEADER -->
         <header class="top-header">
+          <div class="system-title">
+            <span class="system-dot"></span>
 
-            <div class="system-title">
+            <span> SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS </span>
+          </div>
 
-                <span class="system-dot"></span>
+          <!-- PROFIL PENGGUNA -->
+          <div class="header-profile">
+            <span class="header-name">Ahmad Fauzi</span>
 
-                <span>
-                    SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS
-                </span>
-
+            <div class="header-avatar">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="3.5" />
+                <path d="M5 20c0-3.5 2.8-6 7-6s7 2.5 7 6" />
+              </svg>
             </div>
-
-
-            <!-- PROFIL PENGGUNA -->
-            <div class="header-profile">
-
-                <span class="header-name">Ahmad Fauzi</span>
-
-                <div class="header-avatar">
-
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <circle cx="12" cy="8" r="3.5"/>
-                        <path d="M5 20c0-3.5 2.8-6 7-6s7 2.5 7 6"/>
-                    </svg>
-
-                </div>
-
-            </div>
-
+          </div>
         </header>
-
 
         <!-- ================= AREA HALAMAN ================= -->
         <section class="page-content">
+          <!-- BREADCRUMB -->
+          <div class="breadcrumb">
+            <a href="../Laporan/laporan.html" class="breadcrumb-first">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 8v8M8 12h8" />
+              </svg>
 
+              <span>Buat Laporan</span>
+            </a>
 
-            <!-- BREADCRUMB -->
-            <div class="breadcrumb">
+            <span class="breadcrumb-separator">›</span>
 
-                <a href="../Laporan/laporan.html" class="breadcrumb-first">
+            <span class="breadcrumb-current"> Konfirmasi Pengiriman </span>
+          </div>
 
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <circle cx="12" cy="12" r="9"/>
-                        <path d="M12 8v8M8 12h8"/>
-                    </svg>
+          <!-- ================= KARTU KONFIRMASI ================= -->
+          <div class="confirmation-card">
+            <!-- IKON BERHASIL -->
+            <div class="success-icon">
+              <div class="success-icon-inner">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m5 12 4.5 4.5L19 7" />
+                </svg>
+              </div>
+            </div>
 
-                    <span>Buat Laporan</span>
+            <!-- JUDUL BERHASIL -->
+            <div class="success-heading">
+              <h1>Laporan Berhasil Dikirim!</h1>
 
-                </a>
+              <p>
+                Laporan kerusakan berhasil diterima sistem dan sedang
+                <br class="desktop-break" />
+                menunggu verifikasi petugas Sarpras Informatika UNKHAIR.
+              </p>
+            </div>
 
-                <span class="breadcrumb-separator">›</span>
+            <!-- INFORMASI LAPORAN -->
+            <div class="report-information">
+              <!-- KODE LAPORAN -->
+              <div class="information-row">
+                <span class="information-label"> Kode Laporan </span>
 
-                <span class="breadcrumb-current">
-                    Konfirmasi Pengiriman
+                <strong class="report-code"> LP-2024-089 </strong>
+              </div>
+
+              <!-- NAMA FASILITAS -->
+              <div class="information-row facility-row">
+                <span class="information-label"> Nama Fasilitas </span>
+
+                <div class="information-value">
+                  <strong>Unit AC Split 2 PK</strong>
+
+                  <span>(Ruang Kuliah IF-301)</span>
+                </div>
+              </div>
+
+              <!-- PRIORITAS -->
+              <div class="information-row">
+                <span class="information-label">
+                  Rekomendasi Prioritas Awal
                 </span>
 
+                <span class="priority-badge"> Prioritas Tinggi </span>
+              </div>
+
+              <!-- STATUS LAPORAN -->
+              <div class="information-row">
+                <span class="information-label"> Status Laporan </span>
+
+                <span class="status-badge"> Menunggu Verifikasi </span>
+              </div>
             </div>
 
+            <!-- ================= TOMBOL NAVIGASI ================= -->
+            <div class="confirmation-actions">
+              <!-- LAPORAN SAYA -->
+              <!-- SUDAH DIHUBUNGKAN KE HALAMAN RIWAYAT -->
+              <a
+                href="../Riwayat-laporan/Riwayat-laporan.html"
+                class="my-report-button"
+              >
+                Laporan Saya
+              </a>
 
-            <!-- ================= KARTU KONFIRMASI ================= -->
-            <div class="confirmation-card">
+              <!-- LIHAT DETAIL -->
+              <!-- SUDAH DIHUBUNGKAN KE HALAMAN DETAIL LAPORAN -->
+              <a
+                href="../Detail-laporan/Detail-laporan.html"
+                class="detail-button"
+              >
+                <span>Lihat Detail</span>
 
-
-                <!-- IKON BERHASIL -->
-                <div class="success-icon">
-
-                    <div class="success-icon-inner">
-
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="m5 12 4.5 4.5L19 7"/>
-                        </svg>
-
-                    </div>
-
-                </div>
-
-
-                <!-- JUDUL BERHASIL -->
-                <div class="success-heading">
-
-                    <h1>Laporan Berhasil Dikirim!</h1>
-
-                    <p>
-                        Laporan kerusakan berhasil diterima sistem dan sedang
-                        <br class="desktop-break">
-                        menunggu verifikasi petugas Sarpras Informatika UNKHAIR.
-                    </p>
-
-                </div>
-
-
-                <!-- INFORMASI LAPORAN -->
-                <div class="report-information">
-
-
-                    <!-- KODE LAPORAN -->
-                    <div class="information-row">
-
-                        <span class="information-label">
-                            Kode Laporan
-                        </span>
-
-                        <strong class="report-code">
-                            LP-2024-089
-                        </strong>
-
-                    </div>
-
-
-                    <!-- NAMA FASILITAS -->
-                    <div class="information-row facility-row">
-
-                        <span class="information-label">
-                            Nama Fasilitas
-                        </span>
-
-                        <div class="information-value">
-
-                            <strong>Unit AC Split 2 PK</strong>
-
-                            <span>(Ruang Kuliah IF-301)</span>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- PRIORITAS -->
-                    <div class="information-row">
-
-                        <span class="information-label">
-                            Rekomendasi Prioritas Awal
-                        </span>
-
-                        <span class="priority-badge">
-                            Prioritas Tinggi
-                        </span>
-
-                    </div>
-
-
-                    <!-- STATUS LAPORAN -->
-                    <div class="information-row">
-
-                        <span class="information-label">
-                            Status Laporan
-                        </span>
-
-                        <span class="status-badge">
-                            Menunggu Verifikasi
-                        </span>
-
-                    </div>
-
-
-                </div>
-
-
-                <!-- ================= TOMBOL NAVIGASI ================= -->
-                <div class="confirmation-actions">
-
-
-                    <!-- LAPORAN SAYA -->
-                    <!-- SUDAH DIHUBUNGKAN KE HALAMAN RIWAYAT -->
-                    <a href="../Riwayat-laporan/Riwayat-laporan.html"
-                       class="my-report-button">
-
-                        Laporan Saya
-
-                    </a>
-
-
-                    <!-- LIHAT DETAIL -->
-                    <!-- SUDAH DIHUBUNGKAN KE HALAMAN DETAIL LAPORAN -->
-                    <a href="../Detail-laporan/Detail-laporan.html"
-                       class="detail-button">
-
-                        <span>Lihat Detail</span>
-
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M5 12h14M13 6l6 6-6 6"/>
-                        </svg>
-
-                    </a>
-
-
-                </div>
-
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </a>
             </div>
-
+          </div>
         </section>
-
-    </main>
-
-</div>
-
-</body>
+      </main>
+    </div>
+    <!-- JavaScript Konfirmasi Laporan -->
+    <script src="Konfirmasi-laporan.js"></script>
+  </body>
 </html>

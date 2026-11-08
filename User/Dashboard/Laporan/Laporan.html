@@ -1,372 +1,328 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Buat Laporan Kerusakan | SIPFAS</title>
 
     <!-- FONT INTER -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- CSS KHUSUS HALAMAN LAPORAN -->
-    <link rel="stylesheet" href="laporan.css">
-</head>
+    <link rel="stylesheet" href="laporan.css" />
+  </head>
 
-<body>
-
-<div class="app-container">
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-
+  <body>
+    <div class="app-container">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
         <!-- LOGO SIPFAS -->
         <a href="../Dashboard/dashboard.html" class="sidebar-logo">
-            <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS">
+          <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS" />
 
-            <div class="sidebar-brand">
-                <strong>SIPFAS</strong>
-                <span>Informatika UNKHAIR</span>
-            </div>
+          <div class="sidebar-brand">
+            <strong>SIPFAS</strong>
+            <span>Informatika UNKHAIR</span>
+          </div>
         </a>
 
         <!-- MENU NAVIGASI -->
         <nav class="sidebar-navigation">
+          <a href="../Dashboard/dashboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+            </svg>
+            <span>Dashboard</span>
+          </a>
 
-            <a href="../Dashboard/dashboard.html" class="nav-item">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="3" y="3" width="7" height="7"/>
-                    <rect x="14" y="3" width="7" height="7"/>
-                    <rect x="3" y="14" width="7" height="7"/>
-                    <rect x="14" y="14" width="7" height="7"/>
-                </svg>
-                <span>Dashboard</span>
-            </a>
+          <a href="Laporan.html" class="nav-item active">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 8v8M8 12h8" />
+            </svg>
+            <span>Buat Laporan</span>
+          </a>
 
-            <a href="Laporan.html" class="nav-item active">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9"/>
-                    <path d="M12 8v8M8 12h8"/>
-                </svg>
-                <span>Buat Laporan</span>
-            </a>
+          <!-- DIPERBAIKI: MENU LAPORAN SAYA -->
+          <a href="../Riwayat-laporan/Riwayat-laporan.html" class="nav-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="5" y="4" width="14" height="17" rx="1" />
+              <path d="M9 4V2h6v2M9 9h6M9 13h6M9 17h4" />
+            </svg>
+            <span>Laporan Saya</span>
+          </a>
 
-            <!-- DIPERBAIKI: MENU LAPORAN SAYA -->
-            <a href="../Riwayat-laporan/Riwayat-laporan.html" class="nav-item">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="5" y="4" width="14" height="17" rx="1"/>
-                    <path d="M9 4V2h6v2M9 9h6M9 13h6M9 17h4"/>
-                </svg>
-                <span>Laporan Saya</span>
-            </a>
-
-            <a href="../Profil/Profil.html" class="nav-item">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="7" r="4"/>
-                    <path d="M4 21v-2a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v2z"/>
-                </svg>
-                <span>Profil</span>
-            </a>
-
+          <a href="../Profil/Profil.html" class="nav-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="7" r="4" />
+              <path d="M4 21v-2a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v2z" />
+            </svg>
+            <span>Profil</span>
+          </a>
         </nav>
 
         <!-- KELUAR -->
         <a href="../../../auth/Login.html" class="logout-link">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <path d="M16 17l5-5-5-5"/>
-                <path d="M21 12H9"/>
-            </svg>
-            <span>Keluar</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <path d="M16 17l5-5-5-5" />
+            <path d="M21 12H9" />
+          </svg>
+          <span>Keluar</span>
         </a>
+      </aside>
 
-    </aside>
-
-
-    <!-- KONTEN UTAMA -->
-    <main class="main-content">
-
+      <!-- KONTEN UTAMA -->
+      <main class="main-content">
         <!-- HEADER -->
         <header class="top-header">
+          <div class="system-title">
+            <span class="system-dot"></span>
+            <span>SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS</span>
+          </div>
 
-            <div class="system-title">
-                <span class="system-dot"></span>
-                <span>SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS</span>
+          <div class="header-profile">
+            <span class="header-name">Ahmad Fauzi</span>
+
+            <div class="header-avatar">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="3.5" />
+                <path d="M5 20c0-3.5 2.8-6 7-6s7 2.5 7 6" />
+              </svg>
             </div>
-
-            <div class="header-profile">
-                <span class="header-name">Ahmad Fauzi</span>
-
-                <div class="header-avatar">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <circle cx="12" cy="8" r="3.5"/>
-                        <path d="M5 20c0-3.5 2.8-6 7-6s7 2.5 7 6"/>
-                    </svg>
-                </div>
-            </div>
-
+          </div>
         </header>
-
 
         <!-- AREA HALAMAN -->
         <section class="page-content">
+          <!-- JUDUL -->
+          <div class="page-heading">
+            <h1>Buat Laporan Kerusakan</h1>
 
-            <!-- JUDUL -->
-            <div class="page-heading">
-                <h1>Buat Laporan Kerusakan</h1>
+            <p>
+              Isi formulir berikut dengan data fasilitas dan tingkat kerusakan
+              yang sesuai untuk penentuan prioritas perbaikan secara objektif.
+            </p>
+          </div>
 
-                <p>
-                    Isi formulir berikut dengan data fasilitas dan tingkat kerusakan yang sesuai untuk penentuan prioritas
-                    perbaikan secara objektif.
+          <!-- KARTU FORMULIR -->
+          <div class="form-card">
+            <!-- DIPERBAIKI: FORM MENUJU RIWAYAT LAPORAN -->
+            <form action="../Riwayat-laporan/Riwayat-laporan.html" method="get">
+              <!-- BAGIAN A: INFORMASI FASILITAS -->
+              <div class="form-section-heading">
+                <div class="section-title">
+                  <span class="section-letter">A</span>
+                  <h2>Informasi Fasilitas</h2>
+                </div>
+
+                <span class="step-label">Langkah 1 dari 2</span>
+              </div>
+
+              <!-- LOKASI FASILITAS -->
+              <div class="form-group">
+                <label for="lokasi">
+                  Lokasi Fasilitas <span class="required">*</span>
+                </label>
+
+                <div class="select-wrapper">
+                  <select id="lokasi" name="lokasi" required>
+                    <option value="" selected disabled>
+                      Pilih Lokasi Fasilitas Kampus...
+                    </option>
+                    <option value="gedung-informatika-lt1">
+                      Gedung Informatika Lantai 1
+                    </option>
+                    <option value="gedung-informatika-lt2">
+                      Gedung Informatika Lantai 2
+                    </option>
+                    <option value="gedung-informatika-lt3">
+                      Gedung Informatika Lantai 3
+                    </option>
+                    <option value="laboratorium">Laboratorium Komputer</option>
+                    <option value="ruang-kuliah">Ruang Kuliah</option>
+                  </select>
+
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m7 10 5 5 5-5" />
+                  </svg>
+                </div>
+
+                <small>
+                  Pilih gedung dan zona tempat unit perlengkapan berada.
+                </small>
+              </div>
+
+              <!-- NAMA FASILITAS -->
+              <div class="form-group">
+                <label for="fasilitas">
+                  Nama Fasilitas <span class="required">*</span>
+                </label>
+
+                <div class="select-wrapper">
+                  <select id="fasilitas" name="fasilitas" required>
+                    <option value="" selected disabled>
+                      Pilih Sarana / Inventaris...
+                    </option>
+                    <option value="proyektor">Proyektor</option>
+                    <option value="ac">AC Split</option>
+                    <option value="papan-tulis">Papan Tulis Whiteboard</option>
+                    <option value="stop-kontak">Stop Kontak</option>
+                    <option value="kursi">Kursi Kuliah</option>
+                    <option value="komputer">Komputer</option>
+                    <option value="kipas">Kipas Angin</option>
+                  </select>
+
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m7 10 5 5 5-5" />
+                  </svg>
+                </div>
+
+                <small>
+                  Sesuai label kode inventaris yang tertera pada badan aset.
+                </small>
+              </div>
+
+              <!-- DESKRIPSI KERUSAKAN -->
+              <div class="description-group">
+                <div class="description-label">
+                  <label for="deskripsi">
+                    Deskripsi Kerusakan <span class="required">*</span>
+                  </label>
+
+                  <span class="character-count">0 / 300</span>
+                </div>
+
+                <textarea
+                  id="deskripsi"
+                  name="deskripsi"
+                  maxlength="300"
+                  placeholder="Jelaskan kondisi kerusakan fasilitas, gejala, dan letak spesifik..."
+                  required
+                ></textarea>
+              </div>
+
+              <!-- BAGIAN B: PENILAIAN KERUSAKAN -->
+              <div class="form-section-heading second-section">
+                <div class="section-title">
+                  <span class="section-letter">B</span>
+                  <h2>Penilaian Kerusakan</h2>
+                </div>
+
+                <span class="step-label">Langkah 2 dari 2</span>
+              </div>
+
+              <!-- TINGKAT KERUSAKAN -->
+              <div class="assessment-group">
+                <h3>1. Tingkat Kerusakan</h3>
+
+                <p class="assessment-description">
+                  Pilih tingkat keparahan fisik fasilitas saat ini.
                 </p>
-            </div>
 
-
-            <!-- KARTU FORMULIR -->
-            <div class="form-card">
-
-                <!-- DIPERBAIKI: FORM MENUJU RIWAYAT LAPORAN -->
-                <form action="../Riwayat-laporan/Riwayat-laporan.html" method="get">
-
-                    <!-- BAGIAN A: INFORMASI FASILITAS -->
-                    <div class="form-section-heading">
-
-                        <div class="section-title">
-                            <span class="section-letter">A</span>
-                            <h2>Informasi Fasilitas</h2>
-                        </div>
-
-                        <span class="step-label">Langkah 1 dari 2</span>
-
-                    </div>
-
-
-                    <!-- LOKASI FASILITAS -->
-                    <div class="form-group">
-
-                        <label for="lokasi">
-                            Lokasi Fasilitas <span class="required">*</span>
-                        </label>
-
-                        <div class="select-wrapper">
-
-                            <select id="lokasi" name="lokasi" required>
-                                <option value="" selected disabled>
-                                    Pilih Lokasi Fasilitas Kampus...
-                                </option>
-                                <option value="gedung-informatika-lt1">Gedung Informatika Lantai 1</option>
-                                <option value="gedung-informatika-lt2">Gedung Informatika Lantai 2</option>
-                                <option value="gedung-informatika-lt3">Gedung Informatika Lantai 3</option>
-                                <option value="laboratorium">Laboratorium Komputer</option>
-                                <option value="ruang-kuliah">Ruang Kuliah</option>
-                            </select>
-
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="m7 10 5 5 5-5"/>
-                            </svg>
-
-                        </div>
-
-                        <small>
-                            Pilih gedung dan zona tempat unit perlengkapan berada.
-                        </small>
-
-                    </div>
-
-
-                    <!-- NAMA FASILITAS -->
-                    <div class="form-group">
-
-                        <label for="fasilitas">
-                            Nama Fasilitas <span class="required">*</span>
-                        </label>
-
-                        <div class="select-wrapper">
-
-                            <select id="fasilitas" name="fasilitas" required>
-                                <option value="" selected disabled>
-                                    Pilih Sarana / Inventaris...
-                                </option>
-                                <option value="proyektor">Proyektor</option>
-                                <option value="ac">AC Split</option>
-                                <option value="papan-tulis">Papan Tulis Whiteboard</option>
-                                <option value="stop-kontak">Stop Kontak</option>
-                                <option value="kursi">Kursi Kuliah</option>
-                                <option value="komputer">Komputer</option>
-                                <option value="kipas">Kipas Angin</option>
-                            </select>
-
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="m7 10 5 5 5-5"/>
-                            </svg>
-
-                        </div>
-
-                        <small>
-                            Sesuai label kode inventaris yang tertera pada badan aset.
-                        </small>
-
-                    </div>
-
-
-                    <!-- DESKRIPSI KERUSAKAN -->
-                    <div class="description-group">
-
-                        <div class="description-label">
-
-                            <label for="deskripsi">
-                                Deskripsi Kerusakan <span class="required">*</span>
-                            </label>
-
-                            <span class="character-count">0 / 300</span>
-
-                        </div>
-
-                        <textarea
-                            id="deskripsi"
-                            name="deskripsi"
-                            maxlength="300"
-                            placeholder="Jelaskan kondisi kerusakan fasilitas, gejala, dan letak spesifik..."
-                            required
-                        ></textarea>
-
-                    </div>
-
-
-                    <!-- BAGIAN B: PENILAIAN KERUSAKAN -->
-                    <div class="form-section-heading second-section">
-
-                        <div class="section-title">
-                            <span class="section-letter">B</span>
-                            <h2>Penilaian Kerusakan</h2>
-                        </div>
-
-                        <span class="step-label">Langkah 2 dari 2</span>
-
-                    </div>
-
-
-                    <!-- TINGKAT KERUSAKAN -->
-                    <div class="assessment-group">
-
-                        <h3>1. Tingkat Kerusakan</h3>
-
-                        <p class="assessment-description">
-                            Pilih tingkat keparahan fisik fasilitas saat ini.
-                        </p>
-
-                        <div class="radio-options">
-
-                            <label class="radio-card">
-                                <input type="radio" name="tingkat" value="ringan" checked>
-
-                                <span class="radio-content">
-                                    <strong>Ringan</strong>
-                                    <small>Fasilitas masih berfungsi dengan gangguan kecil.</small>
-                                </span>
-                            </label>
-
-
-                            <label class="radio-card">
-                                <input type="radio" name="tingkat" value="sedang">
-
-                                <span class="radio-content">
-                                    <strong>Sedang</strong>
-                                    <small>Fungsi fasilitas terganggu.</small>
-                                </span>
-                            </label>
-
-
-                            <label class="radio-card">
-                                <input type="radio" name="tingkat" value="berat">
-
-                                <span class="radio-content">
-                                    <strong>Berat</strong>
-                                    <small>Fasilitas tidak dapat digunakan.</small>
-                                </span>
-                            </label>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- DAMPAK KEGIATAN AKADEMIK -->
-                    <div class="assessment-group impact-group">
-
-                        <h3>2. Dampak terhadap Kegiatan Akademik</h3>
-
-                        <p class="assessment-description">
-                            Pilih dampak kerusakan terhadap proses perkuliahan atau praktikum.
-                        </p>
-
-                        <div class="radio-options">
-
-                            <label class="radio-card">
-                                <input type="radio" name="dampak" value="rendah" checked>
-
-                                <span class="radio-content">
-                                    <strong>Rendah</strong>
-                                    <small>Kegiatan tetap berjalan.</small>
-                                </span>
-                            </label>
-
-
-                            <label class="radio-card">
-                                <input type="radio" name="dampak" value="sedang">
-
-                                <span class="radio-content">
-                                    <strong>Sedang</strong>
-                                    <small>Kegiatan terganggu tetapi masih berlangsung.</small>
-                                </span>
-                            </label>
-
-
-                            <label class="radio-card">
-                                <input type="radio" name="dampak" value="tinggi">
-
-                                <span class="radio-content">
-                                    <strong>Tinggi</strong>
-                                    <small>Kegiatan utama terhenti.</small>
-                                </span>
-                            </label>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- TOMBOL AKSI -->
-                    <div class="form-actions">
-
-                        <a href="../Dashboard/dashboard.html" class="cancel-button">
-                            Batal
-                        </a>
-
-                        <button type="submit" class="submit-button">
-
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="m5 5 14 7-14 7V5Z"/>
-                            </svg>
-
-                            Kirim Laporan
-
-                        </button>
-
-                    </div>
-
-                </form>
-
-            </div>
-
+                <div class="radio-options">
+                  <label class="radio-card">
+                    <input type="radio" name="tingkat" value="ringan" checked />
+
+                    <span class="radio-content">
+                      <strong>Ringan</strong>
+                      <small
+                        >Fasilitas masih berfungsi dengan gangguan kecil.</small
+                      >
+                    </span>
+                  </label>
+
+                  <label class="radio-card">
+                    <input type="radio" name="tingkat" value="sedang" />
+
+                    <span class="radio-content">
+                      <strong>Sedang</strong>
+                      <small>Fungsi fasilitas terganggu.</small>
+                    </span>
+                  </label>
+
+                  <label class="radio-card">
+                    <input type="radio" name="tingkat" value="berat" />
+
+                    <span class="radio-content">
+                      <strong>Berat</strong>
+                      <small>Fasilitas tidak dapat digunakan.</small>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- DAMPAK KEGIATAN AKADEMIK -->
+              <div class="assessment-group impact-group">
+                <h3>2. Dampak terhadap Kegiatan Akademik</h3>
+
+                <p class="assessment-description">
+                  Pilih dampak kerusakan terhadap proses perkuliahan atau
+                  praktikum.
+                </p>
+
+                <div class="radio-options">
+                  <label class="radio-card">
+                    <input type="radio" name="dampak" value="rendah" checked />
+
+                    <span class="radio-content">
+                      <strong>Rendah</strong>
+                      <small>Kegiatan tetap berjalan.</small>
+                    </span>
+                  </label>
+
+                  <label class="radio-card">
+                    <input type="radio" name="dampak" value="sedang" />
+
+                    <span class="radio-content">
+                      <strong>Sedang</strong>
+                      <small
+                        >Kegiatan terganggu tetapi masih berlangsung.</small
+                      >
+                    </span>
+                  </label>
+
+                  <label class="radio-card">
+                    <input type="radio" name="dampak" value="tinggi" />
+
+                    <span class="radio-content">
+                      <strong>Tinggi</strong>
+                      <small>Kegiatan utama terhenti.</small>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- TOMBOL AKSI -->
+              <div class="form-actions">
+                <a href="../Dashboard/dashboard.html" class="cancel-button">
+                  Batal
+                </a>
+
+                <button type="submit" class="submit-button">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="m5 5 14 7-14 7V5Z" />
+                  </svg>
+
+                  Kirim Laporan
+                </button>
+              </div>
+            </form>
+          </div>
         </section>
+      </main>
+    </div>
 
-    </main>
-
-</div>
-
-</body>
+    <!-- JavaScript Halaman Buat Laporan -->
+    <script src="Laporan.js"></script>
+  </body>
 </html>
