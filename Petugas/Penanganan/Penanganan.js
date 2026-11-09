@@ -1,1159 +1,867 @@
 
-/* =========================================================
+/* ============================================================
    SIPFAS - PENANGANAN FASILITAS
    File: Penanganan.js
 
    FUNGSI:
-   1. Mengambil laporan yang sudah diverifikasi valid.
-   2. Menampilkan laporan pada daftar penanganan.
-   3. Mengintegrasikan data hasil verifikasi.
-   4. Mengintegrasikan status penanganan.
-   5. Menyimpan dan membaca status penanganan.
-   6. Pencarian laporan.
-   7. Filter prioritas C4.5.
-   8. Sinkronisasi perubahan data.
-   9. Navigasi halaman detail penanganan.
-   10. Sidebar responsif.
-   11. Konfirmasi keluar sistem.
+   1. Menampilkan laporan yang sudah diverifikasi valid.
+   2. Mengambil prioritas terbaru dari hasil verifikasi.
+   3. Menampilkan status penanganan terbaru.
+   4. Menyimpan dan membaca data penanganan.
+   5. Pencarian laporan.
+   6. Filter berdasarkan prioritas.
+   7. Navigasi ke Detail Penanganan.
+   8. Sinkronisasi Local Storage.
+   9. Sidebar responsif.
+   10. Konfirmasi keluar.
 
-   SUMBER DATA:
+   LOCAL STORAGE:
    - sipfas_verifikasi_laporan
    - sipfas_penanganan_laporan
-========================================================= */
+   - sipfas_selected_report
+============================================================ */
 
+(() => {
+    "use strict";
 
-document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", initialize);
 
-    /* =====================================================
-       1. KONFIGURASI PENYIMPANAN
-    ===================================================== */
+    function initialize() {
 
-    const VERIFICATION_KEY = "sipfas_verifikasi_laporan";
+        /* ====================================================
+           1. KONFIGURASI
+        ==================================================== */
 
-    const HANDLING_KEY = "sipfas_penanganan_laporan";
+        const VERIFICATION_KEY = "sipfas_verifikasi_laporan";
+        const HANDLING_KEY = "sipfas_penanganan_laporan";
+        const SELECTED_REPORT_KEY = "sipfas_selected_report";
 
+        const HANDLING_STATUS = {
+            waiting: {
+                label: "Menunggu Perbaikan",
+                className: "waiting",
+                icon: "⌛"
+            },
+            processing: {
+                label: "Diproses",
+                className: "processing",
+                icon: "↻"
+            },
+            completed: {
+                label: "Selesai",
+                className: "completed",
+                icon: "✓"
+            }
+        };
 
-    /* =====================================================
-       2. MENGAMBIL ELEMEN HTML
-    ===================================================== */
+        /* ====================================================
+           2. ELEMEN HTML
+        ==================================================== */
 
-    const searchInput = document.getElementById("searchHandling");
+        const $ = id => document.getElementById(id);
 
-    const priorityFilter = document.getElementById("priorityHandling");
+        const searchInput = $("searchHandling");
+        const priorityFilter = $("priorityHandling");
 
-    const table = document.querySelector(".handling-table");
+        const table = document.querySelector(".handling-table");
+        const tableBody = table?.querySelector("tbody");
 
-    const tableBody = table
-        ? table.querySelector("tbody")
-        : null;
+        const emptyState = $("emptyHandling");
 
-    const emptyState = document.getElementById("emptyHandling");
+        const sidebar = $("sidebar");
+        const menuToggle = $("menuToggle");
+        const pageOverlay = $("pageOverlay");
+        const logoutLink = $("logoutLink");
 
-    const sidebar = document.getElementById("sidebar");
-
-    const menuToggle = document.getElementById("menuToggle");
-
-    const pageOverlay = document.getElementById("pageOverlay");
-
-    const logoutLink = document.getElementById("logoutLink");
-
-
-    /* =====================================================
-       3. VALIDASI ELEMEN
-    ===================================================== */
-
-    if (!searchInput || !priorityFilter || !tableBody) {
-
-        console.error(
-            "Elemen pencarian, filter, atau tabel penanganan tidak ditemukan."
-        );
-
-        return;
-
-    }
-
-
-    /* =====================================================
-       4. KONFIGURASI STATUS PENANGANAN
-    ===================================================== */
-
-    const HANDLING_STATUS = {
-
-        waiting: {
-            label: "Menunggu Perbaikan",
-            className: "waiting",
-            icon: "⌛"
-        },
-
-        processing: {
-            label: "Diproses",
-            className: "processing",
-            icon: "↻"
-        },
-
-        completed: {
-            label: "Selesai",
-            className: "completed",
-            icon: "✓"
+        if (!searchInput || !priorityFilter || !tableBody) {
+            console.error(
+                "[SIPFAS] Elemen pencarian, filter, atau tabel tidak ditemukan."
+            );
+            return;
         }
 
-    };
+        /* ====================================================
+           3. FUNGSI NORMALISASI
+        ==================================================== */
 
+        function normalizeText(value) {
+            return String(value ?? "")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/\s+/g, " ")
+                .trim()
+                .toLowerCase();
+        }
 
-    /* =====================================================
-       5. NORMALISASI TEKS
-    ===================================================== */
+        // Menyamakan format kode laporan, termasuk kode yang
+        // terpisah oleh baris baru di dalam tabel HTML.
+        function normalizeReportCode(value) {
+            return String(value ?? "")
+                .replace(/\s+/g, "")
+                .trim()
+                .toUpperCase();
+        }
 
-    function normalizeText(text) {
-
-        return String(text || "")
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/\s+/g, " ")
-            .trim()
-            .toLowerCase();
-
-    }
-
-
-    /* =====================================================
-       6. MEMBACA LOCAL STORAGE
-    ===================================================== */
-
-    function readStorage(key) {
-
-        try {
-
-            const rawData = localStorage.getItem(key);
-
-            if (!rawData) {
-                return {};
-            }
-
-            const parsedData = JSON.parse(rawData);
+        function normalizePriority(value) {
+            const text = normalizeText(value);
 
             if (
-                !parsedData ||
-                typeof parsedData !== "object" ||
-                Array.isArray(parsedData)
+                text.includes("tinggi") ||
+                text === "high"
             ) {
+                return "tinggi";
+            }
 
+            if (
+                text.includes("sedang") ||
+                text === "medium"
+            ) {
+                return "sedang";
+            }
+
+            if (
+                text.includes("rendah") ||
+                text === "low"
+            ) {
+                return "rendah";
+            }
+
+            return "tidak diketahui";
+        }
+
+        function normalizeDecision(value) {
+            const text = normalizeText(value);
+
+            if (
+                text === "valid" ||
+                text === "laporan valid"
+            ) {
+                return "valid";
+            }
+
+            if (
+                text === "invalid" ||
+                text === "tidak valid" ||
+                text === "laporan tidak valid"
+            ) {
+                return "invalid";
+            }
+
+            return "";
+        }
+
+        function normalizeHandlingStatus(status) {
+            const value = normalizeText(status);
+
+            if (
+                value === "selesai" ||
+                value === "completed" ||
+                value === "selesai ditangani" ||
+                value === "selesai diperbaiki"
+            ) {
+                return "completed";
+            }
+
+            if (
+                value === "diproses" ||
+                value === "processing" ||
+                value === "sedang diproses" ||
+                value === "dalam proses"
+            ) {
+                return "processing";
+            }
+
+            return "waiting";
+        }
+
+        /* ====================================================
+           4. MEMBACA LOCAL STORAGE
+        ==================================================== */
+
+        function readStorage(key) {
+            try {
+                const raw = localStorage.getItem(key);
+
+                if (raw === null) {
+                    return {};
+                }
+
+                const data = JSON.parse(raw);
+
+                if (
+                    !data ||
+                    typeof data !== "object" ||
+                    Array.isArray(data)
+                ) {
+                    throw new Error("Format penyimpanan tidak valid.");
+                }
+
+                return data;
+
+            } catch (error) {
                 console.error(
-                    "Format penyimpanan tidak valid:",
-                    key
+                    `[SIPFAS] Gagal membaca ${key}:`,
+                    error
                 );
 
                 return null;
+            }
+        }
 
+        /* ====================================================
+           5. DATA CADANGAN DARI HTML
+        ==================================================== */
+
+        const originalReportData = {};
+
+        Array.from(tableBody.querySelectorAll("tr")).forEach(row => {
+            const code = normalizeReportCode(
+                row.cells[0]?.innerText
+            );
+
+            if (!code) return;
+
+            const facilityCell = row.cells[1];
+            const locationCell = row.cells[2];
+            const priorityCell = row.cells[3];
+            const dateCell = row.cells[5];
+
+            originalReportData[code] = {
+                facility:
+                    facilityCell?.querySelector("strong")?.textContent.trim() || "",
+
+                damage:
+                    facilityCell?.querySelector("small")?.textContent.trim() || "",
+
+                location:
+                    locationCell?.innerText.trim() || "",
+
+                priority:
+                    priorityCell?.innerText.trim() || "",
+
+                date:
+                    dateCell?.innerText.trim() || ""
+            };
+        });
+
+        /* ====================================================
+           6. MENGAMBIL IDENTITAS LAPORAN
+        ==================================================== */
+
+        function getReportCode(verification, storageKey = "") {
+            return normalizeReportCode(
+                verification?.reportCode ||
+                verification?.id ||
+                storageKey
+            );
+        }
+
+        /* ====================================================
+           7. VALIDASI KELAYAKAN PENANGANAN
+        ==================================================== */
+
+        function isEligibleForHandling(verification) {
+            if (!verification) return false;
+
+            const decision = normalizeDecision(
+                verification.decision ||
+                verification.decisionLabel
+            );
+
+            // Hanya laporan yang dinyatakan valid yang diteruskan.
+            if (decision !== "valid") {
+                return false;
             }
 
-            return parsedData;
-
-        } catch (error) {
-
-            console.error(
-                "Gagal membaca Local Storage:",
-                key,
-                error
+            const status = normalizeText(
+                verification.status || ""
             );
 
-            return null;
+            // Mendukung status hasil verifikasi dari versi lama.
+            if (
+                status &&
+                ![
+                    "selesai diverifikasi",
+                    "terverifikasi",
+                    "verified"
+                ].includes(status)
+            ) {
+                return false;
+            }
 
+            return true;
         }
 
-    }
+        /* ====================================================
+           8. MEMBUAT BADGE STATUS
+        ==================================================== */
 
+        function createStatusBadge(status) {
+            const normalized = normalizeHandlingStatus(status);
+            const config = HANDLING_STATUS[normalized];
 
-    /* =====================================================
-       7. MEMBACA DATA VERIFIKASI
-    ===================================================== */
+            const badge = document.createElement("span");
 
-    function getVerificationData() {
+            badge.className =
+                `status-badge ${config.className}`;
 
-        return readStorage(VERIFICATION_KEY);
+            badge.dataset.status = normalized;
 
-    }
+            const icon = document.createElement("span");
 
+            icon.setAttribute("aria-hidden", "true");
+            icon.textContent = config.icon;
 
-    /* =====================================================
-       8. MEMBACA DATA PENANGANAN
-    ===================================================== */
+            badge.appendChild(icon);
 
-    function getHandlingData() {
-
-        return readStorage(HANDLING_KEY);
-
-    }
-
-
-    /* =====================================================
-       9. NORMALISASI PRIORITAS C4.5
-    ===================================================== */
-
-    function normalizePriority(priority) {
-
-        const value = normalizeText(priority);
-
-        if (
-            value.includes("tinggi") ||
-            value === "high"
-        ) {
-
-            return "tinggi";
-
-        }
-
-        if (
-            value.includes("sedang") ||
-            value === "medium"
-        ) {
-
-            return "sedang";
-
-        }
-
-        if (
-            value.includes("rendah") ||
-            value === "low"
-        ) {
-
-            return "rendah";
-
-        }
-
-        return "tidak diketahui";
-
-    }
-
-
-    /* =====================================================
-       10. NORMALISASI STATUS PENANGANAN
-    ===================================================== */
-
-    function normalizeHandlingStatus(status) {
-
-        const value = normalizeText(status);
-
-        if (
-            value === "selesai" ||
-            value === "completed" ||
-            value === "selesai ditangani" ||
-            value === "selesai diperbaiki"
-        ) {
-
-            return "completed";
-
-        }
-
-        if (
-            value === "diproses" ||
-            value === "processing" ||
-            value === "sedang diproses" ||
-            value === "dalam proses"
-        ) {
-
-            return "processing";
-
-        }
-
-        return "waiting";
-
-    }
-
-
-    /* =====================================================
-       11. MENGAMBIL DATA TABEL HTML AWAL
-    ===================================================== */
-
-    // Data HTML hanya menjadi sumber cadangan untuk informasi
-    // yang belum tersedia pada objek hasil verifikasi.
-    // Data verifikasi tetap menjadi sumber utama.
-
-    const originalRows = Array.from(
-        tableBody.querySelectorAll("tr")
-    );
-
-    const originalReportData = {};
-
-    originalRows.forEach(function (row) {
-
-        const reportCode = (
-            row.cells[0]?.innerText || ""
-        ).trim();
-
-        if (!reportCode) {
-            return;
-        }
-
-        const facilityCell = row.cells[1];
-
-        const locationCell = row.cells[2];
-
-        const priorityCell = row.cells[3];
-
-        const dateCell = row.cells[5];
-
-        originalReportData[reportCode] = {
-
-            facility:
-                facilityCell?.querySelector("strong")?.textContent.trim() || "",
-
-            damage:
-                facilityCell?.querySelector("small")?.textContent.trim() || "",
-
-            location:
-                locationCell?.innerText.trim() || "",
-
-            priority:
-                priorityCell?.innerText.trim() || "",
-
-            date:
-                dateCell?.innerText.trim() || ""
-
-        };
-
-    });
-
-
-    /* =====================================================
-       12. MENGAMBIL KODE LAPORAN
-    ===================================================== */
-
-    function getReportCode(verification) {
-
-        return String(
-            verification?.reportCode ||
-            verification?.id ||
-            ""
-        ).trim();
-
-    }
-
-
-    /* =====================================================
-       13. MEMBUAT BADGE STATUS
-    ===================================================== */
-
-    function createStatusBadge(status) {
-
-        const normalizedStatus = normalizeHandlingStatus(status);
-
-        const configuration = HANDLING_STATUS[normalizedStatus];
-
-        const badge = document.createElement("span");
-
-        badge.className =
-            "status-badge " + configuration.className;
-
-        const icon = document.createElement("span");
-
-        icon.setAttribute("aria-hidden", "true");
-
-        icon.textContent = configuration.icon;
-
-        badge.appendChild(icon);
-
-        badge.appendChild(
-            document.createTextNode(configuration.label)
-        );
-
-        badge.setAttribute(
-            "aria-label",
-            configuration.label
-        );
-
-        return badge;
-
-    }
-
-
-    /* =====================================================
-       14. MEMBUAT BARIS LAPORAN
-    ===================================================== */
-
-    function createReportRow(verification, handlingData) {
-
-        const reportCode = getReportCode(verification);
-
-        const original = originalReportData[reportCode] || {};
-
-        // Prioritas menggunakan data hasil verifikasi.
-        const priority = normalizePriority(
-            verification.priority || original.priority
-        );
-
-        // Data fasilitas menggunakan hasil verifikasi.
-        const facility =
-            verification.facilityName ||
-            original.facility ||
-            "Data fasilitas tidak tersedia";
-
-        const damage =
-            verification.damage ||
-            original.damage ||
-            "Deskripsi kerusakan tidak tersedia";
-
-        const location =
-            verification.facilityLocation ||
-            original.location ||
-            "Lokasi tidak tersedia";
-
-        // Tanggal laporan tidak selalu tersedia pada hasil verifikasi.
-        const reportDate =
-            verification.reportDate ||
-            verification.date ||
-            original.date ||
-            "—";
-
-        // Mengambil status penanganan yang sudah disimpan.
-        const savedHandling = handlingData[reportCode] || {};
-
-        const handlingStatus = normalizeHandlingStatus(
-            savedHandling.status ||
-            savedHandling.handlingStatus ||
-            savedHandling.statusPenanganan ||
-            "waiting"
-        );
-
-
-        /* ================================================
-           MEMBUAT BARIS TABEL
-        ================================================ */
-
-        const row = document.createElement("tr");
-
-        row.dataset.priority = priority;
-
-        row.dataset.reportCode = reportCode;
-
-        row.dataset.verificationStatus = "valid";
-
-        row.dataset.handlingStatus = handlingStatus;
-
-
-        /* ================================================
-           KOLOM 1: KODE LAPORAN
-        ================================================ */
-
-        const codeCell = document.createElement("td");
-
-        const codeBadge = document.createElement("span");
-
-        codeBadge.className =
-            "report-id " + priority;
-
-        codeBadge.textContent = reportCode;
-
-        codeCell.appendChild(codeBadge);
-
-
-        /* ================================================
-           KOLOM 2: FASILITAS DAN KERUSAKAN
-        ================================================ */
-
-        const facilityCell = document.createElement("td");
-
-        facilityCell.className = "facility";
-
-        const facilityName = document.createElement("strong");
-
-        facilityName.textContent = facility;
-
-        const damageDescription = document.createElement("small");
-
-        damageDescription.textContent = damage;
-
-        facilityCell.appendChild(facilityName);
-
-        facilityCell.appendChild(damageDescription);
-
-
-        /* ================================================
-           KOLOM 3: LOKASI
-        ================================================ */
-
-        const locationCell = document.createElement("td");
-
-        const locationElement = document.createElement("span");
-
-        locationElement.className = "location";
-
-        locationElement.textContent = location;
-
-        locationCell.appendChild(locationElement);
-
-
-        /* ================================================
-           KOLOM 4: PRIORITAS C4.5
-        ================================================ */
-
-        const priorityCell = document.createElement("td");
-
-        const priorityBadge = document.createElement("span");
-
-        priorityBadge.className =
-            "priority-badge " + priority;
-
-        priorityBadge.textContent =
-            priority === "tidak diketahui"
-                ? "Tidak Diketahui"
-                : priority.charAt(0).toUpperCase() +
-                  priority.slice(1);
-
-        priorityCell.appendChild(priorityBadge);
-
-
-        /* ================================================
-           KOLOM 5: STATUS PENANGANAN
-        ================================================ */
-
-        const statusCell = document.createElement("td");
-
-        statusCell.appendChild(
-            createStatusBadge(handlingStatus)
-        );
-
-
-        /* ================================================
-           KOLOM 6: TANGGAL LAPORAN
-        ================================================ */
-
-        const dateCell = document.createElement("td");
-
-        dateCell.className = "date";
-
-        dateCell.textContent = reportDate;
-
-
-        /* ================================================
-           KOLOM 7: AKSI
-        ================================================ */
-
-        const actionCell = document.createElement("td");
-
-        const manageLink = document.createElement("a");
-
-        manageLink.className = "manage-button";
-
-        manageLink.href =
-            "../Detail-Penanganan/Detail-Penanganan.html?kode=" +
-            encodeURIComponent(reportCode);
-
-        // Ikon aksi.
-        const actionIcon = document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "svg"
-        );
-
-        actionIcon.setAttribute("viewBox", "0 0 24 24");
-
-        actionIcon.setAttribute("aria-hidden", "true");
-
-        const iconCircle = document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "circle"
-        );
-
-        iconCircle.setAttribute("cx", "9");
-
-        iconCircle.setAttribute("cy", "7");
-
-        iconCircle.setAttribute("r", "2.5");
-
-        const iconPath = document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "path"
-        );
-
-        iconPath.setAttribute(
-            "d",
-            "M3 19v-2a5 5 0 0 1 10 0v2H3ZM17 4v5m-2.5-2.5h5M15 14h6v5h-6z"
-        );
-
-        actionIcon.appendChild(iconCircle);
-
-        actionIcon.appendChild(iconPath);
-
-        manageLink.appendChild(actionIcon);
-
-        manageLink.appendChild(
-            document.createTextNode("Kelola Penanganan")
-        );
-
-        actionCell.appendChild(manageLink);
-
-
-        /* ================================================
-           MEMASUKKAN SEMUA KOLOM KE BARIS
-        ================================================ */
-
-        row.appendChild(codeCell);
-
-        row.appendChild(facilityCell);
-
-        row.appendChild(locationCell);
-
-        row.appendChild(priorityCell);
-
-        row.appendChild(statusCell);
-
-        row.appendChild(dateCell);
-
-        row.appendChild(actionCell);
-
-
-        /* ================================================
-           DATA UNTUK PENCARIAN
-        ================================================ */
-
-        row.dataset.search = normalizeText([
-
-            reportCode,
-
-            facility,
-
-            damage,
-
-            location,
-
-            priority,
-
-            reportDate,
-
-            handlingStatus
-
-        ].join(" "));
-
-        return row;
-
-    }
-
-
-    /* =====================================================
-       15. VALIDASI LAPORAN SEBELUM MASUK PENANGANAN
-    ===================================================== */
-
-    function isEligibleForHandling(verification) {
-
-        if (!verification) {
-            return false;
-        }
-
-        // Hanya keputusan valid yang boleh diteruskan.
-        if (verification.decision !== "valid") {
-            return false;
-        }
-
-        // Status harus berasal dari hasil verifikasi tersimpan.
-        if (
-            verification.status &&
-            verification.status !== "Selesai Diverifikasi"
-        ) {
-
-            return false;
-
-        }
-
-        return true;
-
-    }
-
-
-    /* =====================================================
-       16. MEMUAT DAN MENYINKRONKAN DAFTAR PENANGANAN
-    ===================================================== */
-
-    function loadHandlingReports() {
-
-        const verificationData = getVerificationData();
-
-        const handlingData = getHandlingData();
-
-        // Jika penyimpanan gagal dibaca, jangan menampilkan
-        // data contoh seolah-olah merupakan data aktual.
-        if (
-            verificationData === null ||
-            handlingData === null
-        ) {
-
-            tableBody.replaceChildren();
-
-            showEmptyState(
-                "Data verifikasi atau penanganan tidak dapat dibaca. Periksa Local Storage."
+            badge.appendChild(
+                document.createTextNode(` ${config.label}`)
             );
 
-            console.error(
-                "Pemuatan daftar penanganan dibatalkan."
+            badge.setAttribute(
+                "aria-label",
+                config.label
             );
 
-            return;
-
+            return badge;
         }
 
+        /* ====================================================
+           9. MEMBUAT BADGE PRIORITAS
+        ==================================================== */
 
-        // Mengambil laporan yang telah diverifikasi valid.
-        const eligibleReports = Object.values(
-            verificationData
-        ).filter(isEligibleForHandling);
+        function createPriorityBadge(priority) {
+            const badge = document.createElement("span");
 
+            badge.className =
+                `priority-badge ${priority}`;
 
-        // Menghindari duplikasi kode laporan.
-        const uniqueReports = new Map();
+            badge.dataset.priority = priority;
 
-        eligibleReports.forEach(function (report) {
+            const labels = {
+                tinggi: "Tinggi",
+                sedang: "Sedang",
+                rendah: "Rendah",
+                "tidak diketahui": "Tidak Diketahui"
+            };
 
-            const reportCode = getReportCode(report);
+            badge.textContent =
+                labels[priority] || "Tidak Diketahui";
 
-            if (!reportCode) {
+            return badge;
+        }
+
+        /* ====================================================
+           10. MEMBUAT BARIS LAPORAN
+        ==================================================== */
+
+        function createReportRow(verification, handlingData, storageKey) {
+
+            const reportCode = getReportCode(
+                verification,
+                storageKey
+            );
+
+            const original =
+                originalReportData[reportCode] || {};
+
+            // Prioritas selalu mengikuti hasil verifikasi terbaru.
+            const priority = normalizePriority(
+                verification.priority ||
+                verification.priorityLabel ||
+                original.priority
+            );
+
+            const facility =
+                verification.facilityName ||
+                verification.facility ||
+                original.facility ||
+                "Data fasilitas tidak tersedia";
+
+            const damage =
+                verification.damageDescription ||
+                verification.description ||
+                original.damage ||
+                "Deskripsi kerusakan tidak tersedia";
+
+            const location =
+                verification.facilityLocation ||
+                verification.location ||
+                original.location ||
+                "Lokasi tidak tersedia";
+
+            const reportDate =
+                verification.reportTime ||
+                verification.reportDate ||
+                verification.date ||
+                original.date ||
+                "—";
+
+            // Mengambil status penanganan berdasarkan kode laporan.
+            const savedHandling =
+                handlingData[reportCode] || {};
+
+            const handlingStatus = normalizeHandlingStatus(
+                savedHandling.status ||
+                savedHandling.handlingStatus ||
+                savedHandling.statusPenanganan ||
+                "waiting"
+            );
+
+            const row = document.createElement("tr");
+
+            row.dataset.priority = priority;
+            row.dataset.reportCode = reportCode;
+            row.dataset.verificationStatus = "valid";
+            row.dataset.handlingStatus = handlingStatus;
+
+            /* KOLOM 1: KODE LAPORAN. */
+
+            const codeCell = document.createElement("td");
+
+            const codeBadge = document.createElement("span");
+
+            codeBadge.className = `report-id ${priority}`;
+            codeBadge.textContent = reportCode;
+
+            codeCell.appendChild(codeBadge);
+
+            /* KOLOM 2: FASILITAS DAN KERUSAKAN. */
+
+            const facilityCell = document.createElement("td");
+
+            facilityCell.className = "facility";
+
+            const facilityName = document.createElement("strong");
+
+            facilityName.textContent = facility;
+
+            const damageDescription = document.createElement("small");
+
+            damageDescription.textContent = damage;
+
+            facilityCell.appendChild(facilityName);
+            facilityCell.appendChild(damageDescription);
+
+            /* KOLOM 3: LOKASI. */
+
+            const locationCell = document.createElement("td");
+
+            const locationElement = document.createElement("span");
+
+            locationElement.className = "location";
+            locationElement.textContent = location;
+
+            locationCell.appendChild(locationElement);
+
+            /* KOLOM 4: PRIORITAS C4.5. */
+
+            const priorityCell = document.createElement("td");
+
+            priorityCell.appendChild(
+                createPriorityBadge(priority)
+            );
+
+            /* KOLOM 5: STATUS PENANGANAN. */
+
+            const statusCell = document.createElement("td");
+
+            statusCell.appendChild(
+                createStatusBadge(handlingStatus)
+            );
+
+            /* KOLOM 6: TANGGAL LAPORAN. */
+
+            const dateCell = document.createElement("td");
+
+            dateCell.className = "date";
+            dateCell.textContent = reportDate;
+
+            /* KOLOM 7: TOMBOL KELOLA. */
+
+            const actionCell = document.createElement("td");
+
+            const manageLink = document.createElement("a");
+
+            manageLink.className = "manage-button";
+
+            const detailURL = new URL(
+                "../Detail-Penanganan/Detail-Penanganan.html",
+                window.location.href
+            );
+
+            detailURL.searchParams.set("kode", reportCode);
+
+            manageLink.href = detailURL.href;
+
+            manageLink.textContent = "Kelola Penanganan";
+
+            // Menyimpan identitas laporan sebelum berpindah halaman.
+            manageLink.addEventListener("click", () => {
+                try {
+                    localStorage.setItem(
+                        SELECTED_REPORT_KEY,
+                        JSON.stringify({
+                            id: reportCode,
+                            reportCode,
+                            reporterName:
+                                verification.reporterName || "",
+                            reporterNim:
+                                verification.reporterNim || "",
+                            facility,
+                            location,
+                            date: reportDate,
+                            priority,
+                            description: damage
+                        })
+                    );
+                } catch (error) {
+                    console.error(
+                        "[SIPFAS] Gagal menyimpan laporan terpilih:",
+                        error
+                    );
+                }
+            });
+
+            actionCell.appendChild(manageLink);
+
+            /* MENGGABUNGKAN KOLOM. */
+
+            row.append(
+                codeCell,
+                facilityCell,
+                locationCell,
+                priorityCell,
+                statusCell,
+                dateCell,
+                actionCell
+            );
+
+            /* DATA PENCARIAN. */
+
+            row.dataset.search = normalizeText([
+                reportCode,
+                facility,
+                damage,
+                location,
+                priority,
+                reportDate,
+                handlingStatus
+            ].join(" "));
+
+            return row;
+        }
+
+        /* ====================================================
+           11. MEMUAT DAFTAR PENANGANAN
+        ==================================================== */
+
+        function loadHandlingReports() {
+
+            const verificationData =
+                readStorage(VERIFICATION_KEY);
+
+            const handlingData =
+                readStorage(HANDLING_KEY);
+
+            if (
+                verificationData === null ||
+                handlingData === null
+            ) {
+                tableBody.replaceChildren();
+
+                showEmptyState(
+                    "Data verifikasi atau penanganan tidak dapat dibaca. Periksa Local Storage."
+                );
+
                 return;
             }
 
-            uniqueReports.set(reportCode, report);
+            const uniqueReports = new Map();
 
-        });
+            // Memastikan setiap laporan hanya ditampilkan satu kali.
+            Object.entries(verificationData).forEach(
+                ([key, verification]) => {
 
+                    if (!isEligibleForHandling(verification)) {
+                        return;
+                    }
 
-        // Membuat ulang daftar laporan berdasarkan data aktual.
-        const fragment = document.createDocumentFragment();
+                    const reportCode = getReportCode(
+                        verification,
+                        key
+                    );
 
-        uniqueReports.forEach(function (verification) {
+                    if (!reportCode) return;
 
-            const row = createReportRow(
-                verification,
-                handlingData
+                    uniqueReports.set(reportCode, {
+                        ...verification,
+                        reportCode
+                    });
+                }
             );
 
-            fragment.appendChild(row);
+            const fragment =
+                document.createDocumentFragment();
 
-        });
+            uniqueReports.forEach(verification => {
 
-
-        // Mengganti data contoh HTML dengan hasil sinkronisasi.
-        tableBody.replaceChildren(fragment);
-
-
-        // Memperbarui pencarian dan filter.
-        filterHandling();
-
-
-        console.log(
-            "Sinkronisasi penanganan selesai."
-        );
-
-        console.log(
-            "Jumlah laporan valid:",
-            uniqueReports.size
-        );
-
-    }
-
-
-    /* =====================================================
-       17. PESAN DATA KOSONG
-    ===================================================== */
-
-    function showEmptyState(message) {
-
-        if (!emptyState) {
-            return;
-        }
-
-        emptyState.textContent = message;
-
-        emptyState.hidden = false;
-
-        emptyState.style.display = "block";
-
-    }
-
-
-    /* =====================================================
-       18. PENCARIAN LAPORAN
-    ===================================================== */
-
-    function matchesSearch(row, keyword) {
-
-        if (!keyword) {
-            return true;
-        }
-
-        const reportText = normalizeText(
-            row.dataset.search || row.innerText
-        );
-
-        const searchWords = keyword
-            .split(/\s+/)
-            .filter(Boolean);
-
-        return searchWords.every(function (word) {
-
-            return reportText.includes(word);
-
-        });
-
-    }
-
-
-    /* =====================================================
-       19. FILTER PRIORITAS
-    ===================================================== */
-
-    function matchesPriority(row, selectedPriority) {
-
-        if (
-            !selectedPriority ||
-            selectedPriority === "semua"
-        ) {
-
-            return true;
-
-        }
-
-        return normalizeText(row.dataset.priority) ===
-            selectedPriority;
-
-    }
-
-
-    /* =====================================================
-       20. FUNGSI UTAMA PENCARIAN DAN FILTER
-    ===================================================== */
-
-    function filterHandling() {
-
-        const rows = Array.from(
-            tableBody.querySelectorAll("tr")
-        );
-
-        const keyword = normalizeText(searchInput.value);
-
-        const selectedPriority = normalizeText(
-            priorityFilter.value
-        );
-
-        let visibleCount = 0;
-
-        rows.forEach(function (row) {
-
-            const searchMatch = matchesSearch(
-                row,
-                keyword
-            );
-
-            const priorityMatch = matchesPriority(
-                row,
-                selectedPriority
-            );
-
-            const shouldDisplay =
-                searchMatch && priorityMatch;
-
-            row.hidden = !shouldDisplay;
-
-            if (shouldDisplay) {
-
-                row.style.removeProperty("display");
-
-                visibleCount++;
-
-            } else {
-
-                row.style.setProperty(
-                    "display",
-                    "none",
-                    "important"
+                const row = createReportRow(
+                    verification,
+                    handlingData,
+                    verification.reportCode
                 );
 
+                fragment.appendChild(row);
+            });
+
+            // Mengganti seluruh isi tabel tanpa duplikasi.
+            tableBody.replaceChildren(fragment);
+
+            filterHandling();
+
+            console.log(
+                "[SIPFAS] Daftar penanganan diperbarui:",
+                uniqueReports.size
+            );
+        }
+
+        /* ====================================================
+           12. PESAN DATA KOSONG
+        ==================================================== */
+
+        function showEmptyState(message) {
+            if (!emptyState) return;
+
+            emptyState.textContent = message;
+            emptyState.hidden = false;
+            emptyState.style.display = "block";
+        }
+
+        /* ====================================================
+           13. PENCARIAN LAPORAN
+        ==================================================== */
+
+        function matchesSearch(row, keyword) {
+            if (!keyword) return true;
+
+            const content = normalizeText(
+                row.dataset.search || row.innerText
+            );
+
+            const words = keyword
+                .split(/\s+/)
+                .filter(Boolean);
+
+            return words.every(word =>
+                content.includes(word)
+            );
+        }
+
+        /* ====================================================
+           14. FILTER PRIORITAS
+        ==================================================== */
+
+        function matchesPriority(row, selectedPriority) {
+            if (
+                !selectedPriority ||
+                selectedPriority === "semua"
+            ) {
+                return true;
             }
 
-        });
+            return normalizeText(row.dataset.priority) ===
+                selectedPriority;
+        }
 
+        /* ====================================================
+           15. PENCARIAN DAN FILTER UTAMA
+        ==================================================== */
 
-        // Mengatur pesan data kosong.
-        if (emptyState) {
+        function filterHandling() {
+
+            const rows = Array.from(
+                tableBody.querySelectorAll("tr")
+            );
+
+            const keyword = normalizeText(searchInput.value);
+
+            const selectedPriority = normalizeText(
+                priorityFilter.value
+            );
+
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+
+                const visible =
+                    matchesSearch(row, keyword) &&
+                    matchesPriority(row, selectedPriority);
+
+                row.hidden = !visible;
+
+                if (visible) {
+                    row.style.removeProperty("display");
+                    visibleCount++;
+                } else {
+                    row.style.setProperty(
+                        "display",
+                        "none",
+                        "important"
+                    );
+                }
+            });
+
+            if (!emptyState) return;
 
             if (rows.length === 0) {
 
                 showEmptyState(
-                    "Belum ada laporan yang memenuhi syarat untuk penanganan."
+                    "Belum ada laporan yang memenuhi syarat penanganan."
                 );
 
             } else if (visibleCount === 0) {
 
                 showEmptyState(
-                    "Tidak ada penanganan yang cocok dengan pencarian atau filter."
+                    "Tidak ada laporan yang cocok dengan pencarian atau filter."
                 );
 
             } else {
 
                 emptyState.hidden = true;
-
                 emptyState.style.display = "none";
-
             }
-
         }
 
+        /* ====================================================
+           16. EVENT PENCARIAN DAN FILTER
+        ==================================================== */
 
-        console.log(
-            "Jumlah laporan penanganan ditemukan:",
-            visibleCount
+        searchInput.addEventListener(
+            "input",
+            filterHandling
         );
 
-    }
+        searchInput.addEventListener(
+            "search",
+            filterHandling
+        );
 
+        priorityFilter.addEventListener(
+            "change",
+            filterHandling
+        );
 
-    /* =====================================================
-       21. EVENT PENCARIAN
-    ===================================================== */
+        /* ====================================================
+           17. SINKRONISASI PERUBAHAN DATA
+        ==================================================== */
 
-    searchInput.addEventListener(
-        "input",
-        filterHandling
-    );
+        window.addEventListener(
+            "sipfas:verification-saved",
+            loadHandlingReports
+        );
 
-    searchInput.addEventListener(
-        "search",
-        filterHandling
-    );
+        window.addEventListener(
+            "sipfas:handling-saved",
+            loadHandlingReports
+        );
 
-
-    /* =====================================================
-       22. EVENT FILTER PRIORITAS
-    ===================================================== */
-
-    priorityFilter.addEventListener(
-        "change",
-        filterHandling
-    );
-
-
-    /* =====================================================
-       23. SINKRONISASI PERUBAHAN VERIFIKASI
-    ===================================================== */
-
-    // Event yang dikirim oleh halaman Verifikasi.
-    window.addEventListener(
-        "sipfas:verification-saved",
-        function () {
-
-            loadHandlingReports();
-
-        }
-    );
-
-
-    // Perubahan Local Storage dari tab browser lainnya.
-    window.addEventListener(
-        "storage",
-        function (event) {
+        window.addEventListener("storage", event => {
 
             if (
                 event.key === VERIFICATION_KEY ||
                 event.key === HANDLING_KEY ||
                 event.key === null
             ) {
-
                 loadHandlingReports();
-
             }
+        });
 
-        }
-    );
-
-
-    /* =====================================================
-       24. SINKRONISASI PERUBAHAN PENANGANAN
-    ===================================================== */
-
-    // Event ini dapat dikirim oleh halaman Detail Penanganan
-    // setelah petugas menyimpan perubahan status.
-    window.addEventListener(
-        "sipfas:handling-saved",
-        function () {
-
-            loadHandlingReports();
-
-        }
-    );
-
-
-    /* =====================================================
-       25. MEMUAT ULANG DATA KETIKA HALAMAN DIBUKA
-    ===================================================== */
-
-    window.addEventListener(
-        "pageshow",
-        function () {
-
-            loadHandlingReports();
-
-        }
-    );
-
-
-    /* =====================================================
-       26. SIDEBAR RESPONSIF
-    ===================================================== */
-
-    function setSidebar(isOpen) {
-
-        if (!sidebar) {
-            return;
-        }
-
-        sidebar.classList.toggle(
-            "open",
-            isOpen
+        window.addEventListener(
+            "pageshow",
+            loadHandlingReports
         );
 
-        if (pageOverlay) {
+        document.addEventListener(
+            "visibilitychange",
+            () => {
+                if (!document.hidden) {
+                    loadHandlingReports();
+                }
+            }
+        );
 
-            pageOverlay.classList.toggle(
+        /* ====================================================
+           18. SIDEBAR RESPONSIF
+        ==================================================== */
+
+        function setSidebar(isOpen) {
+            if (!sidebar) return;
+
+            sidebar.classList.toggle("open", isOpen);
+
+            pageOverlay?.classList.toggle(
                 "show",
                 isOpen
             );
 
-        }
-
-        if (menuToggle) {
-
-            menuToggle.setAttribute(
+            menuToggle?.setAttribute(
                 "aria-expanded",
                 String(isOpen)
             );
-
         }
 
-    }
+        menuToggle?.addEventListener("click", () => {
+            setSidebar(
+                !sidebar.classList.contains("open")
+            );
+        });
 
-
-    // Membuka dan menutup sidebar.
-    if (menuToggle) {
-
-        menuToggle.addEventListener(
+        pageOverlay?.addEventListener(
             "click",
-            function () {
-
-                const isOpen = sidebar
-                    ? sidebar.classList.contains("open")
-                    : false;
-
-                setSidebar(!isOpen);
-
-            }
+            () => setSidebar(false)
         );
 
-    }
-
-
-    // Menutup sidebar melalui overlay.
-    if (pageOverlay) {
-
-        pageOverlay.addEventListener(
-            "click",
-            function () {
-
-                setSidebar(false);
-
-            }
-        );
-
-    }
-
-
-    // Menutup sidebar setelah menu dipilih.
-    document.querySelectorAll(".nav-link").forEach(
-        function (link) {
-
+        document.querySelectorAll(".nav-link").forEach(link => {
             link.addEventListener(
                 "click",
-                function () {
+                () => setSidebar(false)
+            );
+        });
 
-                    setSidebar(false);
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape") {
+                setSidebar(false);
+            }
+        });
 
-                }
+        /* ====================================================
+           19. KONFIRMASI KELUAR
+        ==================================================== */
+
+        logoutLink?.addEventListener("click", event => {
+            event.preventDefault();
+
+            const confirmation = window.confirm(
+                "Apakah Anda yakin ingin keluar dari sistem SIPFAS?"
             );
 
-        }
-    );
+            if (!confirmation) return;
 
+            sessionStorage.clear();
 
-    // Menutup sidebar dengan tombol Escape.
-    document.addEventListener(
-        "keydown",
-        function (event) {
+            window.location.href = logoutLink.href;
+        });
 
-            if (event.key === "Escape") {
+        /* ====================================================
+           20. INISIALISASI HALAMAN
+        ==================================================== */
 
-                setSidebar(false);
+        loadHandlingReports();
 
-            }
-
-        }
-    );
-
-
-    /* =====================================================
-       27. KONFIRMASI KELUAR
-    ===================================================== */
-
-    if (logoutLink) {
-
-        logoutLink.addEventListener(
-            "click",
-            function (event) {
-
-                event.preventDefault();
-
-                const confirmation = window.confirm(
-                    "Apakah Anda yakin ingin keluar dari sistem SIPFAS?"
-                );
-
-                if (!confirmation) {
-                    return;
-                }
-
-                // Menghapus sesi sementara.
-                sessionStorage.clear();
-
-                // Mengarahkan pengguna ke halaman tujuan.
-                window.location.href = logoutLink.href;
-
-            }
+        console.log(
+            "[SIPFAS] Halaman Penanganan berhasil diinisialisasi."
         );
-
     }
 
-
-    /* =====================================================
-       28. INISIALISASI HALAMAN
-    ===================================================== */
-
-    // Memuat data verifikasi dan penanganan.
-    loadHandlingReports();
-
-
-    console.log(
-        "========================================"
-    );
-
-    console.log(
-        "SIPFAS - PENANGANAN FASILITAS"
-    );
-
-    console.log(
-        "Program berhasil diinisialisasi."
-    );
-
-    console.log(
-        "Sumber data:",
-        VERIFICATION_KEY,
-        HANDLING_KEY
-    );
-
-    console.log(
-        "========================================"
-    );
-
-});
+})();

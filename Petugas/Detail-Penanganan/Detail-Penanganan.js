@@ -1,89 +1,78 @@
 
-/* =========================================================
+/* ============================================================
    SIPFAS - DETAIL PENANGANAN
    File: Detail-Penanganan.js
 
    FITUR:
-   1. Memuat data laporan berdasarkan kode laporan.
-   2. Menyimpan tindak lanjut perbaikan.
-   3. Menyimpan status penanganan.
-   4. Menyimpan catatan petugas.
-   5. Memperbarui tanggal secara otomatis (WIT).
-   6. Menampilkan notifikasi berhasil dan gagal.
-   7. Memuat kembali data setelah halaman direfresh.
-   8. Mempertahankan data laporan lainnya.
+   1. Memuat laporan berdasarkan kode unik.
+   2. Mengambil informasi dari hasil verifikasi.
+   3. Menyimpan tindak lanjut perbaikan.
+   4. Menyimpan status penanganan.
+   5. Menyimpan catatan petugas.
+   6. Memperbarui tanggal otomatis dalam WIT.
+   7. Menampilkan notifikasi berhasil dan gagal.
+   8. Memuat kembali data setelah halaman direfresh.
+   9. Mempertahankan data laporan lainnya.
+   10. Tombol salin kode laporan.
+   11. Tombol batal.
+   12. Sinkronisasi antarhalaman.
 
-   MEDIA PENYIMPANAN:
-   Local Storage
+   LOCAL STORAGE:
+   - sipfas_verifikasi_laporan
+   - sipfas_penanganan_laporan
+   - sipfas_selected_report
+============================================================ */
 
-   STORAGE KEY:
-   sipfas_penanganan_laporan
-========================================================= */
-
-(function () {
-
+(() => {
     "use strict";
 
-    // =====================================================
-    // 1. KONFIGURASI PROGRAM
-    // =====================================================
+    document.addEventListener("DOMContentLoaded", initialize);
 
-    const STORAGE_KEY = "sipfas_penanganan_laporan";
+    function initialize() {
 
-    // Pilihan status yang diperbolehkan.
-    const VALID_STATUSES = [
-        "Diproses",
-        "Menunggu",
-        "Selesai"
-    ];
+        /* ====================================================
+           1. KONFIGURASI
+        ==================================================== */
 
-    // Timer notifikasi.
-    let toastTimer = null;
-    let toastHideTimer = null;
+        const HANDLING_KEY = "sipfas_penanganan_laporan";
+        const VERIFICATION_KEY = "sipfas_verifikasi_laporan";
+        const SELECTED_REPORT_KEY = "sipfas_selected_report";
 
+        const VALID_STATUSES = [
+            "Diproses",
+            "Menunggu",
+            "Selesai"
+        ];
 
-    // =====================================================
-    // 2. MENJALANKAN PROGRAM SETELAH HTML DIMUAT
-    // =====================================================
+        /* ====================================================
+           2. ELEMEN HTML
+        ==================================================== */
 
-    document.addEventListener("DOMContentLoaded", function () {
+        const $ = id => document.getElementById(id);
 
-        // Mengambil seluruh elemen HTML berdasarkan ID.
-        const form = document.getElementById("handlingForm");
+        const form = $("handlingForm");
+        const followUpInput = $("followUp");
+        const statusInput = $("handlingStatus");
+        const notesInput = $("officerNotes");
 
-        const followUpInput =
-            document.getElementById("followUp");
+        const updatedAtElement = $("updatedAt");
+        const reportCodeElement = $("reportCode");
+        const pageCodeElement = $("pageCode");
+        const headerStatusElement = $("headerStatus");
 
-        const statusInput =
-            document.getElementById("handlingStatus");
+        const cancelButton = $("cancelButton");
+        const copyButton = $("copyCode");
+        const saveButton = $("saveHandling");
 
-        const notesInput =
-            document.getElementById("officerNotes");
+        const menuToggle = $("menuToggle");
+        const sidebar = $("sidebar");
+        const pageOverlay = $("pageOverlay");
+        const logoutLink = $("logoutLink");
 
-        const updatedAtElement =
-            document.getElementById("updatedAt");
+        /* ====================================================
+           3. VALIDASI ELEMEN HTML
+        ==================================================== */
 
-        const reportCodeElement =
-            document.getElementById("reportCode");
-
-        const pageCodeElement =
-            document.getElementById("pageCode");
-
-        const headerStatusElement =
-            document.getElementById("headerStatus");
-
-        const cancelButton =
-            document.getElementById("cancelButton");
-
-        const copyButton =
-            document.getElementById("copyCode");
-
-
-        // =================================================
-        // 3. VALIDASI ELEMEN HTML
-        // =================================================
-
-        // Memastikan elemen utama tersedia.
         const requiredElements = {
             handlingForm: form,
             followUp: followUpInput,
@@ -92,114 +81,152 @@
             reportCode: reportCodeElement
         };
 
-        const missingElements = Object.entries(requiredElements)
-            .filter(function (item) {
-                return !item[1];
-            })
-            .map(function (item) {
-                return item[0];
-            });
+        const missingElements = Object.entries(
+            requiredElements
+        )
+            .filter(([, element]) => !element)
+            .map(([name]) => name);
 
-        // Menghentikan program jika elemen wajib tidak ditemukan.
         if (missingElements.length > 0) {
-
             console.error(
-                "Elemen HTML tidak ditemukan:",
+                "[SIPFAS] Elemen HTML tidak ditemukan:",
                 missingElements
             );
 
-            showToast(
+            alert(
                 "Komponen halaman tidak lengkap: " +
-                missingElements.join(", "),
-                "error"
+                missingElements.join(", ")
             );
 
             return;
         }
 
+        /* ====================================================
+           4. NORMALISASI DATA
+        ==================================================== */
 
-        // =================================================
-        // 4. MENGAMBIL KODE LAPORAN
-        // =================================================
-
-        // Membaca kode laporan dari URL.
-        const params = new URLSearchParams(
-            window.location.search
-        );
-
-        const codeFromUrl = (
-            params.get("kode") || ""
-        ).trim();
-
-        // Jika URL tidak memiliki kode, gunakan kode HTML.
-        const reportCode = codeFromUrl ||
-            reportCodeElement.textContent.trim();
-
-        if (!reportCode) {
-
-            showToast(
-                "Kode laporan tidak ditemukan.",
-                "error"
-            );
-
-            return;
+        function normalizeText(value) {
+            return String(value ?? "")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/\s+/g, " ")
+                .trim()
+                .toLowerCase();
         }
 
-        // Menampilkan kode laporan.
-        reportCodeElement.textContent = reportCode;
-
-        if (pageCodeElement) {
-            pageCodeElement.textContent = reportCode;
+        function normalizeReportCode(value) {
+            return String(value ?? "")
+                .replace(/\s+/g, "")
+                .trim()
+                .toUpperCase();
         }
 
+        function normalizeStatus(value) {
+            const status = normalizeText(value);
 
-        // =================================================
-        // 5. SISTEM NOTIFIKASI TOAST
-        // =================================================
+            if (
+                status === "selesai" ||
+                status === "completed" ||
+                status === "selesai ditangani" ||
+                status === "selesai diperbaiki"
+            ) {
+                return "Selesai";
+            }
+
+            if (
+                status === "diproses" ||
+                status === "processing" ||
+                status === "sedang diproses" ||
+                status === "dalam proses"
+            ) {
+                return "Diproses";
+            }
+
+            if (
+                status === "menunggu" ||
+                status === "waiting" ||
+                status === "menunggu perbaikan"
+            ) {
+                return "Menunggu";
+            }
+
+            return "";
+        }
+
+        /* ====================================================
+           5. MEMBACA LOCAL STORAGE
+        ==================================================== */
+
+        function readStorage(key) {
+            try {
+                const raw = localStorage.getItem(key);
+
+                if (raw === null) {
+                    return {};
+                }
+
+                const data = JSON.parse(raw);
+
+                if (
+                    !data ||
+                    typeof data !== "object" ||
+                    Array.isArray(data)
+                ) {
+                    throw new Error(
+                        "Format data penyimpanan tidak valid."
+                    );
+                }
+
+                return data;
+
+            } catch (error) {
+                console.error(
+                    `[SIPFAS] Gagal membaca ${key}:`,
+                    error
+                );
+
+                return null;
+            }
+        }
+
+        /* ====================================================
+           6. MENAMPILKAN NOTIFIKASI
+        ==================================================== */
+
+        let toastTimer = null;
+        let toastHideTimer = null;
 
         function showToast(message, type = "info") {
 
-            // Mengambil notifikasi yang sudah pernah dibuat.
-            let toast = document.getElementById(
-                "sipfasToastNotification"
-            );
+            let toast = $("sipfasToastNotification");
 
-            // Membuat elemen notifikasi jika belum tersedia.
             if (!toast) {
-
                 toast = document.createElement("div");
-
                 toast.id = "sipfasToastNotification";
 
                 document.body.appendChild(toast);
             }
 
-            // Menghapus timer sebelumnya.
             clearTimeout(toastTimer);
             clearTimeout(toastHideTimer);
 
-            // Konfigurasi ikon notifikasi.
             const icons = {
                 success: "✓",
                 error: "✕",
                 info: "ℹ"
             };
 
-            // Konfigurasi warna notifikasi.
             const colors = {
-
                 success: {
                     background: "#e8f8ef",
                     color: "#087443",
                     border: "#a7e5c2"
                 },
-
                 error: {
                     background: "#fff0f0",
                     color: "#c62828",
                     border: "#ffcaca"
                 },
-
                 info: {
                     background: "#edf3ff",
                     color: "#2458b8",
@@ -209,84 +236,50 @@
 
             const selected = colors[type] || colors.info;
 
-            // Mengosongkan isi notifikasi sebelumnya.
-            toast.textContent = "";
+            toast.replaceChildren();
 
-            // Membuat ikon notifikasi.
             const icon = document.createElement("span");
-
             icon.textContent = icons[type] || icons.info;
 
-            // Membuat teks notifikasi.
             const text = document.createElement("span");
-
             text.textContent = message;
 
-            // Memasukkan ikon dan teks.
-            toast.appendChild(icon);
-            toast.appendChild(text);
+            toast.append(icon, text);
 
-            // Mengatur desain notifikasi.
             Object.assign(toast.style, {
-
                 position: "fixed",
-
                 top: "24px",
-
                 right: "24px",
-
                 zIndex: "99999",
-
                 display: "flex",
-
                 alignItems: "center",
-
                 gap: "12px",
-
                 maxWidth: "calc(100vw - 48px)",
-
                 padding: "16px 22px",
-
                 borderRadius: "12px",
-
                 background: selected.background,
-
                 color: selected.color,
-
-                border: "1px solid " + selected.border,
-
+                border: `1px solid ${selected.border}`,
                 boxShadow: "0 6px 24px rgba(0,0,0,0.12)",
-
                 fontSize: "14px",
-
                 fontWeight: "600",
-
                 fontFamily: "inherit",
-
                 opacity: "0",
-
                 transform: "translateY(-12px)",
-
-                transition:
-                    "opacity 0.3s ease, transform 0.3s ease",
-
+                transition: "opacity 0.3s ease, transform 0.3s ease",
                 pointerEvents: "none"
-
             });
 
-            // Mengatur ikon notifikasi.
             Object.assign(icon.style, {
-
                 fontSize: "20px",
-
                 fontWeight: "800",
-
                 flexShrink: "0"
-
             });
 
-            // Menampilkan notifikasi.
+            // Memastikan notifikasi dapat ditampilkan kembali
+            // setelah notifikasi sebelumnya disembunyikan.
             toast.hidden = false;
+            toast.style.display = "flex";
 
             toast.setAttribute(
                 "role",
@@ -295,224 +288,293 @@
 
             toast.setAttribute("aria-live", "polite");
 
-            // Menjalankan animasi masuk.
-            requestAnimationFrame(function () {
-
+            requestAnimationFrame(() => {
                 toast.style.opacity = "1";
-
                 toast.style.transform = "translateY(0)";
-
             });
 
-            // Menghilangkan notifikasi setelah 4 detik.
-            toastTimer = setTimeout(function () {
+            toastTimer = setTimeout(() => {
 
                 toast.style.opacity = "0";
-
                 toast.style.transform = "translateY(-12px)";
 
-                toastHideTimer = setTimeout(function () {
-
+                toastHideTimer = setTimeout(() => {
                     toast.hidden = true;
-
                     toast.style.display = "none";
-
                 }, 300);
 
             }, 4000);
         }
 
+        /* ====================================================
+           7. MENGAMBIL IDENTITAS LAPORAN
+        ==================================================== */
 
-        // =================================================
-        // 6. MEMBACA DATA LOCAL STORAGE
-        // =================================================
+        function getSelectedReport() {
 
-        function getAllHandlingData() {
+            const params = new URLSearchParams(
+                window.location.search
+            );
 
-            let raw;
+            const urlCode = normalizeReportCode(
+                params.get("kode")
+            );
 
-            try {
+            const selectedData = readStorage(
+                SELECTED_REPORT_KEY
+            );
 
-                raw = localStorage.getItem(STORAGE_KEY);
-
-            } catch (error) {
-
-                console.error(
-                    "Gagal membaca Local Storage:",
-                    error
-                );
-
+            if (selectedData === null) {
                 throw new Error(
-                    "Browser tidak dapat mengakses penyimpanan."
+                    "Data laporan terpilih tidak dapat dibaca."
                 );
             }
 
-            // Jika belum ada data, gunakan objek kosong.
-            if (!raw) {
-                return {};
-            }
+            const storedCode = normalizeReportCode(
+                selectedData.id ||
+                selectedData.reportCode
+            );
 
-            let parsed;
-
-            try {
-
-                parsed = JSON.parse(raw);
-
-            } catch (error) {
-
-                console.error(
-                    "Format JSON penyimpanan tidak valid:",
-                    error
+            // URL menjadi sumber utama identitas laporan.
+            const reportCode = urlCode ||
+                storedCode ||
+                normalizeReportCode(
+                    reportCodeElement.textContent
                 );
 
+            if (!reportCode) {
                 throw new Error(
-                    "Data penyimpanan rusak dan tidak dapat dibaca."
+                    "Kode laporan tidak ditemukan."
                 );
             }
 
-            // Memastikan struktur penyimpanan berbentuk objek.
-            if (
-                parsed === null ||
-                typeof parsed !== "object" ||
-                Array.isArray(parsed)
-            ) {
-
-                throw new Error(
-                    "Struktur data penanganan tidak valid."
-                );
-            }
-
-            return parsed;
+            return {
+                ...selectedData,
+                id: reportCode,
+                reportCode
+            };
         }
 
+        /* ====================================================
+           8. MEMUAT DATA LAPORAN
+        ==================================================== */
 
-        // =================================================
-        // 7. FORMAT TANGGAL WIT
-        // =================================================
+        let currentReport = null;
+
+        function displayReportInformation() {
+
+            const verificationData = readStorage(
+                VERIFICATION_KEY
+            );
+
+            if (verificationData === null) {
+                throw new Error(
+                    "Data verifikasi tidak dapat dibaca."
+                );
+            }
+
+            const verification =
+                verificationData[currentReport.reportCode] || {};
+
+            const report = {
+                ...verification,
+                ...currentReport
+            };
+
+            // Menampilkan kode laporan.
+            reportCodeElement.textContent =
+                currentReport.reportCode;
+
+            if (pageCodeElement) {
+                pageCodeElement.textContent =
+                    currentReport.reportCode;
+            }
+
+            // Mengambil data dari hasil verifikasi.
+            const information = {
+                reportName:
+                    verification.reporterName ||
+                    currentReport.reporterName ||
+                    "",
+
+                reportNim:
+                    verification.reporterNim ||
+                    currentReport.reporterNim ||
+                    "",
+
+                reportFacility:
+                    verification.facilityName ||
+                    verification.facility ||
+                    currentReport.facility ||
+                    "",
+
+                reportLocation:
+                    verification.facilityLocation ||
+                    verification.location ||
+                    currentReport.location ||
+                    "",
+
+                reportTime:
+                    verification.reportTime ||
+                    verification.reportDate ||
+                    verification.date ||
+                    currentReport.date ||
+                    "",
+
+                reportDescription:
+                    verification.description ||
+                    verification.damageDescription ||
+                    currentReport.description ||
+                    ""
+            };
+
+            // Memperbarui elemen informasi jika tersedia di HTML.
+            Object.entries(information).forEach(([id, value]) => {
+                const element = $(id);
+
+                if (element && value) {
+                    element.textContent = value;
+                }
+            });
+
+            // Memperbarui inisial pelapor.
+            const initials = $("reportInitials");
+
+            if (initials && information.reportName) {
+                initials.textContent = information.reportName
+                    .split(/\s+/)
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map(word => word.charAt(0).toUpperCase())
+                    .join("");
+            }
+
+            console.log(
+                "[SIPFAS] Informasi laporan dimuat:",
+                report
+            );
+        }
+
+        /* ====================================================
+           9. FORMAT TANGGAL WIT
+        ==================================================== */
 
         function formatWIT(date) {
-
             return new Intl.DateTimeFormat("id-ID", {
-
                 timeZone: "Asia/Jayapura",
-
                 day: "2-digit",
-
                 month: "long",
-
                 year: "numeric",
-
                 hour: "2-digit",
-
                 minute: "2-digit",
-
                 hour12: false
-
             }).format(date) + " WIT";
         }
 
-
-        // =================================================
-        // 8. MEMPERBARUI STATUS HEADER
-        // =================================================
+        /* ====================================================
+           10. MEMPERBARUI STATUS HEADER
+        ==================================================== */
 
         function setHeaderStatus(status) {
 
-            if (!headerStatusElement) {
-                return;
-            }
+            if (!headerStatusElement) return;
 
-            // Mempertahankan ikon yang terdapat pada header.
             const icon = headerStatusElement.querySelector("i");
 
-            headerStatusElement.textContent = "";
+            headerStatusElement.replaceChildren();
 
             if (icon) {
                 headerStatusElement.appendChild(icon);
             }
 
-            // Memperbarui teks status.
             headerStatusElement.appendChild(
-                document.createTextNode(" " + status)
+                document.createTextNode(` ${status}`)
             );
 
             headerStatusElement.dataset.status = status;
         }
 
-
-        // =================================================
-        // 9. MEMUAT DATA PENANGANAN SEBELUMNYA
-        // =================================================
+        /* ====================================================
+           11. MEMUAT DATA PENANGANAN SEBELUMNYA
+        ==================================================== */
 
         function loadSavedHandling() {
 
-            let allData;
+            const allData = readStorage(HANDLING_KEY);
 
-            try {
-
-                allData = getAllHandlingData();
-
-            } catch (error) {
-
-                showToast(error.message, "error");
-
+            if (allData === null) {
+                showToast(
+                    "Data penanganan tidak dapat dibaca.",
+                    "error"
+                );
                 return;
             }
 
-            // Mengambil data berdasarkan kode laporan.
-            const saved = allData[reportCode];
+            const saved = allData[currentReport.reportCode];
 
-            // Jika belum pernah disimpan, gunakan data awal HTML.
-            if (!saved || typeof saved !== "object") {
+            if (!saved) {
+                setHeaderStatus("Menunggu");
                 return;
             }
 
-            // Mengisi kembali tindak lanjut.
+            // Memulihkan tindak lanjut perbaikan.
             followUpInput.value =
                 saved.followUp ||
                 saved.followUpAction ||
                 saved.tindakLanjut ||
                 "";
 
-            // Mengisi kembali status.
-            const savedStatus =
+            // Memulihkan status dengan normalisasi.
+            const savedStatus = normalizeStatus(
                 saved.status ||
-                saved.handlingStatus;
+                saved.handlingStatus ||
+                saved.statusPenanganan
+            );
 
-            if (VALID_STATUSES.includes(savedStatus)) {
+            if (savedStatus) {
 
-                statusInput.value = savedStatus;
+                const matchingOption = Array.from(
+                    statusInput.options
+                ).find(option => {
+                    return normalizeStatus(option.value) === savedStatus;
+                });
+
+                if (matchingOption) {
+                    statusInput.value = matchingOption.value;
+                }
 
                 setHeaderStatus(savedStatus);
             }
 
-            // Mengisi kembali catatan petugas.
+            // Memulihkan catatan petugas.
             notesInput.value =
                 saved.officerNotes ||
                 saved.catatanPetugas ||
                 "";
 
-            // Mengisi tanggal pembaruan terakhir.
+            // Memulihkan tanggal pembaruan.
             if (saved.updatedAt && updatedAtElement) {
 
                 const date = new Date(saved.updatedAt);
 
                 if (!Number.isNaN(date.getTime())) {
-
                     updatedAtElement.textContent =
                         formatWIT(date);
                 }
             }
+
+            console.log(
+                "[SIPFAS] Data penanganan sebelumnya dimuat:",
+                saved
+            );
         }
 
-
-        // =================================================
-        // 10. VALIDASI FORM
-        // =================================================
+        /* ====================================================
+           12. VALIDASI FORM
+        ==================================================== */
 
         function validateForm() {
 
-            // Tindak lanjut wajib diisi.
             if (!followUpInput.value.trim()) {
 
                 followUpInput.focus();
@@ -525,10 +587,11 @@
                 return false;
             }
 
-            // Memastikan status dipilih dengan benar.
-            if (
-                !VALID_STATUSES.includes(statusInput.value)
-            ) {
+            const status = normalizeStatus(
+                statusInput.value
+            );
+
+            if (!VALID_STATUSES.includes(status)) {
 
                 statusInput.focus();
 
@@ -540,167 +603,141 @@
                 return false;
             }
 
-            // Catatan petugas bersifat opsional.
             return true;
         }
 
-
-        // =================================================
-        // 11. PROSES SIMPAN PERUBAHAN
-        // =================================================
+        /* ====================================================
+           13. MENYIMPAN PERUBAHAN PENANGANAN
+        ==================================================== */
 
         function saveHandling(event) {
 
-            // Mencegah form melakukan reload.
             if (event) {
                 event.preventDefault();
             }
 
-            // Menjalankan validasi.
             if (!validateForm()) {
                 return;
             }
 
-            // Mengambil nilai dari form.
             const followUp = followUpInput.value.trim();
 
-            const status = statusInput.value;
+            const status = normalizeStatus(
+                statusInput.value
+            );
 
             const officerNotes = notesInput.value.trim();
 
-            // Mengambil waktu saat ini.
             const now = new Date();
 
-            // Membentuk data penanganan.
             const record = {
 
-                reportCode: reportCode,
+                reportCode: currentReport.reportCode,
 
-                // Data tindak lanjut.
-                followUp: followUp,
-
+                followUp,
                 followUpAction: followUp,
-
                 tindakLanjut: followUp,
 
-                // Data status.
-                status: status,
-
+                status,
                 handlingStatus: status,
-
                 statusLabel: status,
 
-                // Data catatan petugas.
-                officerNotes: officerNotes,
-
+                officerNotes,
                 catatanPetugas: officerNotes,
 
-                // Data tanggal pembaruan.
                 updatedAt: now.toISOString(),
-
                 updatedAtLabel: formatWIT(now),
 
-                // Identitas sumber pembaruan.
                 savedFrom: "detail-penanganan"
-
             };
 
             try {
 
-                // Membaca seluruh data yang sudah tersimpan.
-                const allData = getAllHandlingData();
+                // Mengambil seluruh data agar laporan lain tetap aman.
+                const allData = readStorage(HANDLING_KEY);
 
-                // Memperbarui laporan aktif tanpa menghapus laporan lain.
-                allData[reportCode] = {
-
-                    ...(allData[reportCode] || {}),
-
-                    ...record
-
-                };
-
-                // Mengubah objek menjadi JSON.
-                const serialized = JSON.stringify(allData);
-
-                // Menyimpan data ke Local Storage.
-                localStorage.setItem(
-                    STORAGE_KEY,
-                    serialized
-                );
-
-                // Membaca ulang data untuk memastikan penyimpanan.
-                const persistedRaw =
-                    localStorage.getItem(STORAGE_KEY);
-
-                if (persistedRaw !== serialized) {
-
+                if (allData === null) {
                     throw new Error(
-                        "Data belum berhasil diverifikasi setelah penyimpanan."
+                        "Data penanganan sebelumnya gagal dibaca."
                     );
                 }
 
-                // Mengambil hasil penyimpanan.
-                const persistedData = JSON.parse(persistedRaw);
+                // Memperbarui hanya laporan yang sedang dibuka.
+                allData[currentReport.reportCode] = {
+                    ...(allData[currentReport.reportCode] || {}),
+                    ...record
+                };
 
-                const savedRecord = persistedData[reportCode];
+                const serialized = JSON.stringify(allData);
 
-                // Memastikan data yang disimpan sesuai input.
+                localStorage.setItem(
+                    HANDLING_KEY,
+                    serialized
+                );
+
+                // Memastikan data benar-benar tersimpan.
+                const persistedRaw =
+                    localStorage.getItem(HANDLING_KEY);
+
+                if (persistedRaw !== serialized) {
+                    throw new Error(
+                        "Data gagal dikonfirmasi setelah penyimpanan."
+                    );
+                }
+
+                const persistedData =
+                    JSON.parse(persistedRaw);
+
+                const savedRecord =
+                    persistedData[currentReport.reportCode];
+
                 if (
                     !savedRecord ||
-                    savedRecord.reportCode !== reportCode ||
+                    savedRecord.reportCode !== currentReport.reportCode ||
                     savedRecord.status !== status ||
                     savedRecord.followUp !== followUp ||
                     savedRecord.officerNotes !== officerNotes
                 ) {
-
                     throw new Error(
                         "Data yang tersimpan tidak sesuai dengan input."
                     );
                 }
 
-                // Memperbarui tanggal pada halaman.
+                // Memperbarui tanggal dan status pada tampilan.
                 if (updatedAtElement) {
-
                     updatedAtElement.textContent =
                         record.updatedAtLabel;
                 }
 
-                // Memperbarui status header.
                 setHeaderStatus(status);
 
-                // Mengirim event pembaruan ke halaman lain.
+                // Memberi tahu halaman daftar bahwa data berubah.
                 window.dispatchEvent(
-
                     new CustomEvent(
                         "sipfas:handling-saved",
                         {
                             detail: record
                         }
                     )
-
                 );
 
-                // Menampilkan notifikasi berhasil.
                 showToast(
                     "Perubahan penanganan berhasil disimpan!",
                     "success"
                 );
 
-                // Menampilkan informasi di console.
                 console.log(
-                    "Data penanganan berhasil disimpan:",
+                    "[SIPFAS] Data penanganan berhasil disimpan:",
                     record
                 );
 
             } catch (error) {
 
-                // Menampilkan kesalahan jika penyimpanan gagal.
                 console.error(
-                    "Gagal menyimpan perubahan:",
+                    "[SIPFAS] Gagal menyimpan penanganan:",
                     error
                 );
 
-                // Menampilkan notifikasi gagal.
                 showToast(
                     error.message ||
                     "Gagal menyimpan perubahan. Silakan coba kembali.",
@@ -709,108 +746,214 @@
             }
         }
 
+        /* ====================================================
+           14. EVENT SIMPAN FORM
+        ==================================================== */
 
-        // =================================================
-        // 12. EVENT SUBMIT FORM
-        // =================================================
-
-        // Menjalankan penyimpanan ketika tombol ditekan.
         form.addEventListener(
             "submit",
             saveHandling
         );
 
+        /* ====================================================
+           15. EVENT PERUBAHAN STATUS
+        ==================================================== */
 
-        // =================================================
-        // 13. EVENT PERUBAHAN STATUS
-        // =================================================
+        statusInput.addEventListener("change", () => {
 
-        // Memperbarui status header saat pilihan berubah.
-        statusInput.addEventListener(
-            "change",
-            function () {
-
-                if (
-                    VALID_STATUSES.includes(statusInput.value)
-                ) {
-
-                    setHeaderStatus(statusInput.value);
-                }
-            }
-        );
-
-
-        // =================================================
-        // 14. EVENT TOMBOL BATAL
-        // =================================================
-
-        if (cancelButton) {
-
-            cancelButton.addEventListener(
-                "click",
-                function () {
-
-                    window.location.href =
-                        "../Penanganan/Penanganan.html";
-                }
+            const status = normalizeStatus(
+                statusInput.value
             );
-        }
 
+            if (status) {
+                setHeaderStatus(status);
+            }
+        });
 
-        // =================================================
-        // 15. EVENT TOMBOL SALIN KODE LAPORAN
-        // =================================================
+        /* ====================================================
+           16. TOMBOL BATAL
+        ==================================================== */
 
-        if (copyButton) {
+        cancelButton?.addEventListener("click", event => {
 
-            copyButton.addEventListener(
-                "click",
-                async function () {
+            event.preventDefault();
 
-                    try {
+            const targetURL = new URL(
+                "../Penanganan/Penanganan.html",
+                window.location.href
+            );
 
-                        await navigator.clipboard.writeText(
-                            reportCode
-                        );
+            window.location.href = targetURL.href;
+        });
 
-                        showToast(
-                            "Kode laporan berhasil disalin!",
-                            "success"
-                        );
+        /* ====================================================
+           17. TOMBOL SALIN KODE LAPORAN
+        ==================================================== */
 
-                    } catch (error) {
+        async function copyReportCode() {
 
-                        console.error(
-                            "Gagal menyalin kode laporan:",
-                            error
-                        );
+            const code = currentReport.reportCode;
 
-                        showToast(
-                            "Kode tidak dapat disalin otomatis.",
-                            "error"
+            try {
+
+                // Metode utama menggunakan Clipboard API.
+                if (
+                    navigator.clipboard &&
+                    window.isSecureContext
+                ) {
+                    await navigator.clipboard.writeText(code);
+
+                } else {
+
+                    // Fallback untuk browser tanpa Clipboard API.
+                    const textarea =
+                        document.createElement("textarea");
+
+                    textarea.value = code;
+
+                    textarea.style.position = "fixed";
+                    textarea.style.opacity = "0";
+
+                    document.body.appendChild(textarea);
+
+                    textarea.select();
+
+                    const copied =
+                        document.execCommand("copy");
+
+                    textarea.remove();
+
+                    if (!copied) {
+                        throw new Error(
+                            "Browser tidak mengizinkan penyalinan."
                         );
                     }
                 }
+
+                showToast(
+                    "Kode laporan berhasil disalin!",
+                    "success"
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "[SIPFAS] Gagal menyalin kode:",
+                    error
+                );
+
+                showToast(
+                    "Kode tidak dapat disalin otomatis. Silakan salin secara manual: " + code,
+                    "error"
+                );
+            }
+        }
+
+        copyButton?.addEventListener(
+            "click",
+            event => {
+                event.preventDefault();
+                copyReportCode();
+            }
+        );
+
+        /* ====================================================
+           18. SIDEBAR RESPONSIF
+        ==================================================== */
+
+        function setSidebar(isOpen) {
+
+            sidebar?.classList.toggle(
+                "open",
+                isOpen
+            );
+
+            pageOverlay?.classList.toggle(
+                "show",
+                isOpen
+            );
+
+            menuToggle?.setAttribute(
+                "aria-expanded",
+                String(isOpen)
             );
         }
 
+        menuToggle?.addEventListener("click", () => {
 
-        // =================================================
-        // 16. INISIALISASI HALAMAN
-        // =================================================
+            setSidebar(
+                !sidebar?.classList.contains("open")
+            );
+        });
 
-        // Memuat data ketika halaman pertama kali dibuka.
-        loadSavedHandling();
-
-        console.log(
-            "SIPFAS Detail Penanganan berhasil dijalankan."
+        pageOverlay?.addEventListener(
+            "click",
+            () => setSidebar(false)
         );
 
-        console.log(
-            "Kode laporan aktif:",
-            reportCode
-        );
+        document.querySelectorAll(".nav-link").forEach(link => {
 
-    });
+            link.addEventListener(
+                "click",
+                () => setSidebar(false)
+            );
+        });
+
+        document.addEventListener("keydown", event => {
+
+            if (event.key === "Escape") {
+                setSidebar(false);
+            }
+        });
+
+        /* ====================================================
+           19. KONFIRMASI KELUAR
+        ==================================================== */
+
+        logoutLink?.addEventListener("click", event => {
+
+            event.preventDefault();
+
+            const confirmation = window.confirm(
+                "Apakah Anda yakin ingin keluar dari sistem SIPFAS?"
+            );
+
+            if (!confirmation) return;
+
+            sessionStorage.clear();
+
+            window.location.href = logoutLink.href;
+        });
+
+        /* ====================================================
+           20. INISIALISASI HALAMAN
+        ==================================================== */
+
+        try {
+
+            currentReport = getSelectedReport();
+
+            displayReportInformation();
+
+            loadSavedHandling();
+
+            console.log(
+                "[SIPFAS] Detail Penanganan berhasil diinisialisasi.",
+                currentReport.reportCode
+            );
+
+        } catch (error) {
+
+            console.error(
+                "[SIPFAS] Inisialisasi gagal:",
+                error
+            );
+
+            showToast(
+                error.message,
+                "error"
+            );
+        }
+    }
 
 })();

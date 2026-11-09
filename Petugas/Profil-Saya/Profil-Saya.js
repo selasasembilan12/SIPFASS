@@ -1,695 +1,948 @@
 
 /* ============================================================
-   SIPFAS - PROFIL SAYA PETUGAS
-   File: Profil-Saya.js
-
-   FUNGSI:
-   1. Toggle tampil/sembunyi password.
-   2. Validasi password.
-   3. Validasi konfirmasi password.
-   4. Notifikasi keberhasilan dan kegagalan.
-   5. Indikator proses penyimpanan.
-   6. Pencegahan submit berulang.
-   7. Sinkronisasi identitas profil.
-   8. Sidebar responsif.
-   9. Konfirmasi keluar.
-   10. Integrasi backend autentikasi.
-
-   Catatan:
-   Penggantian password sungguhan membutuhkan backend.
+   SIPFAS - PROFIL SAYA
+   FINAL JAVASCRIPT
+   Fokus:
+   1. Pengelolaan identitas petugas.
+   2. Penyimpanan perubahan profil.
+   3. Validasi perubahan kata sandi.
+   4. Verifikasi kata sandi melalui backend.
+   5. Toggle password.
+   6. Navigasi sidebar.
 ============================================================ */
 
-(function () {
+(() => {
     "use strict";
 
-    document.addEventListener("DOMContentLoaded", function () {
+    /* ========================================================
+       1. KONFIGURASI
+    ======================================================== */
 
-        // ====================================================
-        // 1. MENGAMBIL ELEMEN HTML
-        // ====================================================
+    const STORAGE_KEY = "sipfas_profile";
 
-        const profileForm = document.getElementById("profileForm");
+    /* ========================================================
+       2. INISIALISASI PROGRAM
+    ======================================================== */
 
-        const fullName = document.getElementById("fullName");
+    function initProfil() {
+
+        // Mengambil elemen formulir profil.
+        const form = document.getElementById("profileForm");
+
+        // Mengambil input identitas.
+        const nama = document.getElementById("fullName");
         const username = document.getElementById("username");
         const email = document.getElementById("email");
-        const role = document.getElementById("role");
 
-        const currentPassword = document.getElementById("currentPassword");
-        const newPassword = document.getElementById("newPassword");
-        const confirmPassword = document.getElementById("confirmPassword");
+        // Mengambil input password.
+        const currentPassword =
+            document.getElementById("currentPassword");
 
-        const feedback = document.getElementById("formFeedback");
+        const newPassword =
+            document.getElementById("newPassword");
 
-        const saveButton = profileForm
-            ? profileForm.querySelector('button[type="submit"]')
-            : null;
+        const confirmPassword =
+            document.getElementById("confirmPassword");
 
+        // Mengambil elemen tombol dan notifikasi.
+        const tombolSimpan =
+            document.getElementById("saveButton") ||
+            form?.querySelector('button[type="submit"]');
+
+        const feedback =
+            document.getElementById("formFeedback");
+
+        // Mengambil elemen identitas.
+        const avatar =
+            document.querySelector(".large-avatar");
+
+        const headerNama =
+            document.querySelector(".profile-area .profile-name");
+
+        const kartuNama =
+            document.querySelector(".profile-identity h2");
+
+        // Mengambil elemen navigasi.
         const sidebar = document.getElementById("sidebar");
         const menuToggle = document.getElementById("menuToggle");
-        const pageOverlay = document.getElementById("pageOverlay");
-        const logoutLink = document.getElementById("logoutLink");
+        const overlay = document.getElementById("pageOverlay");
 
-        // Memastikan elemen utama tersedia.
-        if (!profileForm || !feedback || !saveButton) {
-            console.error("[SIPFAS] Formulir profil tidak ditemukan.");
+        // Memastikan seluruh elemen penting tersedia.
+        if (
+            !form ||
+            !nama ||
+            !username ||
+            !email ||
+            !tombolSimpan
+        ) {
+            console.error(
+                "[SIPFAS] Elemen formulir profil tidak ditemukan."
+            );
             return;
         }
 
-        // ====================================================
-        // 2. KONFIGURASI PROGRAM
-        // ====================================================
+        // Mencegah inisialisasi program berulang.
+        if (form.dataset.initialized === "true") return;
 
-        const MIN_PASSWORD_LENGTH = 8;
+        form.dataset.initialized = "true";
 
-        let isSubmitting = false;
+        // Menyimpan tampilan awal tombol.
+        const tombolAwal = tombolSimpan.innerHTML;
 
-        const originalButtonHTML = saveButton.innerHTML;
+        // Mengatur status proses penyimpanan.
+        let sedangMenyimpan = false;
 
-        // ====================================================
-        // 3. FUNGSI NOTIFIKASI
-        // ====================================================
+        /* ====================================================
+           3. MENGAKTIFKAN INPUT PROFIL
+        ==================================================== */
 
-        function showNotification(message, type) {
+        [nama, username, email].forEach(input => {
 
-            feedback.textContent = message;
+            // Mengaktifkan input agar dapat diedit.
+            input.readOnly = false;
 
-            feedback.className = "form-feedback " + type;
+            input.disabled = false;
 
-            feedback.dataset.state = type;
+            // Menghapus atribut penguncian.
+            input.removeAttribute("readonly");
 
+            input.removeAttribute("disabled");
+
+        });
+
+        /* ====================================================
+           4. MEMBERSIHKAN TEKS
+        ==================================================== */
+
+        function bersihkan(teks) {
+
+            // Menghilangkan spasi berlebihan.
+            return String(teks ?? "")
+                .replace(/\s+/g, " ")
+                .trim();
+
+        }
+
+        /* ====================================================
+           5. MEMBACA DATA PROFIL
+        ==================================================== */
+
+        function bacaProfil() {
+
+            try {
+
+                // Mengambil data dari Local Storage.
+                const data = localStorage.getItem(STORAGE_KEY);
+
+                // Mengembalikan null jika belum ada data.
+                if (!data) return null;
+
+                // Mengubah JSON menjadi objek.
+                const hasil = JSON.parse(data);
+
+                // Memastikan data berupa objek.
+                if (
+                    !hasil ||
+                    typeof hasil !== "object" ||
+                    Array.isArray(hasil)
+                ) {
+                    return null;
+                }
+
+                return hasil;
+
+            } catch (error) {
+
+                console.error(
+                    "[SIPFAS] Gagal membaca profil:",
+                    error
+                );
+
+                return null;
+
+            }
+        }
+
+        /* ====================================================
+           6. MENGAMBIL DATA PROFIL
+        ==================================================== */
+
+        function ambilData() {
+
+            return {
+
+                // Mengambil nama lengkap.
+                fullName: bersihkan(nama.value),
+
+                // Mengambil username.
+                username: bersihkan(username.value),
+
+                // Mengambil email.
+                email: bersihkan(email.value).toLowerCase()
+
+            };
+
+        }
+
+        /* ====================================================
+           7. MENAMPILKAN NOTIFIKASI
+        ==================================================== */
+
+        function tampilkanPesan(pesan, jenis) {
+
+            // Menggunakan console jika elemen tidak tersedia.
+            if (!feedback) {
+                console.log(pesan);
+                return;
+            }
+
+            // Memasukkan pesan.
+            feedback.textContent = pesan;
+
+            // Mengatur jenis pesan.
+            feedback.className = `form-feedback ${jenis}`;
+
+            // Mengatur aksesibilitas.
             feedback.setAttribute("role", "status");
 
             feedback.setAttribute("aria-live", "polite");
+
         }
 
-        // Menghapus notifikasi.
-        function clearNotification() {
+        /* ====================================================
+           8. MEMBUAT INISIAL AVATAR
+        ==================================================== */
 
-            feedback.textContent = "";
+        function buatInisial(namaLengkap) {
 
-            feedback.className = "form-feedback";
+            // Membersihkan nama.
+            const namaBersih = bersihkan(namaLengkap)
+                .replace(/[^\p{L}\p{N}\s]/gu, "");
 
-            delete feedback.dataset.state;
+            // Memisahkan nama menjadi kata.
+            const kata = namaBersih
+                .split(/\s+/)
+                .filter(Boolean);
+
+            // Mengambil maksimal dua inisial.
+            return kata
+                .slice(0, 2)
+                .map(item => item.charAt(0))
+                .join("")
+                .toUpperCase() || "RH";
+
         }
 
-        // ====================================================
-        // 4. FUNGSI VALIDASI INPUT
-        // ====================================================
+        /* ====================================================
+           9. MEMPERBARUI AVATAR
+        ==================================================== */
 
-        function clearValidationErrors() {
+        function perbaruiAvatar(namaLengkap) {
 
-            [
-                currentPassword,
-                newPassword,
-                confirmPassword
-            ].forEach(function (input) {
+            if (!avatar) return;
 
-                input.classList.remove("input-error");
+            // Mengambil inisial terbaru.
+            const inisial = buatInisial(namaLengkap);
 
-                input.removeAttribute("aria-invalid");
+            // Mencari elemen inisial yang sudah tersedia.
+            let elemen = avatar.querySelector(".avatar-initials");
 
-            });
-        }
+            // Membuat elemen jika belum tersedia.
+            if (!elemen) {
 
-        // Menampilkan kesalahan pada kolom tertentu.
-        function setInputError(input, message) {
+                elemen = document.createElement("span");
 
-            input.classList.add("input-error");
+                elemen.className = "avatar-initials";
 
-            input.setAttribute("aria-invalid", "true");
+                avatar.prepend(elemen);
 
-            showNotification(message, "error");
+            }
 
-            input.focus();
-
-            return false;
-        }
-
-        // ====================================================
-        // 5. FITUR TAMPILKAN DAN SEMBUNYIKAN PASSWORD
-        // ====================================================
-
-        document.querySelectorAll(".toggle-password").forEach(
-            function (button) {
-
-                const targetId = button.dataset.target;
-
-                const input = document.getElementById(targetId);
-
-                if (!input) {
-                    console.error("Input password tidak ditemukan:", targetId);
-                    return;
-                }
-
-                button.setAttribute("aria-controls", targetId);
-
-                button.setAttribute("aria-pressed", "false");
-
-                button.addEventListener("click", function () {
-
-                    const isPassword = input.type === "password";
-
-                    input.type = isPassword ? "text" : "password";
-
-                    button.setAttribute(
-                        "aria-pressed",
-                        String(isPassword)
-                    );
-
-                    button.setAttribute(
-                        "aria-label",
-                        isPassword
-                            ? "Sembunyikan kata sandi"
-                            : "Tampilkan kata sandi"
-                    );
-
-                    input.focus();
-
+            // Menghapus elemen inisial tambahan.
+            avatar.querySelectorAll(".avatar-initials")
+                .forEach((item, index) => {
+                    if (index > 0) item.remove();
                 });
 
-            }
-        );
+            // Memperbarui tulisan inisial.
+            elemen.textContent = inisial;
 
-        // ====================================================
-        // 6. VALIDASI KEKUATAN PASSWORD
-        // ====================================================
+            // Mempertahankan badge verifikasi.
+            avatar.setAttribute(
+                "aria-label",
+                `Avatar ${namaLengkap}`
+            );
 
-        function validatePassword(password) {
-
-            if (password.length < MIN_PASSWORD_LENGTH) {
-
-                return {
-                    valid: false,
-                    message: "Kata sandi minimal harus 8 karakter."
-                };
-
-            }
-
-            if (!/[a-zA-Z]/.test(password)) {
-
-                return {
-                    valid: false,
-                    message: "Kata sandi harus mengandung huruf."
-                };
-
-            }
-
-            if (!/[0-9]/.test(password)) {
-
-                return {
-                    valid: false,
-                    message: "Kata sandi harus mengandung angka."
-                };
-
-            }
-
-            return {
-                valid: true,
-                message: ""
-            };
         }
 
-        // ====================================================
-        // 7. VALIDASI SELURUH FORMULIR
-        // ====================================================
+        /* ====================================================
+           10. MEMPERBARUI IDENTITAS
+        ==================================================== */
 
-        function validateForm() {
+        function perbaruiTampilan(data) {
 
-            clearValidationErrors();
+            // Memperbarui nama pada header.
+            if (headerNama) {
+                headerNama.textContent = data.fullName;
+            }
 
-            const oldPassword = currentPassword.value;
-            const password = newPassword.value;
-            const confirmation = confirmPassword.value;
+            // Memperbarui nama pada kartu profil.
+            if (kartuNama) {
+                kartuNama.textContent = data.fullName;
+            }
 
-            // Semua kolom kosong berarti tidak ada perubahan.
-            if (!oldPassword && !password && !confirmation) {
+            // Memperbarui avatar.
+            perbaruiAvatar(data.fullName);
 
-                showNotification(
-                    "Isi ketiga kolom kata sandi jika ingin melakukan perubahan.",
+        }
+
+        /* ====================================================
+           11. VALIDASI PROFIL
+        ==================================================== */
+
+        function validasiProfil() {
+
+            const data = ambilData();
+
+            // Memeriksa nama.
+            if (!data.fullName || data.fullName.length < 3) {
+
+                nama.focus();
+
+                tampilkanPesan(
+                    "Nama lengkap minimal 3 karakter.",
                     "error"
                 );
 
                 return false;
+
             }
 
-            // Memeriksa password lama.
-            if (!oldPassword.trim()) {
+            // Memeriksa username.
+            if (
+                !/^[a-zA-Z0-9._-]{3,30}$/.test(data.username)
+            ) {
 
-                return setInputError(
-                    currentPassword,
-                    "Masukkan kata sandi saat ini."
+                username.focus();
+
+                tampilkanPesan(
+                    "Username harus 3-30 karakter dan hanya menggunakan huruf, angka, titik, atau garis bawah.",
+                    "error"
+                );
+
+                return false;
+
+            }
+
+            // Memeriksa email.
+            if (
+                data.email &&
+                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)
+            ) {
+
+                email.focus();
+
+                tampilkanPesan(
+                    "Format email tidak valid.",
+                    "error"
+                );
+
+                return false;
+
+            }
+
+            return true;
+
+        }
+
+        /* ====================================================
+           12. VALIDASI PASSWORD
+        ==================================================== */
+
+        function validasiPassword() {
+
+            // Password tidak di-trim karena spasi bisa menjadi
+            // bagian dari password yang sah.
+            const lama = currentPassword?.value ?? "";
+
+            const baru = newPassword?.value ?? "";
+
+            const konfirmasi = confirmPassword?.value ?? "";
+
+            // Memeriksa apakah pengguna ingin mengganti password.
+            const diminta = Boolean(lama || baru || konfirmasi);
+
+            // Jika seluruh kolom kosong, password tidak diubah.
+            if (!diminta) {
+
+                return {
+                    valid: true,
+                    diminta: false
+                };
+
+            }
+
+            // Password lama wajib diisi.
+            if (!lama) {
+
+                currentPassword.focus();
+
+                tampilkanPesan(
+                    "Masukkan kata sandi saat ini.",
+                    "error"
+                );
+
+                return {
+                    valid: false,
+                    diminta: true
+                };
+
+            }
+
+            // Password baru wajib diisi.
+            if (!baru) {
+
+                newPassword.focus();
+
+                tampilkanPesan(
+                    "Masukkan kata sandi baru.",
+                    "error"
+                );
+
+                return {
+                    valid: false,
+                    diminta: true
+                };
+
+            }
+
+            // Memeriksa panjang password baru.
+            if (baru.length < 8) {
+
+                newPassword.focus();
+
+                tampilkanPesan(
+                    "Kata sandi baru minimal 8 karakter.",
+                    "error"
+                );
+
+                return {
+                    valid: false,
+                    diminta: true
+                };
+
+            }
+
+            // Memastikan password mengandung huruf.
+            if (!/[a-zA-Z]/.test(baru)) {
+
+                newPassword.focus();
+
+                tampilkanPesan(
+                    "Kata sandi harus mengandung huruf.",
+                    "error"
+                );
+
+                return {
+                    valid: false,
+                    diminta: true
+                };
+
+            }
+
+            // Memastikan password mengandung angka.
+            if (!/[0-9]/.test(baru)) {
+
+                newPassword.focus();
+
+                tampilkanPesan(
+                    "Kata sandi harus mengandung angka.",
+                    "error"
+                );
+
+                return {
+                    valid: false,
+                    diminta: true
+                };
+
+            }
+
+            // Password baru tidak boleh sama dengan password lama.
+            if (baru === lama) {
+
+                newPassword.focus();
+
+                tampilkanPesan(
+                    "Kata sandi baru harus berbeda dari kata sandi saat ini.",
+                    "error"
+                );
+
+                return {
+                    valid: false,
+                    diminta: true
+                };
+
+            }
+
+            // Konfirmasi wajib diisi.
+            if (!konfirmasi) {
+
+                confirmPassword.focus();
+
+                tampilkanPesan(
+                    "Konfirmasi kata sandi baru wajib diisi.",
+                    "error"
+                );
+
+                return {
+                    valid: false,
+                    diminta: true
+                };
+
+            }
+
+            // Konfirmasi harus sama persis dengan password baru.
+            if (baru !== konfirmasi) {
+
+                confirmPassword.focus();
+
+                tampilkanPesan(
+                    "Konfirmasi kata sandi tidak cocok.",
+                    "error"
+                );
+
+                return {
+                    valid: false,
+                    diminta: true
+                };
+
+            }
+
+            // Seluruh validasi berhasil.
+            return {
+                valid: true,
+                diminta: true
+            };
+
+        }
+
+        /* ====================================================
+           13. MEMBERSIHKAN KOLOM PASSWORD
+        ==================================================== */
+
+        function bersihkanPassword() {
+
+            if (currentPassword) {
+                currentPassword.value = "";
+            }
+
+            if (newPassword) {
+                newPassword.value = "";
+            }
+
+            if (confirmPassword) {
+                confirmPassword.value = "";
+            }
+
+        }
+
+        /* ====================================================
+           14. MENYIMPAN PROFIL
+        ==================================================== */
+
+        function simpanProfil(data) {
+
+            // Membaca data profil lama.
+            const dataLama = bacaProfil() || {};
+
+            // Menggabungkan data lama dan baru.
+            const dataBaru = {
+
+                ...dataLama,
+
+                ...data,
+
+                updatedAt: new Date().toISOString()
+
+            };
+
+            // Menyimpan ke Local Storage.
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(dataBaru)
+            );
+
+            // Memeriksa hasil penyimpanan.
+            const hasil = bacaProfil();
+
+            if (
+                !hasil ||
+                hasil.fullName !== data.fullName ||
+                hasil.username !== data.username ||
+                hasil.email !== data.email
+            ) {
+
+                throw new Error(
+                    "Penyimpanan profil gagal diverifikasi."
                 );
 
             }
 
-            // Memeriksa password baru.
-            if (!password) {
+            return hasil;
 
-                return setInputError(
-                    newPassword,
-                    "Masukkan kata sandi baru."
+        }
+
+        /* ====================================================
+           15. MENGUBAH PASSWORD MELALUI SERVER
+        ==================================================== */
+
+        async function ubahPassword() {
+
+            // Mengambil layanan autentikasi.
+            const backend = window.SIPFAS_AUTH;
+
+            // Backend wajib tersedia.
+            if (
+                !backend ||
+                typeof backend.changePassword !== "function"
+            ) {
+
+                throw new Error(
+                    "Layanan perubahan password belum terhubung ke backend. Password tidak diubah."
                 );
 
             }
 
-            // Memeriksa format password baru.
-            const passwordResult = validatePassword(password);
+            // Mengirim password ke backend.
+            const hasil = await backend.changePassword({
 
-            if (!passwordResult.valid) {
+                currentPassword: currentPassword.value,
 
-                return setInputError(
-                    newPassword,
-                    passwordResult.message
-                );
+                newPassword: newPassword.value
 
-            }
+            });
 
-            // Password baru harus berbeda dari password lama.
-            if (oldPassword === password) {
+            // Memastikan server mengonfirmasi keberhasilan.
+            if (!hasil || hasil.success !== true) {
 
-                return setInputError(
-                    newPassword,
-                    "Kata sandi baru harus berbeda dari kata sandi saat ini."
-                );
-
-            }
-
-            // Memeriksa konfirmasi password.
-            if (!confirmation) {
-
-                return setInputError(
-                    confirmPassword,
-                    "Masukkan konfirmasi kata sandi baru."
-                );
-
-            }
-
-            // Memastikan kedua password sama.
-            if (password !== confirmation) {
-
-                return setInputError(
-                    confirmPassword,
-                    "Konfirmasi kata sandi tidak sesuai."
+                throw new Error(
+                    hasil?.message ||
+                    "Password lama salah atau perubahan password gagal."
                 );
 
             }
 
             return true;
+
         }
 
-        // ====================================================
-        // 8. INDIKATOR TOMBOL SIMPAN
-        // ====================================================
+        /* ====================================================
+           16. MEMUAT PROFIL
+        ==================================================== */
 
-        function setLoading(loading) {
+        function muatProfil() {
 
-            isSubmitting = loading;
+            const data = bacaProfil();
 
-            saveButton.disabled = loading;
+            // Memuat data jika tersedia.
+            if (data) {
 
-            saveButton.setAttribute(
-                "aria-busy",
-                String(loading)
-            );
+                if (typeof data.fullName === "string") {
+                    nama.value = data.fullName;
+                }
 
-            if (loading) {
+                if (typeof data.username === "string") {
+                    username.value = data.username;
+                }
 
-                saveButton.textContent = "Memproses Perubahan...";
-
-            } else {
-
-                saveButton.innerHTML = originalButtonHTML;
-
-            }
-        }
-
-        // ====================================================
-        // 9. MEMBERSIHKAN INPUT PASSWORD
-        // ====================================================
-
-        function resetPasswordFields() {
-
-            currentPassword.value = "";
-
-            newPassword.value = "";
-
-            confirmPassword.value = "";
-
-            clearValidationErrors();
-        }
-
-        // ====================================================
-        // 10. INTEGRASI BACKEND
-        // ====================================================
-
-        async function updatePassword(oldPassword, newValue) {
-
-            /*
-             Backend harus menyediakan:
-
-             window.SIPFAS_AUTH.changePassword()
-
-             Backend bertanggung jawab untuk:
-             - Memeriksa password lama.
-             - Melakukan hashing password baru.
-             - Memperbarui password di database.
-             - Mengembalikan status keberhasilan.
-
-             Jangan menyimpan password di Local Storage.
-            */
-
-            if (
-                !window.SIPFAS_AUTH ||
-                typeof window.SIPFAS_AUTH.changePassword !== "function"
-            ) {
-
-                throw new Error(
-                    "Backend autentikasi belum terhubung. Perubahan kata sandi belum dapat disimpan."
-                );
+                if (typeof data.email === "string") {
+                    email.value = data.email;
+                }
 
             }
 
-            const result = await window.SIPFAS_AUTH.changePassword({
+            // Memastikan input dapat diedit.
+            [nama, username, email].forEach(input => {
 
-                currentPassword: oldPassword,
+                input.readOnly = false;
 
-                newPassword: newValue
+                input.disabled = false;
 
             });
 
-            if (!result || result.success !== true) {
+            // Memperbarui tampilan.
+            perbaruiTampilan(ambilData());
 
-                throw new Error(
-                    result && result.message
-                        ? result.message
-                        : "Server menolak perubahan kata sandi."
-                );
-
-            }
-
-            return result;
         }
 
-        // ====================================================
-        // 11. PROSES SIMPAN PERUBAHAN
-        // ====================================================
+        /* ====================================================
+           17. EVENT SIMPAN PERUBAHAN
+        ==================================================== */
 
-        profileForm.addEventListener("submit", async function (event) {
+        form.addEventListener("submit", async event => {
 
+            // Mencegah reload halaman.
             event.preventDefault();
 
-            // Mencegah proses penyimpanan berulang.
-            if (isSubmitting) {
-                return;
-            }
+            // Mencegah klik berulang.
+            if (sedangMenyimpan) return;
 
-            clearNotification();
+            // Memvalidasi profil.
+            if (!validasiProfil()) return;
 
-            clearValidationErrors();
+            // Memvalidasi password.
+            const hasilValidasi = validasiPassword();
 
-            // Menjalankan validasi.
-            if (!validateForm()) {
-                return;
-            }
-
-            const oldPassword = currentPassword.value;
-
-            const newValue = newPassword.value;
+            // Menghentikan proses jika password tidak valid.
+            if (!hasilValidasi.valid) return;
 
             try {
 
-                setLoading(true);
+                // Mengaktifkan status proses.
+                sedangMenyimpan = true;
 
-                showNotification(
-                    "Sedang memproses perubahan kata sandi...",
+                tombolSimpan.disabled = true;
+
+                tombolSimpan.textContent = "Menyimpan...";
+
+                // Menampilkan notifikasi proses.
+                tampilkanPesan(
+                    "Sedang memproses perubahan...",
                     "info"
                 );
 
-                // Mengirim perubahan ke backend.
-                const result = await updatePassword(
-                    oldPassword,
-                    newValue
-                );
+                // Mengambil data identitas.
+                const data = ambilData();
 
-                // Hanya dijalankan jika server berhasil.
-                resetPasswordFields();
+                // Mengubah password terlebih dahulu jika diminta.
+                if (hasilValidasi.diminta) {
 
-                showNotification(
-                    result.message || "Kata sandi berhasil diperbarui.",
+                    await ubahPassword();
+
+                }
+
+                // Menyimpan identitas setelah proses password sukses.
+                simpanProfil(data);
+
+                // Memperbarui tampilan.
+                perbaruiTampilan(data);
+
+                // Mengosongkan password.
+                bersihkanPassword();
+
+                // Menampilkan pesan keberhasilan yang sesuai.
+                tampilkanPesan(
+                    hasilValidasi.diminta
+                        ? "Profil dan kata sandi berhasil diperbarui."
+                        : "Perubahan profil berhasil disimpan.",
                     "success"
                 );
 
-                console.log(
-                    "[SIPFAS] Kata sandi berhasil diperbarui."
+                // Mengirim event perubahan profil.
+                window.dispatchEvent(
+                    new CustomEvent("sipfas:profile-updated", {
+                        detail: {
+                            profile: data
+                        }
+                    })
                 );
 
-                window.dispatchEvent(
-                    new CustomEvent("sipfas:password-changed")
+                console.log(
+                    "[SIPFAS] Perubahan berhasil diproses."
                 );
 
             } catch (error) {
 
+                // Menampilkan kesalahan.
                 console.error(
                     "[SIPFAS] Kesalahan penyimpanan:",
                     error
                 );
 
-                showNotification(
-                    error.message || "Gagal memperbarui kata sandi.",
+                tampilkanPesan(
+                    error.message ||
+                    "Terjadi kesalahan saat menyimpan perubahan.",
                     "error"
                 );
 
             } finally {
 
-                setLoading(false);
+                // Mengaktifkan kembali tombol.
+                sedangMenyimpan = false;
+
+                tombolSimpan.disabled = false;
+
+                tombolSimpan.innerHTML = tombolAwal;
 
             }
 
         });
 
-        // ====================================================
-        // 12. MENGHAPUS ERROR KETIKA INPUT DIUBAH
-        // ====================================================
+        /* ====================================================
+           18. EVENT INPUT
+        ==================================================== */
 
-        [
-            currentPassword,
-            newPassword,
-            confirmPassword
-        ].forEach(function (input) {
+        [nama, username, email].forEach(input => {
 
-            input.addEventListener("input", function () {
+            input.addEventListener("input", () => {
 
                 input.classList.remove("input-error");
 
                 input.removeAttribute("aria-invalid");
 
-                clearNotification();
+                if (feedback) {
+
+                    feedback.textContent = "";
+
+                    feedback.className = "form-feedback";
+
+                }
+
+                // Memperbarui avatar ketika nama diketik.
+                if (input === nama) {
+
+                    perbaruiAvatar(
+                        bersihkan(nama.value) || "RH"
+                    );
+
+                }
 
             });
 
         });
 
-        // ====================================================
-        // 13. SINKRONISASI IDENTITAS PETUGAS
-        // ====================================================
+        /* ====================================================
+           19. TOGGLE PASSWORD
+        ==================================================== */
 
-        function synchronizeIdentity() {
+        document.querySelectorAll(".toggle-password")
+            .forEach(button => {
 
-            if (!fullName) {
-                return;
-            }
+                const target = button.dataset.target;
 
-            const name = fullName.value.trim();
+                const input = document.getElementById(target);
 
-            if (!name) {
-                return;
-            }
+                if (!input) return;
 
-            const headerName = document.querySelector(
-                ".profile-area .profile-name"
-            );
+                // Mencegah tombol dianggap sebagai tombol submit.
+                button.type = "button";
 
-            const identityName = document.querySelector(
-                ".profile-identity h2"
-            );
+                button.addEventListener("click", () => {
 
-            const avatar = document.querySelector(".large-avatar");
+                    const sedangTersembunyi =
+                        input.type === "password";
 
-            if (headerName) {
-                headerName.textContent = name;
-            }
+                    // Mengubah tipe input.
+                    input.type = sedangTersembunyi
+                        ? "text"
+                        : "password";
 
-            if (identityName) {
-                identityName.textContent = name;
-            }
+                    // Memperbarui status aksesibilitas.
+                    button.setAttribute(
+                        "aria-pressed",
+                        String(sedangTersembunyi)
+                    );
 
-            if (avatar) {
-
-                const initials = name
-                    .replace(/\./g, "")
-                    .split(/\s+/)
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map(function (word) {
-                        return word.charAt(0);
-                    })
-                    .join("")
-                    .toUpperCase();
-
-                // Mengubah inisial tanpa menghapus badge.
-                Array.from(avatar.childNodes).forEach(function (node) {
-
-                    if (node.nodeType === Node.TEXT_NODE) {
-                        node.remove();
-                    }
+                    button.setAttribute(
+                        "aria-label",
+                        sedangTersembunyi
+                            ? "Sembunyikan kata sandi"
+                            : "Tampilkan kata sandi"
+                    );
 
                 });
 
-                avatar.insertBefore(
-                    document.createTextNode(initials),
-                    avatar.querySelector(".verified-mark")
-                );
-
-            }
-        }
-
-        // ====================================================
-        // 14. SIDEBAR RESPONSIF
-        // ====================================================
-
-        function setSidebar(isOpen) {
-
-            if (!sidebar) {
-                return;
-            }
-
-            sidebar.classList.toggle("open", isOpen);
-
-            if (pageOverlay) {
-
-                pageOverlay.classList.toggle("show", isOpen);
-
-            }
-
-            if (menuToggle) {
-
-                menuToggle.setAttribute(
-                    "aria-expanded",
-                    String(isOpen)
-                );
-
-                menuToggle.setAttribute(
-                    "aria-label",
-                    isOpen ? "Tutup menu" : "Buka menu"
-                );
-
-            }
-        }
-
-        // Tombol menu sidebar.
-        if (menuToggle) {
-
-            menuToggle.addEventListener("click", function () {
-
-                const isOpen = sidebar.classList.contains("open");
-
-                setSidebar(!isOpen);
-
             });
 
+        /* ====================================================
+           20. SIDEBAR MOBILE
+        ==================================================== */
+
+        function aturSidebar(buka) {
+
+            sidebar?.classList.toggle("open", buka);
+
+            overlay?.classList.toggle("show", buka);
+
+            menuToggle?.setAttribute(
+                "aria-expanded",
+                String(buka)
+            );
+
         }
 
-        // Menutup sidebar melalui overlay.
-        if (pageOverlay) {
+        menuToggle?.addEventListener("click", () => {
 
-            pageOverlay.addEventListener("click", function () {
+            const terbuka =
+                sidebar?.classList.contains("open");
 
-                setSidebar(false);
+            aturSidebar(!terbuka);
 
-            });
+        });
 
-        }
+        overlay?.addEventListener("click", () => {
 
-        // Menutup sidebar setelah navigasi.
-        document.querySelectorAll(".nav-link").forEach(
-            function (link) {
+            aturSidebar(false);
 
-                link.addEventListener("click", function () {
+        });
 
-                    setSidebar(false);
-
-                });
-
-            }
-        );
-
-        // Menutup sidebar dengan tombol Escape.
-        document.addEventListener("keydown", function (event) {
+        document.addEventListener("keydown", event => {
 
             if (event.key === "Escape") {
 
-                setSidebar(false);
+                aturSidebar(false);
 
             }
 
         });
 
-        // ====================================================
-        // 15. KONFIRMASI KELUAR
-        // ====================================================
+        /* ====================================================
+           21. SINKRONISASI ANTARTAB
+        ==================================================== */
 
-        if (logoutLink) {
+        window.addEventListener("storage", event => {
 
-            logoutLink.addEventListener("click", function (event) {
+            if (event.key === STORAGE_KEY) {
 
-                event.preventDefault();
+                muatProfil();
 
-                const confirmation = window.confirm(
-                    "Apakah Anda yakin ingin keluar dari sistem SIPFAS?"
-                );
+            }
 
-                if (!confirmation) {
-                    return;
-                }
+        });
 
-                // Mengikuti alamat tujuan pada HTML.
-                // Tidak menghapus data laporan Local Storage.
-                window.location.href = logoutLink.href;
+        /* ====================================================
+           22. INISIALISASI AKHIR
+        ==================================================== */
 
-            });
+        // Memuat data profil.
+        muatProfil();
 
-        }
+        // Memastikan sidebar tertutup saat awal.
+        aturSidebar(false);
 
-        // ====================================================
-        // 16. INISIALISASI HALAMAN
-        // ====================================================
-
-        synchronizeIdentity();
-
-        setSidebar(false);
-
+        // Menampilkan status program.
         console.log(
-            "[SIPFAS] Profil Saya berhasil diinisialisasi."
+            "[SIPFAS] Profil Saya berhasil dijalankan."
         );
 
-        console.log(
-            "[SIPFAS] Toggle password: aktif."
+    }
+
+    /* ========================================================
+       23. MENJALANKAN PROGRAM
+    ======================================================== */
+
+    if (document.readyState === "loading") {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initProfil,
+            { once: true }
         );
 
-        console.log(
-            "[SIPFAS] Validasi formulir: aktif."
-        );
+    } else {
 
-        console.log(
-            "[SIPFAS] Sidebar: aktif."
-        );
+        initProfil();
 
-        console.log(
-            "[SIPFAS] Backend:",
-            window.SIPFAS_AUTH ? "Tersedia" : "Belum terhubung."
-        );
-
-    });
+    }
 
 })();

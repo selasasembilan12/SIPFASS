@@ -1,11 +1,14 @@
+
 <!DOCTYPE html>
 <html lang="id">
 
 <head>
+    <!-- Pengaturan dasar halaman -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil Petugas | SIPFAS</title>
 
+    <!-- CSS asli, tidak diubah -->
     <link rel="stylesheet" href="../../assets/css/logo.css">
     <link rel="stylesheet" href="../Penanganan/Penanganan.css">
     <link rel="stylesheet" href="Profil-Saya.css">
@@ -13,13 +16,13 @@
 
 <body>
 
-    <!-- Pembungkus utama halaman Profil Saya Petugas -->
+    <!-- Pembungkus utama -->
     <div class="app">
 
-        <!-- Sidebar kiri untuk navigasi antarhalaman petugas -->
+        <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
 
-            <!-- Logo SIPFAS dan tulisan identitas aplikasi -->
+            <!-- Logo aplikasi -->
             <div class="sidebar-logo">
                 <img src="../../assets/images/logo-sipfas.png" alt="Logo SIPFAS">
 
@@ -29,7 +32,7 @@
                 </div>
             </div>
 
-            <!-- Daftar menu sidebar: Dashboard, Verifikasi, Penanganan, Riwayat, dan Profil -->
+            <!-- Navigasi -->
             <nav class="nav-menu">
 
                 <a href="../Dashboard/Dashboard.html" class="nav-link">
@@ -76,7 +79,7 @@
 
             </nav>
 
-            <!-- Tautan tombol Keluar pada bagian bawah sidebar -->
+            <!-- Logout -->
             <a href="../../index.html" class="logout-link" id="logoutLink">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                     <path d="M10 17l5-5-5-5M15 12H3M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7"/>
@@ -86,12 +89,19 @@
 
         </aside>
 
+        <!-- AREA KERJA -->
         <div class="workspace">
 
-            <!-- Header atas: nama sistem informasi dan identitas pengguna -->
+            <!-- HEADER -->
             <header class="topbar">
 
-                <button class="menu-toggle" id="menuToggle" aria-label="Buka menu">
+                <button
+                    class="menu-toggle"
+                    id="menuToggle"
+                    type="button"
+                    aria-label="Buka menu"
+                    aria-expanded="false"
+                >
                     <span></span>
                     <span></span>
                     <span></span>
@@ -102,7 +112,7 @@
                     SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS
                 </div>
 
-                <!-- Nama petugas dan ikon profil di kanan atas -->
+                <!-- Identitas header -->
                 <a href="Profil-Saya.html" class="profile-area">
                     <span class="profile-name">Rahmat Hidayat, S.T.</span>
 
@@ -116,10 +126,9 @@
 
             </header>
 
-            <!-- Konten utama halaman Profil Petugas -->
+            <!-- KONTEN UTAMA -->
             <main class="main-content profile-content">
 
-                <!-- Tulisan navigasi Pengaturan Akun dan Profil Petugas -->
                 <div class="breadcrumb">
                     <span>Pengaturan Akun</span>
                     <span class="crumb-separator">›</span>
@@ -130,15 +139,18 @@
                     <h1>Profil Petugas</h1>
                 </div>
 
-                <!-- Kartu putih utama berisi ringkasan profil dan formulir akun -->
+                <!-- KARTU PROFIL -->
                 <section class="profile-panel" aria-label="Informasi profil petugas">
 
-                    <!-- Ringkasan akun: avatar, nama lengkap, instansi, dan peran -->
+                    <!-- RINGKASAN IDENTITAS -->
                     <div class="profile-summary">
 
-                        <!-- Avatar besar dengan inisial petugas dan tanda verifikasi -->
+                        <!-- PERBAIKAN AVATAR:
+                             Inisial sekarang memiliki elemen khusus.
+                             Tidak ada teks RH di luar span. -->
                         <div class="large-avatar" aria-label="Inisial Rahmat Hidayat">
-                            RH
+
+                            <span class="avatar-initials">RH</span>
 
                             <span class="verified-mark" title="Akun petugas terverifikasi">
                                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -146,6 +158,7 @@
                                     <path d="M12 2.8 14.4 4l2.7-.1 1.2 2.4 2.2 1.5-.5 2.7.5 2.7-2.2 1.5-1.2 2.4-2.7-.1-2.4 1.2-2.4-1.2-2.7.1-1.2-2.4-2.2-1.5.5-2.7-.5-2.7 2.2-1.5 1.2-2.4 2.7.1z"/>
                                 </svg>
                             </span>
+
                         </div>
 
                         <div class="profile-identity">
@@ -158,9 +171,10 @@
 
                     <div class="profile-divider"></div>
 
-                    <!-- Form informasi akun dan penggantian kata sandi -->
+                    <!-- FORM PROFIL -->
                     <form id="profileForm" novalidate>
 
+                        <!-- NAMA LENGKAP -->
                         <div class="field-group">
                             <label for="fullName">Nama Lengkap</label>
 
@@ -170,10 +184,20 @@
                                     <path d="M4 20v-1.5c0-3.2 3.2-5 8-5s8 1.8 8 5V20H4z"/>
                                 </svg>
 
-                                <input id="fullName" type="text" value="Rahmat Hidayat, S.T." readonly>
+                                <!-- readonly dihapus -->
+                                <input
+                                    id="fullName"
+                                    name="fullName"
+                                    type="text"
+                                    value="Rahmat Hidayat, S.T."
+                                    autocomplete="name"
+                                    maxlength="100"
+                                    required
+                                >
                             </div>
                         </div>
 
+                        <!-- USERNAME -->
                         <div class="field-group">
                             <label for="username">Nama Pengguna (Username)</label>
 
@@ -191,10 +215,21 @@
                                     >@</text>
                                 </svg>
 
-                                <input id="username" type="text" value="rahmat.sarpras" readonly>
+                                <!-- readonly dihapus -->
+                                <input
+                                    id="username"
+                                    name="username"
+                                    type="text"
+                                    value="rahmat.sarpras"
+                                    autocomplete="username"
+                                    minlength="3"
+                                    maxlength="30"
+                                    required
+                                >
                             </div>
                         </div>
 
+                        <!-- EMAIL -->
                         <div class="field-group">
                             <label for="email">Email</label>
 
@@ -204,11 +239,19 @@
                                     <path d="m4 7 8 6 8-6"/>
                                 </svg>
 
-                                <input id="email" type="email" value="rahmat.sarpras@unkhair.ac.id" readonly>
+                                <!-- readonly dihapus -->
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    value="rahmat.sarpras@unkhair.ac.id"
+                                    autocomplete="email"
+                                    maxlength="150"
+                                >
                             </div>
                         </div>
 
-                        <!-- Kolom peran akun yang hanya dapat dilihat, bukan diubah -->
+                        <!-- ROLE -->
                         <div class="field-group role-field">
                             <label for="role">Peran Akun Sistem</label>
 
@@ -218,7 +261,12 @@
                                     <path d="m9 12 2 2 4-4"/>
                                 </svg>
 
-                                <input id="role" type="text" value="Petugas Sarana Prasarana" readonly>
+                                <input
+                                    id="role"
+                                    type="text"
+                                    value="Petugas Sarana Prasarana"
+                                    readonly
+                                >
 
                                 <svg class="lock-icon" viewBox="0 0 24 24" aria-hidden="true">
                                     <rect x="5" y="10" width="14" height="11" rx="1.5"/>
@@ -237,14 +285,14 @@
 
                         <div class="profile-divider password-divider"></div>
 
-                        <!-- Judul dan petunjuk bagian Ganti Kata Sandi -->
+                        <!-- GANTI PASSWORD -->
                         <div class="password-heading">
                             <h3>Ganti Kata Sandi</h3>
                             <span>(Opsional, isi jika ingin mengubah kata sandi)</span>
                             <p>Biarkan kosong jika tidak ingin memperbarui kata sandi Anda saat ini.</p>
                         </div>
 
-                        <!-- Input kata sandi saat ini -->
+                        <!-- PASSWORD LAMA -->
                         <div class="field-group password-group">
                             <label for="currentPassword">Kata Sandi Saat Ini</label>
 
@@ -256,6 +304,7 @@
 
                                 <input
                                     id="currentPassword"
+                                    name="currentPassword"
                                     type="password"
                                     autocomplete="current-password"
                                     placeholder="Masukkan kata sandi saat ini"
@@ -275,6 +324,7 @@
                             </div>
                         </div>
 
+                        <!-- PASSWORD BARU -->
                         <div class="field-group password-group">
                             <label for="newPassword">Kata Sandi Baru</label>
 
@@ -286,6 +336,7 @@
 
                                 <input
                                     id="newPassword"
+                                    name="newPassword"
                                     type="password"
                                     autocomplete="new-password"
                                     placeholder="Minimal 8 karakter"
@@ -307,29 +358,22 @@
                             <p class="field-note">Minimal 8 karakter kombinasi huruf dan angka</p>
                         </div>
 
+                        <!-- KONFIRMASI PASSWORD -->
                         <div class="field-group password-group">
                             <label for="confirmPassword">Konfirmasi Kata Sandi Baru</label>
 
                             <div class="input-wrap password-input">
                                 <svg viewBox="0 0 24 24" aria-hidden="true">
-
-                                    <!-- Panah melingkar menghadap kiri -->
                                     <path d="M7.5 5.5A8.5 8.5 0 1 1 4 12"/>
                                     <path d="M4 4.5V9h4.5"/>
-
-                                    <!-- Badan gembok -->
                                     <rect x="10.25" y="12.4" width="4.5" height="4.2" rx="0.9"/>
-
-                                    <!-- Lengkungan gembok -->
                                     <path d="M11.3 12.4v-1.3a1.2 1.2 0 0 1 2.4 0v1.3"/>
-
-                                    <!-- Lubang kunci -->
                                     <path d="M12.5 14v1.3"/>
-
                                 </svg>
 
                                 <input
                                     id="confirmPassword"
+                                    name="confirmPassword"
                                     type="password"
                                     autocomplete="new-password"
                                     placeholder="Ulangi kata sandi baru"
@@ -349,9 +393,13 @@
                             </div>
                         </div>
 
-                        <!-- Tombol Simpan Perubahan untuk mengirim formulir -->
+                        <!-- SIMPAN PERUBAHAN -->
                         <div class="form-actions">
-                            <button type="submit" class="save-button">
+                            <button
+                                type="submit"
+                                class="save-button"
+                                id="saveButton"
+                            >
                                 <svg viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M5 3h12l4 4v14H3V3h2z"/>
                                     <path d="M7 3v6h10V3M7 21v-8h10v8"/>
@@ -360,7 +408,7 @@
                             </button>
                         </div>
 
-                        <!-- Area pesan keberhasilan atau kesalahan penyimpanan -->
+                        <!-- NOTIFIKASI -->
                         <p
                             class="form-feedback"
                             id="formFeedback"
@@ -378,8 +426,11 @@
 
     </div>
 
-    <!-- Lapisan latar ketika sidebar dibuka di layar kecil -->
+    <!-- OVERLAY MOBILE -->
     <div class="page-overlay" id="pageOverlay"></div>
+
+    <!-- JavaScript profil -->
     <script src="Profil-Saya.js"></script>
+
 </body>
 </html>
