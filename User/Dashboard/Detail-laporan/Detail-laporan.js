@@ -580,3 +580,24 @@ function tampilkanStatusLaporan(barisStatus, keterangan, status, namaBadge) {
     }
   }
 }
+function updateDetailProfile() {
+  try {
+    const savedProfile = localStorage.getItem("sipfasProfile");
+
+    if (!savedProfile) return;
+
+    const profile = JSON.parse(savedProfile);
+
+    const userName = String(profile.name || "").trim();
+
+    const headerName = document.querySelector(".header-name");
+
+    if (headerName && userName) {
+      headerName.textContent = userName;
+    }
+  } catch (error) {
+    console.error("Gagal mengambil profil:", error);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", updateDetailProfile);

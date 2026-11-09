@@ -323,7 +323,8 @@ function renderRecentReports(reports) {
 
   reportTableBody.replaceChildren();
 
-  const recentReports = reports.slice(0, 5);
+  // Menampilkan seluruh laporan tanpa batas jumlah.
+  const recentReports = reports;
 
   if (recentReports.length === 0) {
     const emptyRow = document.createElement("tr");
