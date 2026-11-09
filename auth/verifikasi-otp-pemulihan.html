@@ -1,11 +1,13 @@
 <!doctype html>
 <html lang="id">
   <head>
+    <!-- Mengatur karakter dan ukuran tampilan halaman. -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Verifikasi OTP Pemulihan | SIPFAS</title>
 
-    <!-- FONT UTAMA: Inter agar konsisten dengan halaman autentikasi SIPFAS. -->
+    <title>Verifikasi Dua Langkah | SIPFAS</title>
+
+    <!-- FONT UTAMA SIPFAS. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -13,36 +15,39 @@
       rel="stylesheet"
     />
 
-    <!-- CSS KHUSUS HALAMAN VERIFIKASI OTP PEMULIHAN. -->
-    <link rel="stylesheet" href="verifikasi-otp-pemulihan.css" />
+    <!-- CSS HALAMAN VERIFIKASI. -->
+    <link rel="stylesheet" href="verifikasi.css" />
   </head>
+
   <body>
-    <!-- PEMBUNGKUS HALAMAN: memusatkan kartu OTP di tengah layar. -->
+    <!-- PEMBUNGKUS HALAMAN VERIFIKASI. -->
     <main class="otp-page">
-      <!-- KARTU OTP: memuat identitas SIPFAS, email, dan formulir verifikasi. -->
+      <!-- KARTU UTAMA VERIFIKASI. -->
       <section class="otp-card">
-        <!-- IDENTITAS SIPFAS: menggunakan logo resmi dari folder assets. -->
+        <!-- IDENTITAS SIPFAS. -->
         <div class="brand">
           <img
             src="../assets/images/logo-sipfas.png"
             alt="Logo SIPFAS"
             class="brand-logo"
           />
+
           <div class="brand-text">
             <strong>SIPFAS</strong>
             <span>Informatika UNKHAIR</span>
           </div>
         </div>
 
-        <!-- JUDUL DAN PETUNJUK VERIFIKASI OTP PEMULIHAN. -->
+        <!-- JUDUL DAN INFORMASI VERIFIKASI. -->
         <header class="otp-header">
-          <h1>Verifikasi OTP Pemulihan</h1>
+          <h1>Verifikasi Dua Langkah</h1>
+
           <p>
-            Masukkan 8 digit kode verifikasi yang dikirim ke email institusi
+            Masukkan 8 digit kode verifikasi yang dikirim ke email terdaftar
             Anda.
           </p>
 
-          <!-- EMAIL TUJUAN: ditampilkan dalam bentuk tersamarkan. -->
+          <!-- EMAIL PENGGUNA YANG DISAMARKAN. -->
           <div class="email-badge">
             <svg
               class="email-icon"
@@ -59,6 +64,7 @@
                 stroke="currentColor"
                 stroke-width="1.8"
               />
+
               <path
                 d="M4 7L12 13L20 7"
                 stroke="currentColor"
@@ -67,14 +73,30 @@
                 stroke-linejoin="round"
               />
             </svg>
-            <span id="maskedEmail">ra***@unkhair.ac.id</span>
+
+            <span id="maskedEmail">ra***@gmail.com</span>
           </div>
         </header>
 
-        <!-- FORM OTP: delapan kotak input sesuai pola verifikasi SIPFAS. -->
-        <!-- FORM OTP: mengarahkan pengguna ke halaman buat kata sandi baru. -->
-        <form id="otpForm" action="password-baru.html" method="get">
-          <div class="otp-inputs" aria-label="Masukkan kode OTP 8 digit">
+        <!-- INFORMASI OTP SIMULASI.
+             Kode tidak hilang ketika pengguna salah memasukkan OTP. -->
+        <div
+          class="otp-code-info"
+          id="otpCodeInfo"
+          role="status"
+          aria-live="polite"
+        >
+          Kode OTP simulasi akan ditampilkan di sini.
+        </div>
+
+        <!-- FORMULIR VERIFIKASI. -->
+        <form id="otpForm" novalidate>
+          <!-- DELAPAN KOTAK INPUT OTP. -->
+          <div
+            class="otp-inputs"
+            role="group"
+            aria-label="Masukkan kode OTP 8 digit"
+          >
             <input
               class="otp-input"
               type="text"
@@ -83,6 +105,7 @@
               autocomplete="one-time-code"
               aria-label="Digit OTP 1"
             />
+
             <input
               class="otp-input"
               type="text"
@@ -90,6 +113,7 @@
               maxlength="1"
               aria-label="Digit OTP 2"
             />
+
             <input
               class="otp-input"
               type="text"
@@ -97,6 +121,7 @@
               maxlength="1"
               aria-label="Digit OTP 3"
             />
+
             <input
               class="otp-input"
               type="text"
@@ -104,6 +129,7 @@
               maxlength="1"
               aria-label="Digit OTP 4"
             />
+
             <input
               class="otp-input"
               type="text"
@@ -111,6 +137,7 @@
               maxlength="1"
               aria-label="Digit OTP 5"
             />
+
             <input
               class="otp-input"
               type="text"
@@ -118,6 +145,7 @@
               maxlength="1"
               aria-label="Digit OTP 6"
             />
+
             <input
               class="otp-input"
               type="text"
@@ -125,6 +153,7 @@
               maxlength="1"
               aria-label="Digit OTP 7"
             />
+
             <input
               class="otp-input"
               type="text"
@@ -134,7 +163,13 @@
             />
           </div>
 
-          <!-- PESAN VALIDASI: menampilkan kesalahan atau informasi proses. -->
+          <!-- INFORMASI SISA KESEMPATAN VERIFIKASI. -->
+          <div class="attempt-row">
+            <span>Kesempatan verifikasi tersisa</span>
+            <strong id="attemptInfo">3 dari 3 kali</strong>
+          </div>
+
+          <!-- PESAN KESALAHAN ATAU KEBERHASILAN. -->
           <p
             class="otp-message"
             id="otpMessage"
@@ -142,7 +177,7 @@
             aria-live="polite"
           ></p>
 
-          <!-- TIMER: menunjukkan sisa masa berlaku kode OTP. -->
+          <!-- TIMER MASA BERLAKU OTP. -->
           <div class="timer-row">
             <div class="timer-label">
               <svg
@@ -158,12 +193,14 @@
                   stroke="currentColor"
                   stroke-width="1.8"
                 />
+
                 <path
                   d="M10 2.5H14M12 2.5V4.5M18.2 6.8L19.5 5.5"
                   stroke="currentColor"
                   stroke-width="1.8"
                   stroke-linecap="round"
                 />
+
                 <path
                   d="M12 8V13L15 15"
                   stroke="currentColor"
@@ -172,14 +209,17 @@
                   stroke-linejoin="round"
                 />
               </svg>
-              <span>Masa berlaku kode:</span>
+
+              <span>Masa berlaku kode OTP</span>
             </div>
-            <span class="timer-value" id="timer">02:59</span>
+
+            <span class="timer-value" id="timer">02:00</span>
           </div>
 
-          <!-- TOMBOL VERIFIKASI: memvalidasi kelengkapan kode OTP. -->
+          <!-- TOMBOL VERIFIKASI. -->
           <button type="submit" class="verify-button">
             <span>Verifikasi</span>
+
             <svg
               class="arrow-icon"
               viewBox="0 0 24 24"
@@ -197,9 +237,10 @@
           </button>
         </form>
 
-        <!-- KIRIM ULANG: tersedia kembali setelah timer berakhir. -->
+        <!-- AREA KIRIM ULANG OTP. -->
         <div class="resend-row">
           <span>Tidak menerima kode?</span>
+
           <button
             type="button"
             id="resendButton"
@@ -210,8 +251,14 @@
           </button>
         </div>
 
-        <!-- NAVIGASI KEMBALI: kembali ke halaman pemulihan akun. -->
-        <a href="pemulihan.html" class="back-link">
+        <!-- INFORMASI TAMBAHAN. -->
+        <p class="otp-note">
+          Masukkan kode verifikasi yang telah dikirim ke email terdaftar Anda
+          untuk melanjutkan proses masuk.
+        </p>
+
+        <!-- KEMBALI KE HALAMAN LOGIN. -->
+        <a href="login.html" class="back-link">
           <svg
             class="back-icon"
             viewBox="0 0 24 24"
@@ -226,10 +273,13 @@
               stroke-linejoin="round"
             />
           </svg>
-          <span>Kembali ke Pemulihan Akun</span>
+
+          <span>Kembali ke Login</span>
         </a>
       </section>
     </main>
-    <script src="verifikasi-otp-pemulihan.js"></script>
+
+    <!-- JAVASCRIPT VERIFIKASI DUA LANGKAH. -->
+    <script src="verifikasi.js" defer></script>
   </body>
 </html>

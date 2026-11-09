@@ -1,150 +1,154 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Verifikasi Dua Langkah | SIPFAS</title>
 
     <!-- FONT UTAMA: menggunakan Inter agar konsisten dengan halaman Login, Admin, dan Petugas. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- CSS KHUSUS HALAMAN VERIFIKASI OTP. -->
-    <link rel="stylesheet" href="Verifikasi.css">
-</head>
-<body>
-
+    <link rel="stylesheet" href="Verifikasi.css" />
+  </head>
+  <body>
     <!-- PEMBUNGKUS HALAMAN: memusatkan kartu verifikasi dan pemberitahuan. -->
     <main class="verification-page">
+      <!-- AREA UTAMA: kartu putih berisi identitas SIPFAS dan form OTP. -->
+      <section class="verification-card">
+        <!-- IDENTITAS SIPFAS: menggunakan logo resmi dari folder assets. -->
+        <div class="brand">
+          <img
+            src="../assets/images/logo-sipfas.png"
+            alt="Logo SIPFAS"
+            class="brand-logo"
+          />
+          <div class="brand-text">
+            <strong>SIPFAS</strong>
+            <span>Informatika UNKHAIR</span>
+          </div>
+        </div>
 
-        <!-- AREA UTAMA: kartu putih berisi identitas SIPFAS dan form OTP. -->
-        <section class="verification-card">
+        <!-- JUDUL DAN PETUNJUK VERIFIKASI. -->
+        <div class="verification-heading">
+          <h1>Verifikasi Dua Langkah</h1>
+          <p>
+            Masukkan 8 digit kode verifikasi yang dikirim ke email<br
+              class="desktop-break"
+            />
+            terdaftar Anda
+          </p>
 
-            <!-- IDENTITAS SIPFAS: menggunakan logo resmi dari folder assets. -->
-            <div class="brand">
-                <img src="../assets/images/logo-sipfas.png" alt="Logo SIPFAS" class="brand-logo">
-                <div class="brand-text">
-                    <strong>SIPFAS</strong>
-                    <span>Informatika UNKHAIR</span>
-                </div>
-            </div>
+          <!-- EMAIL TUJUAN: ditampilkan dalam bentuk tersamarkan. -->
+          <div class="email-badge">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="1.5"></rect>
+              <path d="m4 7 8 6 8-6"></path>
+            </svg>
+            <span>ra***@email.com</span>
+          </div>
+        </div>
 
-            <!-- JUDUL DAN PETUNJUK VERIFIKASI. -->
-            <div class="verification-heading">
-                <h1>Verifikasi Dua Langkah</h1>
-                <p>Masukkan 8 digit kode verifikasi yang dikirim ke email<br class="desktop-break"> terdaftar Anda</p>
+        <!-- FORM OTP: delapan kotak input untuk kode verifikasi. -->
+        <form class="verification-form" id="verificationForm">
+          <div class="otp-inputs" aria-label="Masukkan kode OTP 8 digit">
+            <input
+              class="otp-input"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="1"
+              aria-label="Digit 1"
+              required
+            />
+            <input
+              class="otp-input"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="Digit 2"
+              required
+            />
+            <input
+              class="otp-input"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="Digit 3"
+              required
+            />
+            <input
+              class="otp-input"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="Digit 4"
+              required
+            />
+            <input
+              class="otp-input"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="Digit 5"
+              required
+            />
+            <input
+              class="otp-input"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="Digit 6"
+              required
+            />
+            <input
+              class="otp-input"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="Digit 7"
+              required
+            />
+            <input
+              class="otp-input"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              aria-label="Digit 8"
+              required
+            />
+          </div>
 
-                <!-- EMAIL TUJUAN: ditampilkan dalam bentuk tersamarkan. -->
-                <div class="email-badge">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <rect x="3" y="5" width="18" height="14" rx="1.5"></rect>
-                        <path d="m4 7 8 6 8-6"></path>
-                    </svg>
-                    <span>ra***@email.com</span>
-                </div>
-            </div>
+          <!-- TOMBOL VERIFIKASI: memeriksa apakah seluruh 8 digit sudah diisi. -->
+          <button type="submit" class="verification-button">Verifikasi</button>
+        </form>
 
-            <!-- FORM OTP: delapan kotak input untuk kode verifikasi. -->
-            <form class="verification-form" id="verificationForm">
-                <div class="otp-inputs" aria-label="Masukkan kode OTP 8 digit">
-                    <input class="otp-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Digit 1" required>
-                    <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 2" required>
-                    <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 3" required>
-                    <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 4" required>
-                    <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 5" required>
-                    <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 6" required>
-                    <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 7" required>
-                    <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 8" required>
-                </div>
+        <!-- PETUNJUK: mengingatkan pengguna kode dikirim ke email terdaftar. -->
+        <p class="verification-description">
+          Masukkan 8 digit kode verifikasi yang dikirim ke email terdaftar Anda
+        </p>
 
-                <!-- TOMBOL VERIFIKASI: memeriksa apakah seluruh 8 digit sudah diisi. -->
-                <button type="submit" class="verification-button">Verifikasi</button>
-            </form>
+        <!-- NAVIGASI KEMBALI: mengarahkan pengguna ke halaman Login. -->
+        <a href="Login.html" class="back-to-login">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M19 12H5M11 18l-6-6 6-6"></path>
+          </svg>
+          <span>Kembali ke Login</span>
+        </a>
+      </section>
 
-            <!-- PETUNJUK: mengingatkan pengguna kode dikirim ke email terdaftar. -->
-            <p class="verification-description">
-                Masukkan 8 digit kode verifikasi yang dikirim ke email terdaftar Anda
-            </p>
-
-            <!-- NAVIGASI KEMBALI: mengarahkan pengguna ke halaman Login. -->
-            <a href="Login.html" class="back-to-login">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M19 12H5M11 18l-6-6 6-6"></path>
-                </svg>
-                <span>Kembali ke Login</span>
-            </a>
-        </section>
-
-        <!-- PEMBERITAHUAN MASA BERLAKU OTP DI LUAR KARTU. -->
-        <p class="otp-notice">Pemberitahuan: Kode OTP hanya berlaku selama 5 menit.</p>
+      <!-- PEMBERITAHUAN MASA BERLAKU OTP DI LUAR KARTU. -->
+      <p class="otp-notice">
+        Pemberitahuan: Kode OTP hanya berlaku selama 2 menit.
+      </p>
     </main>
 
-    <!-- INTERAKSI OTP: pindah otomatis, dukungan paste, backspace, dan validasi 8 digit. -->
-    <script>
-        const otpInputs = Array.from(document.querySelectorAll('.otp-input'));
-        const verificationForm = document.getElementById('verificationForm');
-
-        otpInputs.forEach((input, index) => {
-            input.addEventListener('input', function () {
-                // Hanya menerima angka dan mengambil satu digit untuk setiap kotak.
-                this.value = this.value.replace(/\D/g, '').slice(-1);
-
-                // Jika digit sudah diisi, fokus berpindah ke kotak berikutnya.
-                if (this.value && index < otpInputs.length - 1) {
-                    otpInputs[index + 1].focus();
-                }
-            });
-
-            input.addEventListener('keydown', function (event) {
-                // Tombol Backspace pada kotak kosong mengembalikan fokus ke kotak sebelumnya.
-                if (event.key === 'Backspace' && !this.value && index > 0) {
-                    otpInputs[index - 1].focus();
-                }
-
-                // Tombol panah kiri dan kanan untuk berpindah antarkotak.
-                if (event.key === 'ArrowLeft' && index > 0) {
-                    otpInputs[index - 1].focus();
-                }
-                if (event.key === 'ArrowRight' && index < otpInputs.length - 1) {
-                    otpInputs[index + 1].focus();
-                }
-            });
-
-            // Mendukung tempel kode OTP 8 digit sekaligus.
-            input.addEventListener('paste', function (event) {
-                event.preventDefault();
-                const pastedCode = (event.clipboardData || window.clipboardData)
-                    .getData('text')
-                    .replace(/\D/g, '')
-                    .slice(0, 8);
-
-                pastedCode.split('').forEach((digit, digitIndex) => {
-                    otpInputs[digitIndex].value = digit;
-                });
-
-                const nextEmptyIndex = pastedCode.length < 8 ? pastedCode.length : 7;
-                otpInputs[nextEmptyIndex].focus();
-            });
-        });
-
-        // Validasi frontend. Pemeriksaan OTP sebenarnya perlu dihubungkan ke backend.
-        verificationForm.addEventListener('submit', function (event) {
-            event.preventDefault();
-            const otpCode = otpInputs.map(input => input.value).join('');
-
-            if (!/^\d{8}$/.test(otpCode)) {
-                alert('Silakan masukkan kode verifikasi sebanyak 8 digit.');
-                otpInputs.find(input => !input.value)?.focus();
-                return;
-            }
-
-            alert('Kode 8 digit berhasil dimasukkan. Proses pencocokan OTP perlu dihubungkan ke backend SIPFAS.');
-        });
-
-        // Saat halaman dibuka, kursor langsung berada pada kotak OTP pertama.
-        otpInputs[0].focus();
-    </script>
-<script src="Verifikasi.js"></script>
-</body>
+    <!-- Sistem OTP SIPFAS -->
+    <script src="verifikasi.js"></script>
+  </body>
 </html>

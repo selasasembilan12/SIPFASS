@@ -1,82 +1,181 @@
-// 01. Menjalankan program setelah halaman Profil selesai dimuat.
+/* ============================================================
+   SIPFAS - PROFIL.JS
+   Menghubungkan halaman profil dengan akun registrasi,
+   login, dan seluruh halaman pengguna.
+============================================================ */
+
+// 01. Menjalankan program setelah halaman selesai dimuat.
 document.addEventListener("DOMContentLoaded", function () {
   mulaiProfil();
 });
 
-// 02. Menentukan nama tempat penyimpanan data profil.
+// 02. Konfigurasi penyimpanan akun SIPFAS.
 const KUNCI_PROFIL = "sipfasProfile";
+const KUNCI_USERS = "sipfasUsers";
+const KUNCI_ACTIVE = "sipfasActiveUser";
 
-// 03. Menyiapkan data profil awal sebagai simulasi.
-const profilAwal = {
-  name: "Ahmad Fauzi",
-  nim: "07352011045",
-  username: "07352011045",
-  email: "ahmad.fauzi@unkhair.ac.id",
-};
-
-// 04. Mengambil data profil dari LocalStorage.
-function ambilProfil() {
+// 03. Mengambil akun yang sedang login.
+function ambilAkunAktif() {
   try {
-    const dataTersimpan = localStorage.getItem(KUNCI_PROFIL);
-
-    // Menggunakan data awal jika belum ada data tersimpan.
-    if (!dataTersimpan) {
-      localStorage.setItem(KUNCI_PROFIL, JSON.stringify(profilAwal));
-
-      return { ...profilAwal };
-    }
-
-    // Mengubah data JSON menjadi objek JavaScript.
-    const dataProfil = JSON.parse(dataTersimpan);
-
-    // Memastikan data profil berbentuk objek.
-    if (
-      !dataProfil ||
-      typeof dataProfil !== "object" ||
-      Array.isArray(dataProfil)
-    ) {
-      throw new Error("Format data profil tidak valid.");
-    }
-
-    // Menggabungkan data awal dengan data yang tersimpan.
-    return {
-      ...profilAwal,
-      ...dataProfil,
-    };
+    const data = sessionStorage.getItem(KUNCI_ACTIVE);
+    return data ? JSON.parse(data) : null;
   } catch (error) {
-    console.error("Gagal mengambil profil:", error);
-
-    return { ...profilAwal };
+    console.error("Gagal membaca sesi:", error);
+    return null;
   }
 }
 
-// 05. Menyiapkan halaman Profil ketika pertama kali dibuka.
+// 04. Mengambil seluruh akun terdaftar.
+function ambilSemuaAkun() {
+  try {
+    const data = localStorage.getItem(KUNCI_USERS);
+
+    if (!data) return [];
+
+    const users = JSON.parse(data);
+
+    if (!Array.isArray(users)) {
+      throw new Error("Format akun tidak valid.");
+    }
+
+    return users;
+  } catch (error) {
+    console.error("Gagal membaca akun:", error);
+    return [];
+  }
+}
+
+// 05. Mencari akun berdasarkan identitas login.
+function cariAkunAktif() {
+  const aktif = ambilAkunAktif();
+  const users = ambilSemuaAkun();
+
+  if (!aktif) {
+    return {
+      aktif: null,
+      users: users,
+      index: -1,
+      akun: null,
+    };
+  }
+
+  let index = -1;
+
+  // Mencari berdasarkan ID akun.
+  if (aktif.id) {
+    index = users.findIndex(function (user) {
+      return String(user.id) === String(aktif.id);
+    });
+  }
+
+  // Alternatif berdasarkan username.
+  if (index === -1 && aktif.username) {
+    index = users.findIndex(function (user) {
+      return (
+        String(user.username || "").toLowerCase() ===
+        String(aktif.username).toLowerCase()
+      );
+    });
+  }
+
+  // Alternatif berdasarkan email.
+  if (index === -1 && aktif.email) {
+    index = users.findIndex(function (user) {
+      return (
+        String(user.email || "").toLowerCase() ===
+        String(aktif.email).toLowerCase()
+      );
+    });
+  }
+
+  return {
+    aktif: aktif,
+    users: users,
+    index: index,
+    akun: index >= 0 ? users[index] : null,
+  };
+}
+
+// 06. Mengambil identitas akun yang sedang aktif.
+function ambilProfil() {
+  const konteks = cariAkunAktif();
+
+  if (konteks.akun) {
+    const akun = konteks.akun;
+
+    return {
+      id: akun.id || "",
+      name: akun.name || akun.fullName || akun.nama || "",
+      nim: akun.nim || "",
+      username: akun.username || "",
+      email: akun.email || "",
+      role: akun.role || "pelapor",
+    };
+  }
+
+  // Menggunakan sesi aktif apabila data akun lama
+  // belum ditemukan dalam daftar registrasi.
+  if (konteks.aktif) {
+    return {
+      id: konteks.aktif.id || "",
+      name: konteks.aktif.name || "",
+      nim: konteks.aktif.nim || "",
+      username: konteks.aktif.username || "",
+      email: konteks.aktif.email || "",
+      role: konteks.aktif.role || "pelapor",
+    };
+  }
+
+  // Tidak menggunakan identitas bawaan palsu.
+  return {
+    id: "",
+    name: "",
+    nim: "",
+    username: "",
+    email: "",
+    role: "",
+  };
+}
+
+// 07. Menginisialisasi halaman profil.
 function mulaiProfil() {
   const formulir = document.querySelector(".profile-form");
 
-  // Memeriksa keberadaan formulir.
   if (!formulir) {
     console.error("Formulir profil tidak ditemukan.");
     return;
   }
 
-  // Mengambil dan menampilkan data profil.
-  const profil = ambilProfil();
+  const aktif = ambilAkunAktif();
 
-  tampilkanProfil(profil);
+  // Memastikan pengguna sudah login.
+  if (!aktif) {
+    alert("Sesi pengguna tidak ditemukan. Silakan login kembali.");
+    window.location.href = "../../../auth/Login.html";
+    return;
+  }
 
-  // Mengaktifkan tombol tampil dan sembunyikan password.
+  // Menampilkan identitas akun.
+  tampilkanProfil(ambilProfil());
+
+  // Mengaktifkan tombol password.
   aturTombolPassword();
 
-  // Menjalankan proses penyimpanan ketika formulir dikirim.
+  // Menyimpan perubahan profil.
   formulir.addEventListener("submit", function (event) {
     event.preventDefault();
-
     simpanPerubahanProfil();
+  });
+
+  // Memperbarui tampilan jika identitas berubah dari tab lain.
+  window.addEventListener("storage", function (event) {
+    if (event.key === KUNCI_PROFIL) {
+      tampilkanProfil(ambilProfil());
+    }
   });
 }
 
-// 06. Menampilkan data profil ke dalam halaman HTML.
+// 08. Menampilkan identitas pengguna.
 function tampilkanProfil(profil) {
   const nama = document.getElementById("nama");
   const nim = document.getElementById("nim");
@@ -85,124 +184,205 @@ function tampilkanProfil(profil) {
 
   const namaIdentitas = document.querySelector(".identity-information h2");
 
-  const namaHeader = document.querySelector(".header-name");
+  const namaHeader = document.querySelectorAll(".header-name");
 
-  // Mengisi nama pengguna.
-  nama.value = profil.name;
-  namaIdentitas.textContent = profil.name;
-  namaHeader.textContent = profil.name;
+  if (nama) nama.value = profil.name || "";
+  if (nim) nim.value = profil.nim || "";
+  if (username) username.value = profil.username || "";
+  if (email) email.value = profil.email || "";
 
-  // Mengisi NIM dan username.
-  nim.value = profil.nim;
-  username.value = profil.username;
+  if (namaIdentitas) {
+    namaIdentitas.textContent = profil.name || "Pengguna";
+  }
 
-  // Mengisi alamat email.
-  email.value = profil.email;
-
-  console.log("Profil berhasil ditampilkan:", profil);
+  namaHeader.forEach(function (elemen) {
+    elemen.textContent = profil.name || "Pengguna";
+  });
 }
 
-// 07. Mengatur tombol untuk melihat dan menyembunyikan password.
+// 09. Mengaktifkan tombol tampil/sembunyikan password.
 function aturTombolPassword() {
-  const tombolPassword = document.querySelectorAll(".password-toggle");
+  document.querySelectorAll(".password-toggle").forEach(function (tombol) {
+    const input = tombol.closest(".input-wrapper")?.querySelector("input");
 
-  tombolPassword.forEach(function (tombol) {
-    // Mengambil kolom password yang berhubungan dengan tombol.
-    const inputPassword = tombol
-      .closest(".input-wrapper")
-      .querySelector("input");
+    if (!input) return;
 
-    // Menjalankan fungsi ketika tombol mata diklik.
     tombol.addEventListener("click", function () {
-      // Memeriksa apakah password sedang disembunyikan.
-      const passwordTersembunyi = inputPassword.type === "password";
+      const tersembunyi = input.type === "password";
 
-      // Mengubah tampilan password.
-      inputPassword.type = passwordTersembunyi ? "text" : "password";
+      input.type = tersembunyi ? "text" : "password";
 
-      // Memperbarui keterangan tombol.
       tombol.setAttribute(
         "aria-label",
-        passwordTersembunyi ? "Sembunyikan kata sandi" : "Tampilkan kata sandi",
+        tersembunyi ? "Sembunyikan kata sandi" : "Tampilkan kata sandi",
       );
 
-      tombol.setAttribute("aria-pressed", String(passwordTersembunyi));
+      tombol.setAttribute("aria-pressed", String(tersembunyi));
     });
   });
 }
 
-// 08. Menyimpan perubahan nama dan email pengguna.
+// 10. Menyimpan perubahan akun ke seluruh penyimpanan.
+function simpanAkunTerbaru(akunTerbaru, users, index) {
+  try {
+    // Memperbarui akun yang sesuai.
+    users[index] = {
+      ...users[index],
+      ...akunTerbaru,
+    };
+
+    // Membuat identitas terbaru tanpa password.
+    const identitas = {
+      id: akunTerbaru.id || "",
+      name: akunTerbaru.name || "",
+      nim: akunTerbaru.nim || "",
+      username: akunTerbaru.username || "",
+      email: akunTerbaru.email || "",
+      role: akunTerbaru.role || "pelapor",
+    };
+
+    // Menyimpan daftar akun.
+    localStorage.setItem(KUNCI_USERS, JSON.stringify(users));
+
+    // Menyimpan profil terbaru.
+    localStorage.setItem(KUNCI_PROFIL, JSON.stringify(identitas));
+
+    // Memperbarui sesi akun aktif.
+    sessionStorage.setItem(KUNCI_ACTIVE, JSON.stringify(identitas));
+
+    return true;
+  } catch (error) {
+    console.error("Gagal menyimpan akun:", error);
+    return false;
+  }
+}
+
+// 11. Memproses perubahan profil.
 function simpanPerubahanProfil() {
   const nama = document.getElementById("nama");
   const email = document.getElementById("email");
 
   const passwordLama = document.getElementById("password-current");
-
   const passwordBaru = document.getElementById("password-new");
-
   const konfirmasiPassword = document.getElementById("password-confirm");
 
-  // Mengambil nilai yang dimasukkan pengguna.
-  const namaBaru = nama.value.trim();
-  const emailBaru = email.value.trim();
+  if (!nama || !email) return;
 
-  // 09. Memeriksa kelengkapan nama.
-  if (!namaBaru) {
-    alert("Nama lengkap tidak boleh kosong.");
+  const namaBaru = nama.value.trim();
+  const emailBaru = email.value.trim().toLowerCase();
+
+  // Memvalidasi nama.
+  if (!namaBaru || namaBaru.length < 3) {
+    alert("Nama lengkap minimal 3 karakter.");
     nama.focus();
     return;
   }
 
-  // 10. Memeriksa kelengkapan dan format email.
+  // Memvalidasi email.
   if (!emailBaru || !email.checkValidity()) {
-    alert("Masukkan alamat email dengan format yang benar.");
+    alert("Masukkan alamat email yang benar.");
     email.focus();
     return;
   }
 
-  // 11. Memeriksa apakah pengguna mengisi kolom password.
+  // Mengambil akun aktif.
+  const konteks = cariAkunAktif();
+
+  if (!konteks.aktif || !konteks.akun || konteks.index === -1) {
+    alert("Akun aktif tidak ditemukan. Silakan login kembali.");
+    return;
+  }
+
+  // Memeriksa duplikasi email.
+  const emailDipakai = konteks.users.some(function (user, index) {
+    return (
+      index !== konteks.index &&
+      String(user.email || "").toLowerCase() === emailBaru
+    );
+  });
+
+  if (emailDipakai) {
+    alert("Email tersebut sudah digunakan akun lain.");
+    email.focus();
+    return;
+  }
+
+  // Memeriksa permintaan penggantian password.
   const inginGantiPassword =
     passwordLama.value !== "" ||
     passwordBaru.value !== "" ||
     konfirmasiPassword.value !== "";
 
-  // 12. Menyiapkan data profil terbaru.
-  const profilLama = ambilProfil();
+  let passwordTerbaru = konteks.akun.password;
 
-  const profilBaru = {
-    ...profilLama,
+  if (inginGantiPassword) {
+    // Memastikan password lama sesuai.
+    if (passwordLama.value !== String(konteks.akun.password || "")) {
+      alert("Kata sandi saat ini tidak sesuai.");
+      passwordLama.focus();
+      return;
+    }
+
+    // Memvalidasi password baru.
+    const polaPassword = /^(?=.*[A-Za-z])(?=.*[0-9]).{8,}$/;
+
+    if (!polaPassword.test(passwordBaru.value)) {
+      alert(
+        "Kata sandi minimal 8 karakter dan harus mengandung huruf serta angka.",
+      );
+      passwordBaru.focus();
+      return;
+    }
+
+    // Memeriksa konfirmasi password.
+    if (passwordBaru.value !== konfirmasiPassword.value) {
+      alert("Konfirmasi kata sandi tidak sesuai.");
+      konfirmasiPassword.focus();
+      return;
+    }
+
+    passwordTerbaru = passwordBaru.value;
+  }
+
+  // Menyiapkan data akun terbaru.
+  const akunTerbaru = {
+    ...konteks.akun,
     name: namaBaru,
     email: emailBaru,
+    password: passwordTerbaru,
   };
 
-  // 13. Menyimpan perubahan profil ke LocalStorage.
-  try {
-    localStorage.setItem(KUNCI_PROFIL, JSON.stringify(profilBaru));
-  } catch (error) {
-    console.error("Gagal menyimpan profil:", error);
+  // Menjaga konsistensi apabila akun menggunakan fullName.
+  if ("fullName" in konteks.akun) {
+    akunTerbaru.fullName = namaBaru;
+  }
 
+  // Menyimpan seluruh perubahan.
+  const berhasil = simpanAkunTerbaru(akunTerbaru, konteks.users, konteks.index);
+
+  if (!berhasil) {
     alert("Perubahan profil gagal disimpan.");
     return;
   }
 
-  // 14. Memperbarui tampilan setelah data berhasil disimpan.
-  tampilkanProfil(profilBaru);
+  // Memperbarui tampilan.
+  tampilkanProfil(ambilProfil());
 
   // Mengosongkan kolom password.
-  passwordLama.value = "";
-  passwordBaru.value = "";
-  konfirmasiPassword.value = "";
+  if (passwordLama) passwordLama.value = "";
+  if (passwordBaru) passwordBaru.value = "";
+  if (konfirmasiPassword) konfirmasiPassword.value = "";
 
-  // 15. Memberikan pemberitahuan kepada pengguna.
-  if (inginGantiPassword) {
-    alert(
-      "Nama dan email berhasil diperbarui.\n\n" +
-        "Namun, kata sandi belum berubah karena fitur " +
-        "penggantian kata sandi memerlukan backend.",
-    );
-  } else {
-    alert("Profil berhasil diperbarui!");
-  }
+  // Memberikan informasi keberhasilan.
+  alert(
+    inginGantiPassword
+      ? "Profil dan kata sandi berhasil diperbarui!"
+      : "Profil berhasil diperbarui!",
+  );
 
-  console.log("Perubahan profil berhasil disimpan.");
+  console.log("===== PROFIL SIPFAS DIPERBARUI =====");
+  console.log("Nama:", namaBaru);
+  console.log("Email:", emailBaru);
+  console.log("Sinkronisasi akun berhasil.");
+  console.log("====================================");
 }

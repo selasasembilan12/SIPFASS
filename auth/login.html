@@ -1,195 +1,172 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login | SIPFAS</title>
 
     <!-- FONT UTAMA -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- CSS HALAMAN LOGIN -->
-    <link rel="stylesheet" href="Login.css">
-</head>
-<body>
-
+    <link rel="stylesheet" href="Login.css" />
+  </head>
+  <body>
     <main class="login-page">
+      <section class="login-card">
+        <!-- LOGO DAN IDENTITAS SIPFAS -->
+        <div class="brand">
+          <img
+            src="../assets/images/logo-sipfas.png"
+            alt="Logo SIPFAS"
+            class="brand-logo"
+          />
 
-        <section class="login-card">
+          <div class="brand-text">
+            <strong>SIPFAS</strong>
+            <span>Informatika UNKHAIR</span>
+          </div>
+        </div>
 
-            <!-- LOGO DAN IDENTITAS SIPFAS -->
-            <div class="brand">
-                <img src="../assets/images/logo-sipfas.png"
-                     alt="Logo SIPFAS"
-                     class="brand-logo">
+        <!-- JUDUL LOGIN -->
+        <div class="welcome">
+          <h1>Selamat Datang</h1>
+          <p>Silakan masuk untuk mengakses sistem</p>
+        </div>
 
-                <div class="brand-text">
-                    <strong>SIPFAS</strong>
-                    <span>Informatika UNKHAIR</span>
-                </div>
+        <!-- FORM LOGIN -->
+        <form
+          class="login-form"
+          id="loginForm"
+          action="verifikasi.html"
+          method="get"
+        >
+          <!-- INPUT NAMA PENGGUNA -->
+          <div class="form-group">
+            <label for="username">Nama Pengguna</label>
+
+            <div class="input-wrapper">
+              <svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3.5" y="5" width="17" height="15" rx="1.5"></rect>
+                <path
+                  d="M9 5V3.8A1.8 1.8 0 0 1 10.8 2h2.4A1.8 1.8 0 0 1 15 3.8V5"
+                ></path>
+                <circle cx="9" cy="11" r="1.5"></circle>
+                <path
+                  d="M6.8 16c.4-1.3 1.2-2 2.2-2s1.8.7 2.2 2M14 11h3.5M14 15h3.5"
+                ></path>
+              </svg>
+
+              <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder="Masukkan nama pengguna"
+                autocomplete="username"
+                required
+              />
             </div>
+          </div>
 
-            <!-- JUDUL LOGIN -->
-            <div class="welcome">
-                <h1>Selamat Datang</h1>
-                <p>Silakan masuk untuk mengakses sistem</p>
+          <!-- INPUT KATA SANDI -->
+          <div class="form-group">
+            <label for="password">Kata Sandi</label>
+
+            <div class="input-wrapper">
+              <svg
+                class="input-icon lock-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <rect x="5" y="10" width="14" height="11" rx="1.8"></rect>
+                <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+                <circle cx="12" cy="15" r="1.2"></circle>
+                <path d="M12 16.2v1.5"></path>
+              </svg>
+
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Masukkan kata sandi"
+                autocomplete="current-password"
+                required
+              />
+
+              <!-- TOMBOL LIHAT KATA SANDI -->
+              <button
+                class="toggle-password"
+                type="button"
+                id="togglePassword"
+                aria-label="Tampilkan kata sandi"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"
+                  ></path>
+                  <circle cx="12" cy="12" r="2.7"></circle>
+                </svg>
+              </button>
             </div>
+          </div>
 
-            <!-- FORM LOGIN -->
-            <form class="login-form"
-                  id="loginForm"
-                  action="verifikasi.html"
-                  method="get">
+          <!-- DROPDOWN JENIS PENGGUNA -->
+          <div class="form-group">
+            <label for="jenisPengguna">Jenis Pengguna</label>
 
-                <!-- INPUT NAMA PENGGUNA -->
-                <div class="form-group">
-                    <label for="username">Nama Pengguna</label>
+            <div class="select-wrapper">
+              <!-- IKON PENGGUNA -->
+              <svg class="select-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="3.2"></circle>
+                <path d="M5.5 20c0-3.6 2.7-6 6.5-6s6.5 2.4 6.5 6"></path>
+              </svg>
 
-                    <div class="input-wrapper">
+              <!-- PILIHAN JENIS PENGGUNA -->
+              <select id="jenisPengguna" name="jenis_pengguna" required>
+                <option value="" selected disabled>- Pilih -</option>
+                <option value="pelapor">Pelapor</option>
+                <option value="petugas">Petugas</option>
+                <option value="administrator">Administrator</option>
+              </select>
 
-                        <svg class="input-icon"
-                             viewBox="0 0 24 24"
-                             aria-hidden="true">
-                            <rect x="3.5" y="5" width="17" height="15" rx="1.5"></rect>
-                            <path d="M9 5V3.8A1.8 1.8 0 0 1 10.8 2h2.4A1.8 1.8 0 0 1 15 3.8V5"></path>
-                            <circle cx="9" cy="11" r="1.5"></circle>
-                            <path d="M6.8 16c.4-1.3 1.2-2 2.2-2s1.8.7 2.2 2M14 11h3.5M14 15h3.5"></path>
-                        </svg>
+              <!-- IKON PANAH DROPDOWN -->
+              <svg class="select-arrow" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m6 9 6 6 6-6"></path>
+              </svg>
+            </div>
+          </div>
 
-                        <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            placeholder="Masukkan nama pengguna"
-                            autocomplete="username"
-                            required
-                        >
-                    </div>
-                </div>
+          <!-- LUPA KATA SANDI -->
+          <div class="forgot-password">
+            <a href="pemulihan.html">Lupa Kata Sandi?</a>
+          </div>
 
-                <!-- INPUT KATA SANDI -->
-                <div class="form-group">
-                    <label for="password">Kata Sandi</label>
+          <!-- TOMBOL MASUK -->
+          <button type="submit" class="login-button">
+            <span>Masuk</span>
 
-                    <div class="input-wrapper">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h14M13 6l6 6-6 6"></path>
+            </svg>
+          </button>
+        </form>
 
-                        <svg class="input-icon lock-icon"
-                             viewBox="0 0 24 24"
-                             aria-hidden="true">
-                            <rect x="5" y="10" width="14" height="11" rx="1.8"></rect>
-                            <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
-                            <circle cx="12" cy="15" r="1.2"></circle>
-                            <path d="M12 16.2v1.5"></path>
-                        </svg>
+        <!-- PEMBATAS -->
+        <div class="card-divider"></div>
 
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            placeholder="Masukkan kata sandi"
-                            autocomplete="current-password"
-                            required
-                        >
-
-                        <!-- TOMBOL LIHAT KATA SANDI -->
-                        <button
-                            class="toggle-password"
-                            type="button"
-                            id="togglePassword"
-                            aria-label="Tampilkan kata sandi">
-
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"></path>
-                                <circle cx="12" cy="12" r="2.7"></circle>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- DROPDOWN JENIS PENGGUNA -->
-                <div class="form-group">
-                    <label for="jenisPengguna">Jenis Pengguna</label>
-
-                    <div class="select-wrapper">
-
-                        <!-- IKON PENGGUNA -->
-                        <svg class="select-icon"
-                             viewBox="0 0 24 24"
-                             aria-hidden="true">
-                            <circle cx="12" cy="8" r="3.2"></circle>
-                            <path d="M5.5 20c0-3.6 2.7-6 6.5-6s6.5 2.4 6.5 6"></path>
-                        </svg>
-
-                        <!-- PILIHAN JENIS PENGGUNA -->
-                        <select
-                            id="jenisPengguna"
-                            name="jenis_pengguna"
-                            required>
-
-                            <option value="" selected disabled>- Pilih -</option>
-                            <option value="pelapor">Pelapor</option>
-                            <option value="petugas">Petugas</option>
-                            <option value="administrator">Administrator</option>
-
-                        </select>
-
-                        <!-- IKON PANAH DROPDOWN -->
-                        <svg class="select-arrow"
-                             viewBox="0 0 24 24"
-                             aria-hidden="true">
-                            <path d="m6 9 6 6 6-6"></path>
-                        </svg>
-
-                    </div>
-                </div>
-
-                <!-- LUPA KATA SANDI -->
-                <div class="forgot-password">
-                    <a href="pemulihan.html">Lupa Kata Sandi?</a>
-                </div>
-
-                <!-- TOMBOL MASUK -->
-                <button type="submit" class="login-button">
-                    <span>Masuk</span>
-
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M5 12h14M13 6l6 6-6 6"></path>
-                    </svg>
-                </button>
-
-            </form>
-
-            <!-- PEMBATAS -->
-            <div class="card-divider"></div>
-
-            <!-- PENDAFTARAN -->
-            <p class="register-text">
-                Belum punya akun?
-                <a href="registrasi.html">Daftar Sekarang</a>
-            </p>
-
-        </section>
+        <!-- PENDAFTARAN -->
+        <p class="register-text">
+          Belum punya akun?
+          <a href="registrasi.html">Daftar Sekarang</a>
+        </p>
+      </section>
     </main>
 
-    <!-- JAVASCRIPT -->
-    <script>
-        // Fitur tampilkan dan sembunyikan kata sandi
-        const passwordInput = document.getElementById('password');
-        const togglePassword = document.getElementById('togglePassword');
-
-        togglePassword.addEventListener('click', function () {
-            const isPassword = passwordInput.type === 'password';
-
-            passwordInput.type = isPassword ? 'text' : 'password';
-
-            togglePassword.setAttribute(
-                'aria-label',
-                isPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'
-            );
-        });
-    </script>
-<script src="Login.js" defer></script>
-</body>
+    <script src="Login.js" defer></script>
+  </body>
 </html>
