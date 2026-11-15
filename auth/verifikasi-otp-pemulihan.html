@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>Verifikasi Dua Langkah | SIPFAS</title>
+    <title>Verifikasi OTP Pemulihan | SIPFAS</title>
 
     <!-- FONT UTAMA SIPFAS. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,8 +15,8 @@
       rel="stylesheet"
     />
 
-    <!-- CSS HALAMAN VERIFIKASI. -->
-    <link rel="stylesheet" href="verifikasi.css" />
+    <!-- CSS KHUSUS OTP PEMULIHAN. -->
+    <link rel="stylesheet" href="verifikasi-otp-pemulihan.css" />
   </head>
 
   <body>
@@ -78,8 +78,7 @@
           </div>
         </header>
 
-        <!-- INFORMASI OTP SIMULASI.
-             Kode tidak hilang ketika pengguna salah memasukkan OTP. -->
+        <!-- INFORMASI OTP SIMULASI. -->
         <div
           class="otp-code-info"
           id="otpCodeInfo"
@@ -161,12 +160,6 @@
               maxlength="1"
               aria-label="Digit OTP 8"
             />
-          </div>
-
-          <!-- INFORMASI SISA KESEMPATAN VERIFIKASI. -->
-          <div class="attempt-row">
-            <span>Kesempatan verifikasi tersisa</span>
-            <strong id="attemptInfo">3 dari 3 kali</strong>
           </div>
 
           <!-- PESAN KESALAHAN ATAU KEBERHASILAN. -->
@@ -254,11 +247,11 @@
         <!-- INFORMASI TAMBAHAN. -->
         <p class="otp-note">
           Masukkan kode verifikasi yang telah dikirim ke email terdaftar Anda
-          untuk melanjutkan proses masuk.
+          untuk melanjutkan proses pemulihan kata sandi.
         </p>
 
-        <!-- KEMBALI KE HALAMAN LOGIN. -->
-        <a href="login.html" class="back-link">
+        <!-- KEMBALI KE HALAMAN PEMULIHAN. -->
+        <a href="pemulihan.html" class="back-link">
           <svg
             class="back-icon"
             viewBox="0 0 24 24"
@@ -274,12 +267,12 @@
             />
           </svg>
 
-          <span>Kembali ke Login</span>
+          <span>Kembali ke Pemulihan</span>
         </a>
       </section>
     </main>
 
-    <!-- JAVASCRIPT VERIFIKASI DUA LANGKAH. -->
-    <script src="verifikasi.js" defer></script>
+    <!-- JAVASCRIPT KHUSUS OTP PEMULIHAN. -->
+    <script src="verifikasi-otp-pemulihan.js" defer></script>
   </body>
 </html>

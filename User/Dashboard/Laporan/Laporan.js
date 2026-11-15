@@ -320,40 +320,139 @@ function prosesKirimLaporan(event, formulir) {
   console.log("Status:", dataLaporan.status);
   console.log("=====================================");
 
+  // NOTIFIKASI LAPORAN BERHASIL DIKIRIM.
+  alert(
+    "Laporan berhasil dikirim!\n\n" +
+      "Kode Laporan: " +
+      dataLaporan.kodeLaporan +
+      "\n" +
+      "Status: " +
+      dataLaporan.status,
+  );
+
   // Mengarahkan pengguna ke halaman konfirmasi.
   window.location.href = "../Konfirmasi-laporan/Konfirmasi-laporan.html";
 }
 
-// 01. Menampilkan identitas terbaru pengguna pada halaman Buat Laporan.
+// ============================================================
+// SINKRONISASI PROFIL PENGGUNA PADA HALAMAN BUAT LAPORAN
+// ============================================================
+
+// 01. Menjalankan sinkronisasi setelah halaman selesai dimuat.
 document.addEventListener("DOMContentLoaded", function () {
   updateReportProfile();
 
-  // Memperbarui nama jika profil berubah dari tab lain.
+  // Memperbarui profil jika data berubah dari halaman lain.
   window.addEventListener("storage", function (event) {
-    if (event.key === "sipfasProfile") {
+    const kunciFoto = buatKunciFotoProfilLaporan();
+
+    if (
+      event.key === "sipfasProfile" ||
+      event.key === "sipfasActiveUser" ||
+      event.key === kunciFoto
+    ) {
       updateReportProfile();
+    }
+  });
+
+  // Mendukung pembaruan profil melalui event SIPFAS.
+  window.addEventListener("sipfas:profile-updated", function (event) {
+    updateReportProfile();
+
+    if (event.detail && event.detail.photo) {
+      tampilkanFotoHeaderLaporan(event.detail.photo);
     }
   });
 });
 
-// 02. Mengambil dan menampilkan nama pengguna terbaru.
+// 02. Mengambil key foto sesuai akun yang sedang login.
+// Mengikuti mekanisme penyimpanan pada Profil.js.
+function buatKunciFotoProfilLaporan() {
+  try {
+    const dataAkunAktif = sessionStorage.getItem("sipfasActiveUser");
+
+    if (!dataAkunAktif) {
+      return "sipfasProfilePhoto";
+    }
+
+    const akunAktif = JSON.parse(dataAkunAktif);
+
+    if (!akunAktif) {
+      return "sipfasProfilePhoto";
+    }
+
+    const identitas =
+      akunAktif.id ||
+      akunAktif.username ||
+      akunAktif.email ||
+      akunAktif.nim ||
+      "pengguna";
+
+    return "sipfasProfilePhoto_" + String(identitas).toLowerCase();
+  } catch (error) {
+    console.error("Gagal mengambil identitas foto:", error);
+    return "sipfasProfilePhoto";
+  }
+}
+
+// 03. Menampilkan foto profil pada avatar header.
+function tampilkanFotoHeaderLaporan(sumberFoto) {
+  const avatar = document.querySelector(".header-avatar");
+
+  if (!avatar) return;
+
+  const ikonDefault = avatar.querySelector("svg");
+
+  if (sumberFoto) {
+    // Menampilkan foto profil terbaru.
+    avatar.style.backgroundImage = `url("${sumberFoto}")`;
+    avatar.style.backgroundSize = "cover";
+    avatar.style.backgroundPosition = "center";
+    avatar.style.backgroundRepeat = "no-repeat";
+
+    // Menyembunyikan ikon avatar bawaan.
+    if (ikonDefault) {
+      ikonDefault.style.display = "none";
+    }
+  } else {
+    // Mengembalikan tampilan avatar bawaan jika belum ada foto.
+    avatar.style.backgroundImage = "none";
+    avatar.style.backgroundSize = "";
+    avatar.style.backgroundPosition = "";
+    avatar.style.backgroundRepeat = "";
+
+    if (ikonDefault) {
+      ikonDefault.style.display = "";
+    }
+  }
+}
+
+// 04. Mengambil dan memperbarui identitas pengguna.
 function updateReportProfile() {
   try {
+    // Mengambil identitas pengguna.
     const dataProfil = localStorage.getItem("sipfasProfile");
 
-    if (!dataProfil) return;
+    if (dataProfil) {
+      const profil = JSON.parse(dataProfil);
 
-    const profil = JSON.parse(dataProfil);
+      if (profil && profil.name) {
+        document.querySelectorAll(".header-name").forEach(function (elemen) {
+          elemen.textContent = profil.name;
+        });
+      }
+    }
 
-    if (!profil || !profil.name) return;
+    // Mengambil foto profil berdasarkan akun aktif.
+    const kunciFoto = buatKunciFotoProfilLaporan();
 
-    // Memperbarui nama pada bagian header.
-    document.querySelectorAll(".header-name").forEach(function (elemen) {
-      elemen.textContent = profil.name;
-    });
+    const fotoProfil = localStorage.getItem(kunciFoto);
 
-    console.log("Nama pengguna diperbarui:", profil.name);
+    // Memperbarui avatar pada header.
+    tampilkanFotoHeaderLaporan(fotoProfil);
+
+    console.log("Sinkronisasi profil halaman Buat Laporan berhasil.");
   } catch (error) {
-    console.error("Gagal mengambil identitas pengguna:", error);
+    console.error("Gagal memperbarui profil pengguna:", error);
   }
 }

@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Detail Laporan | SIPFAS</title>
+    <script src="../../../assets/js/logout-confirmation.js"></script>
+    <script src="../../../assets/js/profile-sync.js"></script>
 
     <!-- FONT INTER -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -22,7 +24,6 @@
     <div class="app-container">
       <!-- SIDEBAR -->
       <aside class="sidebar">
-        <!-- LOGO SIPFAS -->
         <a href="../Dashboard/dashboard.html" class="sidebar-logo">
           <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS" />
 
@@ -81,7 +82,6 @@
             <path d="M15 12H3" />
             <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6" />
           </svg>
-
           <span>Keluar</span>
         </a>
       </aside>
@@ -109,21 +109,21 @@
 
         <!-- ISI HALAMAN -->
         <section class="page-content">
-          <!-- KEMBALI KE HALAMAN RIWAYAT LAPORAN -->
+          <!-- KEMBALI -->
           <a href="../Riwayat-laporan/Riwayat-laporan.html" class="back-link">
             <svg viewBox="0 0 24 24">
               <path d="M19 12H5M11 18l-6-6 6-6" />
             </svg>
-
             <span>Kembali ke Laporan Saya</span>
           </a>
+
           <!-- JUDUL DAN STATUS -->
           <div class="page-heading">
-            <h1>Detail Laporan #LP-2024-085</h1>
+            <h1>Detail Laporan</h1>
 
             <div class="main-status">
               <span class="status-dot"></span>
-              <span>Diproses</span>
+              <span>Menunggu Verifikasi</span>
             </div>
           </div>
 
@@ -134,34 +134,26 @@
             <div class="card-divider"></div>
 
             <div class="report-grid">
-              <!-- NAMA FASILITAS -->
               <div class="report-field">
                 <span class="field-label">Nama Fasilitas</span>
-
-                <strong>Unit AC Split 2 PK Panasonic</strong>
+                <strong>-</strong>
               </div>
 
-              <!-- LOKASI -->
               <div class="report-field">
                 <span class="field-label">Lokasi Fasilitas</span>
-
-                <strong>Ruang Kuliah IF-301, Gedung Informatika Lt. 3</strong>
+                <strong>-</strong>
               </div>
 
-              <!-- TANGGAL -->
               <div class="report-field">
                 <span class="field-label">Tanggal Laporan</span>
-
-                <strong>22 Oktober 2024, 09:30 WIT</strong>
+                <strong>-</strong>
               </div>
 
-              <!-- PRIORITAS -->
               <div class="report-field">
                 <span class="field-label">Rekomendasi Prioritas</span>
 
                 <div class="priority-information">
-                  <span class="priority-badge">Tinggi</span>
-
+                  <span class="priority-badge">Rendah</span>
                   <span class="priority-description">
                     (Rekomendasi awal sistem)
                   </span>
@@ -172,49 +164,175 @@
             <!-- DESKRIPSI KERUSAKAN -->
             <div class="description-section">
               <h3>Deskripsi Kerusakan</h3>
-
-              <div class="description-box">
-                AC mengeluarkan suara bising mendengung dan hembusan angin tidak
-                dingin sama sekali sejak perkuliahan jam pertama pagi. Suhu
-                ruangan gerah dan mengganggu kenyamanan mahasiswa.
-              </div>
+              <div class="description-box">-</div>
             </div>
           </section>
 
-          <!-- KARTU STATUS LAPORAN -->
+          <!-- KARTU STATUS LAPORAN BARU -->
           <section class="status-card">
-            <h2>Status Laporan</h2>
-
-            <div class="card-divider"></div>
-
-            <!-- STATUS VERIFIKASI -->
-            <div class="status-information">
-              <div class="status-description">
-                <span>Status Verifikasi</span>
-
-                <strong> diverifikasi oleh Petugas Sarpras</strong>
-              </div>
-
-              <div class="verification-badge">
-                <span class="status-dot"></span>
-
-                <span>Valid</span>
+            <div class="status-card-heading">
+              <div>
+                <h2>Perkembangan Laporan</h2>
+                <p>Pantau tahapan penanganan laporan fasilitas Anda.</p>
               </div>
             </div>
 
-            <!-- STATUS PENANGANAN -->
-            <div class="status-information">
-              <div class="status-description">
-                <span>Status Penanganan</span>
+            <div class="card-divider"></div>
 
-                <strong>Teknisi sedang melakukan perbaikan di lokasi</strong>
+            <!-- RINGKASAN PROGRESS -->
+            <div class="progress-summary">
+              <div class="progress-summary-info">
+                <span>Progres Penanganan</span>
+                <strong id="progress-percentage">25%</strong>
               </div>
 
-              <div class="handling-badge">
-                <span class="status-dot"></span>
-
-                <span>Diproses</span>
+              <div class="progress-track">
+                <div
+                  class="progress-fill"
+                  id="progress-fill"
+                  style="width: 25%"
+                ></div>
               </div>
+
+              <p id="progress-caption">Laporan telah diterima oleh sistem.</p>
+            </div>
+
+            <!-- TIMELINE -->
+            <div class="tracking-timeline" id="tracking-timeline">
+              <!-- TAHAP 1 -->
+              <div class="timeline-item completed" id="step-submitted">
+                <div class="timeline-indicator">
+                  <div class="timeline-icon">
+                    <svg viewBox="0 0 24 24">
+                      <path d="m5 12 4 4L19 6" />
+                    </svg>
+                  </div>
+                  <div class="timeline-line"></div>
+                </div>
+
+                <div class="timeline-content">
+                  <div class="timeline-title-row">
+                    <div>
+                      <span class="timeline-step">TAHAP 01</span>
+                      <h3>Laporan Dikirim</h3>
+                    </div>
+
+                    <span class="timeline-badge">Selesai</span>
+                  </div>
+
+                  <p id="submitted-description">
+                    Laporan berhasil diterima oleh sistem SIPFAS.
+                  </p>
+
+                  <span class="timeline-date" id="submitted-date"></span>
+                </div>
+              </div>
+
+              <!-- TAHAP 2 -->
+              <div class="timeline-item current" id="step-verification">
+                <div class="timeline-indicator">
+                  <div class="timeline-icon">
+                    <svg viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 2" />
+                    </svg>
+                  </div>
+                  <div class="timeline-line"></div>
+                </div>
+
+                <div class="timeline-content">
+                  <div class="timeline-title-row">
+                    <div>
+                      <span class="timeline-step">TAHAP 02</span>
+                      <h3>Verifikasi Petugas</h3>
+                    </div>
+
+                    <span class="timeline-badge">Menunggu</span>
+                  </div>
+
+                  <p id="verification-description">
+                    Laporan sedang menunggu pemeriksaan petugas.
+                  </p>
+
+                  <span class="timeline-date" id="verification-date"></span>
+                </div>
+              </div>
+
+              <!-- TAHAP 3 -->
+              <div class="timeline-item pending" id="step-handling">
+                <div class="timeline-indicator">
+                  <div class="timeline-icon">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        d="m14.7 6.3 3 3M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20Z"
+                      />
+                    </svg>
+                  </div>
+                  <div class="timeline-line"></div>
+                </div>
+
+                <div class="timeline-content">
+                  <div class="timeline-title-row">
+                    <div>
+                      <span class="timeline-step">TAHAP 03</span>
+                      <h3>Penanganan Fasilitas</h3>
+                    </div>
+
+                    <span class="timeline-badge">Belum Dimulai</span>
+                  </div>
+
+                  <p id="handling-description">
+                    Laporan akan masuk ke tahap penanganan setelah diverifikasi.
+                  </p>
+
+                  <span class="timeline-date" id="handling-date"></span>
+                </div>
+              </div>
+
+              <!-- TAHAP 4 -->
+              <div class="timeline-item pending" id="step-completed">
+                <div class="timeline-indicator">
+                  <div class="timeline-icon">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M5 12 10 17 20 7" />
+                      <circle cx="12" cy="12" r="10" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="timeline-content">
+                  <div class="timeline-title-row">
+                    <div>
+                      <span class="timeline-step">TAHAP 04</span>
+                      <h3>Laporan Selesai</h3>
+                    </div>
+
+                    <span class="timeline-badge">Belum Selesai</span>
+                  </div>
+
+                  <p id="completed-description">
+                    Laporan akan dinyatakan selesai setelah penanganan fasilitas
+                    selesai dilakukan.
+                  </p>
+
+                  <span class="timeline-date" id="completed-date"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- KETERANGAN STATUS -->
+            <div class="tracking-note" id="tracking-note">
+              <div class="tracking-note-icon">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 11v5M12 7h.01" />
+                </svg>
+              </div>
+
+              <p>
+                Perkembangan laporan akan diperbarui sesuai proses verifikasi
+                dan penanganan oleh petugas.
+              </p>
             </div>
           </section>
         </section>

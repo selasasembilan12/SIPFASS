@@ -1,25 +1,26 @@
 "use strict";
 
 /* ============================================================
-   SIPFAS - VERIFIKASI DUA LANGKAH
-   Mengelola OTP login, timer, percobaan, dan autentikasi.
+   SIPFAS - VERIFIKASI OTP PEMULIHAN KATA SANDI
+   Mengelola OTP pemulihan, timer, percobaan, dan verifikasi.
 ============================================================ */
 
 // 01. Menjalankan program setelah halaman selesai dimuat.
-document.addEventListener("DOMContentLoaded", mulaiVerifikasi);
+document.addEventListener("DOMContentLoaded", mulaiVerifikasiPemulihan);
 
-// 02. Konfigurasi penyimpanan sesi login.
-const LOGIN_CONFIG = {
-  pending: "sipfasPendingLogin",
-  email: "sipfasLoginEmail",
-  otp: "sipfasLoginOtp",
-  expiry: "sipfasLoginOtpExpiresAt",
-  attempts: "sipfasLoginAttempts",
-  verified: "sipfasLoginVerified",
-  activeUser: "sipfasActiveUser",
+// 02. Konfigurasi penyimpanan sesi pemulihan.
+const RECOVERY_OTP_CONFIG = {
+  email: "sipfasRecoveryEmail",
+  otp: "sipfasRecoveryOtp",
+  expiry: "sipfasRecoveryOtpExpiresAt",
+  attempts: "sipfasRecoveryAttempts",
+  verified: "sipfasRecoveryVerified",
 
   duration: 120000,
   maxAttempts: 3,
+
+  nextPage: "password-baru.html",
+  recoveryPage: "pemulihan.html",
 };
 
 // 03. Variabel elemen halaman.
@@ -28,146 +29,112 @@ let formulirOTP;
 let pesanOTP;
 let timerOTP;
 let informasiOTP;
-let informasiPercobaan;
 let tombolVerifikasi;
 let tombolKirimUlang;
 
 let intervalTimer = null;
-let penggunaLogin = null;
-let emailLogin = "";
+let emailPemulihan = "";
+let prosesVerifikasi = false;
 
-// 04. Inisialisasi halaman verifikasi.
-function mulaiVerifikasi() {
+// ============================================================
+// 04. INISIALISASI HALAMAN VERIFIKASI PEMULIHAN
+// ============================================================
+
+function mulaiVerifikasiPemulihan() {
   formulirOTP = document.getElementById("otpForm");
   pesanOTP = document.getElementById("otpMessage");
   timerOTP = document.getElementById("timer");
   informasiOTP = document.getElementById("otpCodeInfo");
-  informasiPercobaan = document.getElementById("attemptInfo");
 
   tombolVerifikasi = document.querySelector(".verify-button");
   tombolKirimUlang = document.getElementById("resendButton");
 
   inputOTP = Array.from(document.querySelectorAll(".otp-input"));
 
-  // Memastikan elemen halaman tersedia.
+  // Memastikan seluruh elemen halaman tersedia.
   if (
     !formulirOTP ||
     inputOTP.length !== 8 ||
     !pesanOTP ||
     !timerOTP ||
     !informasiOTP ||
-    !informasiPercobaan ||
     !tombolVerifikasi ||
     !tombolKirimUlang
   ) {
-    console.error("Elemen verifikasi dua langkah tidak lengkap.");
+    console.error("Elemen verifikasi OTP pemulihan tidak lengkap.");
     return;
   }
 
-  // Memeriksa apakah OTP sudah berhasil diverifikasi.
-  if (sessionStorage.getItem(LOGIN_CONFIG.verified) === "true") {
-    arahkanKeDashboard();
+  // Memeriksa status verifikasi sebelumnya.
+  if (sessionStorage.getItem(RECOVERY_OTP_CONFIG.verified) === "true") {
+    window.location.href = RECOVERY_OTP_CONFIG.nextPage;
     return;
   }
 
-  // Mengambil data pengguna yang sedang menunggu verifikasi.
-  penggunaLogin = ambilDataPendingLogin();
+  // Mengambil email pemulihan.
+  emailPemulihan = String(
+    sessionStorage.getItem(RECOVERY_OTP_CONFIG.email) || "",
+  )
+    .trim()
+    .toLowerCase();
 
-  // Mengambil email pengguna.
-  emailLogin = ambilEmailLogin();
+  // Mengambil data OTP.
+  const otp = sessionStorage.getItem(RECOVERY_OTP_CONFIG.otp);
 
-  const otp = sessionStorage.getItem(LOGIN_CONFIG.otp);
-  const expiry = Number(sessionStorage.getItem(LOGIN_CONFIG.expiry));
+  const expiry = Number(sessionStorage.getItem(RECOVERY_OTP_CONFIG.expiry));
 
-  // Memeriksa keberadaan sesi login.
-  if (!penggunaLogin || !emailLogin || !otp || !expiry) {
-    tampilkanPesan(
-      "Sesi login tidak ditemukan. Silakan ulangi proses login.",
+  // Memeriksa keberadaan sesi pemulihan.
+  if (
+    !emailPemulihan ||
+    !otp ||
+    !/^\d{8}$/.test(otp) ||
+    !Number.isFinite(expiry) ||
+    expiry <= 0
+  ) {
+    tampilkanPesanPemulihan(
+      "Sesi pemulihan tidak ditemukan. Silakan ulangi proses pemulihan.",
       "error",
     );
 
-    nonaktifkanFormulir();
-
+    nonaktifkanFormulirPemulihan();
     return;
   }
 
-  // Menampilkan email pengguna.
-  tampilkanEmailLogin();
+  // Menampilkan email yang disamarkan.
+  tampilkanEmailPemulihan();
 
-  // Menampilkan OTP simulasi.
-  tampilkanInformasiOTP();
+  // Menampilkan kode OTP simulasi.
+  tampilkanInformasiOTPPemulihan();
 
-  // Menyiapkan jumlah percobaan.
-  ambilSisaPercobaan();
+  // Memastikan jumlah percobaan tersedia.
+  ambilSisaPercobaanPemulihan();
 
-  // Mengaktifkan input OTP.
-  aturInputOTP();
+  // Mengatur input OTP.
+  aturInputOTPPemulihan();
 
-  // Menangani formulir verifikasi.
+  // Menangani pengiriman formulir.
   formulirOTP.addEventListener("submit", function (event) {
     event.preventDefault();
-    verifikasiKodeOTP();
+    verifikasiKodeOTPPemulihan();
   });
 
-  // Menangani tombol kirim ulang.
-  tombolKirimUlang.addEventListener("click", kirimUlangOTP);
-
-  // Memperbarui informasi kesempatan.
-  perbaruiInformasiPercobaan();
+  // Menangani pengiriman ulang OTP.
+  tombolKirimUlang.addEventListener("click", kirimUlangOTPPemulihan);
 
   // Memeriksa status OTP.
-  perbaruiStatusOTP();
+  perbaruiStatusOTPPemulihan();
 
   // Menjalankan timer.
-  jalankanTimerOTP();
+  jalankanTimerPemulihan();
 
-  console.log("Verifikasi dua langkah SIPFAS siap digunakan.");
+  console.log("Verifikasi OTP pemulihan SIPFAS siap digunakan.");
 }
 
-// 05. Mengambil data pending login.
-function ambilDataPendingLogin() {
-  try {
-    const data = sessionStorage.getItem(LOGIN_CONFIG.pending);
+// ============================================================
+// 05. MENYAMARKAN ALAMAT EMAIL
+// ============================================================
 
-    if (!data) return null;
-
-    const hasil = JSON.parse(data);
-
-    if (!hasil || typeof hasil !== "object") {
-      return null;
-    }
-
-    return hasil;
-  } catch (error) {
-    console.error("Gagal membaca data pending login:", error);
-    return null;
-  }
-}
-
-// 06. Mengambil email login.
-function ambilEmailLogin() {
-  // Mengutamakan email yang sudah disimpan oleh login.js.
-  let email = sessionStorage.getItem(LOGIN_CONFIG.email);
-
-  // Mengambil email dari data pending jika diperlukan.
-  if (!email && penggunaLogin) {
-    const dataPengguna =
-      penggunaLogin.user || penggunaLogin.account || penggunaLogin;
-
-    email = dataPengguna.email || penggunaLogin.email || "";
-  }
-
-  if (email) {
-    email = String(email).trim().toLowerCase();
-
-    sessionStorage.setItem(LOGIN_CONFIG.email, email);
-  }
-
-  return email;
-}
-
-// 07. Menyamarkan alamat email.
-function samarkanEmail(email) {
+function samarkanEmailPemulihan(email) {
   const bagian = email.split("@");
 
   if (bagian.length !== 2) {
@@ -183,69 +150,84 @@ function samarkanEmail(email) {
   return namaTersamar + "@" + domain;
 }
 
-// 08. Menampilkan email pengguna.
-function tampilkanEmailLogin() {
+// ============================================================
+// 06. MENAMPILKAN EMAIL PEMULIHAN
+// ============================================================
+
+function tampilkanEmailPemulihan() {
   const elemenEmail = document.getElementById("maskedEmail");
 
-  if (!elemenEmail || !emailLogin) return;
+  if (!elemenEmail || !emailPemulihan) {
+    return;
+  }
 
-  elemenEmail.textContent = samarkanEmail(emailLogin);
+  elemenEmail.textContent = samarkanEmailPemulihan(emailPemulihan);
 }
 
-// 09. Menampilkan kode OTP simulasi.
-function tampilkanInformasiOTP() {
-  const otp = sessionStorage.getItem(LOGIN_CONFIG.otp);
+// ============================================================
+// 07. MENAMPILKAN KODE OTP SIMULASI
+// ============================================================
 
-  if (!otp || !informasiOTP) return;
+function tampilkanInformasiOTPPemulihan() {
+  const otp = sessionStorage.getItem(RECOVERY_OTP_CONFIG.otp);
+
+  if (!otp || !informasiOTP) {
+    return;
+  }
 
   informasiOTP.textContent =
     "Kode OTP simulasi: " + otp + " | Berlaku selama 2 menit.";
 }
 
-// 10. Mengambil sisa kesempatan verifikasi.
-function ambilSisaPercobaan() {
-  const nilai = sessionStorage.getItem(LOGIN_CONFIG.attempts);
+// ============================================================
+// 08. MENGAMBIL SISA KESEMPATAN VERIFIKASI
+// ============================================================
 
-  // Jika belum ada, berikan tiga kesempatan.
+function ambilSisaPercobaanPemulihan() {
+  const nilai = sessionStorage.getItem(RECOVERY_OTP_CONFIG.attempts);
+
+  // Jika data belum tersedia, berikan tiga kesempatan.
   if (nilai === null) {
     sessionStorage.setItem(
-      LOGIN_CONFIG.attempts,
-      String(LOGIN_CONFIG.maxAttempts),
+      RECOVERY_OTP_CONFIG.attempts,
+      String(RECOVERY_OTP_CONFIG.maxAttempts),
     );
 
-    return LOGIN_CONFIG.maxAttempts;
+    return RECOVERY_OTP_CONFIG.maxAttempts;
   }
 
   const jumlah = Number(nilai);
 
   return Number.isFinite(jumlah)
-    ? Math.max(0, Math.min(LOGIN_CONFIG.maxAttempts, jumlah))
+    ? Math.max(0, Math.min(RECOVERY_OTP_CONFIG.maxAttempts, jumlah))
     : 0;
 }
 
-// 11. Memperbarui informasi kesempatan.
-function perbaruiInformasiPercobaan() {
-  if (!informasiPercobaan) return;
+// ============================================================
+// 09. MENGHITUNG JUMLAH PERCOBAAN YANG SUDAH DIGUNAKAN
+// ============================================================
 
-  const sisa = ambilSisaPercobaan();
+function hitungPercobaanPemulihan() {
+  const sisa = ambilSisaPercobaanPemulihan();
 
-  informasiPercobaan.textContent =
-    sisa + " dari " + LOGIN_CONFIG.maxAttempts + " kali";
+  const digunakan = RECOVERY_OTP_CONFIG.maxAttempts - sisa;
 
-  // Memberikan warna peringatan ketika kesempatan hampir habis.
-  informasiPercobaan.classList.toggle("warning", sisa <= 1);
+  return digunakan;
 }
 
-// 12. Mengatur input OTP.
-function aturInputOTP() {
+// ============================================================
+// 10. MENGATUR DELAPAN KOTAK INPUT OTP
+// ============================================================
+
+function aturInputOTPPemulihan() {
   inputOTP.forEach(function (input, index) {
     // Memproses angka yang dimasukkan.
     input.addEventListener("input", function () {
       const angka = input.value.replace(/\D/g, "");
 
-      // Mendukung input beberapa digit sekaligus.
+      // Mendukung input beberapa angka sekaligus.
       if (angka.length > 1) {
-        masukkanKodeOTP(angka);
+        masukkanKodeOTPPemulihan(angka);
         return;
       }
 
@@ -256,9 +238,9 @@ function aturInputOTP() {
         inputOTP[index + 1].focus();
       }
 
-      // Menghapus pesan lama saat pengguna mulai mengetik.
+      // Menghapus notifikasi ketika pengguna mulai mengetik.
       if (input.value) {
-        tampilkanPesan("", "info");
+        tampilkanPesanPemulihan("", "info");
       }
     });
 
@@ -286,7 +268,7 @@ function aturInputOTP() {
 
       const teks = event.clipboardData.getData("text");
 
-      masukkanKodeOTP(teks);
+      masukkanKodeOTPPemulihan(teks);
     });
   });
 
@@ -296,8 +278,11 @@ function aturInputOTP() {
   }
 }
 
-// 13. Memasukkan delapan angka sekaligus.
-function masukkanKodeOTP(kode) {
+// ============================================================
+// 11. MEMASUKKAN DELAPAN ANGKA SEKALIGUS
+// ============================================================
+
+function masukkanKodeOTPPemulihan(kode) {
   const angka = String(kode).replace(/\D/g, "").slice(0, 8);
 
   inputOTP.forEach(function (input, index) {
@@ -309,12 +294,15 @@ function masukkanKodeOTP(kode) {
   inputOTP[posisi].focus();
 
   if (angka.length > 0) {
-    tampilkanPesan("", "info");
+    tampilkanPesanPemulihan("", "info");
   }
 }
 
-// 14. Mengambil kode dari seluruh kotak.
-function ambilKodeOTP() {
+// ============================================================
+// 12. MENGAMBIL KODE DARI SELURUH KOTAK
+// ============================================================
+
+function ambilKodeOTPPemulihan() {
   return inputOTP
     .map(function (input) {
       return input.value;
@@ -322,12 +310,27 @@ function ambilKodeOTP() {
     .join("");
 }
 
-// 15. Menampilkan pesan verifikasi.
-function tampilkanPesan(teks, jenis) {
-  if (!pesanOTP) return;
+// ============================================================
+// 13. MENAMPILKAN NOTIFIKASI VERIFIKASI
+// ============================================================
 
+function tampilkanPesanPemulihan(teks, jenis) {
+  if (!pesanOTP) {
+    return;
+  }
+
+  // Memasukkan pesan notifikasi.
   pesanOTP.textContent = teks;
 
+  // Menghapus seluruh class notifikasi sebelumnya.
+  pesanOTP.classList.remove("is-error", "is-success", "is-info");
+
+  // Mengatur tampilan berdasarkan jenis notifikasi.
+  if (teks) {
+    pesanOTP.classList.add("is-" + jenis);
+  }
+
+  // Mengatur warna sebagai fallback.
   const warna = {
     info: "#0755d5",
     error: "#dc4545",
@@ -337,15 +340,17 @@ function tampilkanPesan(teks, jenis) {
   pesanOTP.style.color = warna[jenis] || "#52627b";
 }
 
-// 16. Memeriksa status OTP.
-function perbaruiStatusOTP() {
-  const expiry = Number(sessionStorage.getItem(LOGIN_CONFIG.expiry));
+// ============================================================
+// 14. MEMERIKSA STATUS OTP
+// ============================================================
+
+function perbaruiStatusOTPPemulihan() {
+  const expiry = Number(sessionStorage.getItem(RECOVERY_OTP_CONFIG.expiry));
 
   const waktuHabis = !expiry || Date.now() >= expiry;
 
-  const percobaanHabis = ambilSisaPercobaan() <= 0;
+  const percobaanHabis = ambilSisaPercobaanPemulihan() <= 0;
 
-  // OTP tidak dapat digunakan jika kedaluwarsa atau kesempatan habis.
   const tidakAktif = waktuHabis || percobaanHabis;
 
   // Mengaktifkan atau menonaktifkan kotak input.
@@ -356,123 +361,129 @@ function perbaruiStatusOTP() {
   // Mengatur tombol verifikasi.
   tombolVerifikasi.disabled = tidakAktif;
 
-  // Kirim ulang baru aktif setelah masa berlaku habis.
+  // Tombol kirim ulang aktif setelah OTP kedaluwarsa.
   tombolKirimUlang.disabled = !waktuHabis;
 
-  // Memperbarui informasi kesempatan.
-  perbaruiInformasiPercobaan();
-
-  // Menampilkan pesan kondisi OTP.
+  // Menampilkan pesan sesuai kondisi OTP.
   if (waktuHabis) {
-    tampilkanPesan(
+    tampilkanPesanPemulihan(
       "Kode OTP telah kedaluwarsa. Silakan kirim ulang kode.",
       "error",
     );
   } else if (percobaanHabis) {
-    tampilkanPesan(
-      "Batas percobaan telah tercapai. Tunggu hingga OTP kedaluwarsa untuk mengirim ulang.",
+    tampilkanPesanPemulihan(
+      "Batas percobaan verifikasi tercapai! (3/3). Silakan kirim ulang OTP setelah masa berlaku habis.",
       "error",
     );
   }
 }
 
-// 17. Menjalankan timer OTP.
-function jalankanTimerOTP() {
+// ============================================================
+// 15. MENJALANKAN TIMER OTP
+// ============================================================
+
+function jalankanTimerPemulihan() {
   clearInterval(intervalTimer);
 
   function hitungWaktu() {
-    const expiry = Number(sessionStorage.getItem(LOGIN_CONFIG.expiry));
+    const expiry = Number(sessionStorage.getItem(RECOVERY_OTP_CONFIG.expiry));
 
     const sisaWaktu = Math.max(0, Math.ceil((expiry - Date.now()) / 1000));
 
     const menit = Math.floor(sisaWaktu / 60);
     const detik = sisaWaktu % 60;
 
+    // Menampilkan waktu dengan format MM:SS.
     timerOTP.textContent =
       String(menit).padStart(2, "0") + ":" + String(detik).padStart(2, "0");
 
-    // Timer berhenti ketika masa berlaku habis.
+    // Mengubah warna timer ketika OTP kedaluwarsa.
+    timerOTP.classList.toggle("expired", sisaWaktu <= 0);
+
+    // Menghentikan timer ketika waktu habis.
     if (sisaWaktu <= 0) {
       clearInterval(intervalTimer);
-      perbaruiStatusOTP();
+
+      perbaruiStatusOTPPemulihan();
     }
   }
 
-  // Menampilkan timer langsung.
+  // Menampilkan timer secara langsung.
   hitungWaktu();
 
-  // Timer tetap berjalan meskipun kesempatan habis.
-  if (Date.now() < Number(sessionStorage.getItem(LOGIN_CONFIG.expiry))) {
+  // Menjalankan timer selama OTP masih berlaku.
+  if (Date.now() < Number(sessionStorage.getItem(RECOVERY_OTP_CONFIG.expiry))) {
     intervalTimer = setInterval(hitungWaktu, 250);
   }
 }
 
-// 18. Memverifikasi kode OTP.
-function verifikasiKodeOTP() {
-  const otpAsli = sessionStorage.getItem(LOGIN_CONFIG.otp);
+// ============================================================
+// 16. MEMVERIFIKASI KODE OTP PEMULIHAN
+// ============================================================
 
-  const expiry = Number(sessionStorage.getItem(LOGIN_CONFIG.expiry));
+function verifikasiKodeOTPPemulihan() {
+  // Mencegah proses verifikasi berulang.
+  if (prosesVerifikasi) {
+    return;
+  }
 
-  const kodeMasukan = ambilKodeOTP();
+  const otpAsli = sessionStorage.getItem(RECOVERY_OTP_CONFIG.otp);
 
-  const sisaAwal = ambilSisaPercobaan();
+  const expiry = Number(sessionStorage.getItem(RECOVERY_OTP_CONFIG.expiry));
+
+  const kodeMasukan = ambilKodeOTPPemulihan();
+
+  const sisaAwal = ambilSisaPercobaanPemulihan();
 
   // Memeriksa masa berlaku OTP.
   if (!expiry || Date.now() >= expiry) {
-    perbaruiStatusOTP();
+    perbaruiStatusOTPPemulihan();
     return;
   }
 
   // Memeriksa kesempatan yang tersedia.
   if (sisaAwal <= 0) {
-    perbaruiStatusOTP();
+    perbaruiStatusOTPPemulihan();
     return;
   }
 
   // Memeriksa kelengkapan kode.
-  if (kodeMasukan.length !== 8) {
-    tampilkanPesan("Masukkan seluruh 8 digit kode verifikasi.", "error");
+  if (!/^\d{8}$/.test(kodeMasukan)) {
+    tampilkanPesanPemulihan(
+      "Masukkan seluruh 8 digit kode verifikasi.",
+      "error",
+    );
     return;
   }
 
-  // Memeriksa kesesuaian OTP.
+  // Memeriksa kesesuaian kode OTP.
   if (kodeMasukan !== otpAsli) {
     // Mengurangi kesempatan sebanyak satu kali.
     const sisa = Math.max(0, sisaAwal - 1);
 
-    sessionStorage.setItem(LOGIN_CONFIG.attempts, String(sisa));
+    sessionStorage.setItem(RECOVERY_OTP_CONFIG.attempts, String(sisa));
 
-    // Mengosongkan kotak input.
-    // Kode OTP simulasi tetap ditampilkan.
+    // Mengosongkan seluruh kotak OTP.
     inputOTP.forEach(function (input) {
       input.value = "";
     });
 
-    // Memperbarui informasi kesempatan.
-    perbaruiInformasiPercobaan();
+    // Menghitung jumlah percobaan yang sudah digunakan.
+    const percobaanKe = hitungPercobaanPemulihan();
 
-    const percobaanKe = LOGIN_CONFIG.maxAttempts - sisa;
-
-    // Jika seluruh kesempatan habis.
+    // Jika seluruh kesempatan telah habis.
     if (sisa <= 0) {
-      tampilkanPesan(
-        "Batas percobaan telah tercapai. Tunggu hingga OTP kedaluwarsa.",
-        "error",
-      );
-
-      perbaruiStatusOTP();
+      perbaruiStatusOTPPemulihan();
       return;
     }
 
-    // Menampilkan pesan kesalahan.
-    tampilkanPesan(
-      "Kode OTP salah! Percobaan ke-" +
+    // Menampilkan notifikasi kesalahan dengan format 1/3 atau 2/3.
+    tampilkanPesanPemulihan(
+      "Kode OTP salah! Percobaan " +
         percobaanKe +
-        " dari " +
-        LOGIN_CONFIG.maxAttempts +
-        ". Sisa percobaan: " +
-        sisa +
-        " kali.",
+        "/" +
+        RECOVERY_OTP_CONFIG.maxAttempts +
+        ". Silakan coba kembali.",
       "error",
     );
 
@@ -482,51 +493,36 @@ function verifikasiKodeOTP() {
     return;
   }
 
-  // Jika OTP benar, proses autentikasi berhasil.
-  selesaikanVerifikasiLogin();
+  // Jika OTP benar, lanjutkan pemulihan kata sandi.
+  selesaikanVerifikasiPemulihan();
 }
 
-// 19. Menyelesaikan verifikasi login.
-function selesaikanVerifikasiLogin() {
-  // Mengambil data pengguna yang menunggu verifikasi.
-  const dataPending = penggunaLogin;
+// ============================================================
+// 17. MENYELESAIKAN VERIFIKASI PEMULIHAN
+// ============================================================
 
-  if (!dataPending) {
-    tampilkanPesan(
-      "Data pengguna tidak ditemukan. Silakan login kembali.",
+function selesaikanVerifikasiPemulihan() {
+  // Memastikan email pemulihan masih tersedia.
+  const email = sessionStorage.getItem(RECOVERY_OTP_CONFIG.email);
+
+  if (!email) {
+    tampilkanPesanPemulihan(
+      "Data email pemulihan tidak ditemukan. Silakan ulangi proses.",
       "error",
     );
     return;
   }
 
-  // Mengambil objek pengguna.
-  const dataPengguna = dataPending.user || dataPending.account || dataPending;
-
-  // Menentukan role pengguna.
-  const role = dataPengguna.role || dataPending.role || "";
-
-  // Memastikan data pengguna valid.
-  if (!role) {
-    tampilkanPesan(
-      "Role pengguna tidak ditemukan. Silakan login kembali.",
-      "error",
-    );
-    return;
-  }
+  // Mengaktifkan pengunci proses.
+  prosesVerifikasi = true;
 
   // Menyimpan status verifikasi berhasil.
-  sessionStorage.setItem(LOGIN_CONFIG.verified, "true");
-
-  // Menyimpan data pengguna aktif.
-  sessionStorage.setItem(LOGIN_CONFIG.activeUser, JSON.stringify(dataPengguna));
-
-  // Menyimpan email pengguna.
-  sessionStorage.setItem(LOGIN_CONFIG.email, emailLogin);
+  sessionStorage.setItem(RECOVERY_OTP_CONFIG.verified, "true");
 
   // Menghentikan timer.
   clearInterval(intervalTimer);
 
-  // Menonaktifkan seluruh input.
+  // Menonaktifkan seluruh kotak input.
   inputOTP.forEach(function (input) {
     input.disabled = true;
   });
@@ -534,104 +530,70 @@ function selesaikanVerifikasiLogin() {
   tombolVerifikasi.disabled = true;
   tombolKirimUlang.disabled = true;
 
-  // Menampilkan pesan keberhasilan.
-  tampilkanPesan("Verifikasi berhasil! Mengarahkan ke dashboard...", "success");
-
   // Membersihkan data OTP yang sudah tidak diperlukan.
-  sessionStorage.removeItem(LOGIN_CONFIG.pending);
-  sessionStorage.removeItem(LOGIN_CONFIG.otp);
-  sessionStorage.removeItem(LOGIN_CONFIG.expiry);
-  sessionStorage.removeItem(LOGIN_CONFIG.attempts);
+  sessionStorage.removeItem(RECOVERY_OTP_CONFIG.otp);
 
-  // Mengarahkan berdasarkan role pengguna.
+  sessionStorage.removeItem(RECOVERY_OTP_CONFIG.expiry);
+
+  sessionStorage.removeItem(RECOVERY_OTP_CONFIG.attempts);
+
+  // Menampilkan notifikasi keberhasilan.
+  tampilkanPesanPemulihan(
+    "Verifikasi berhasil! Mengarahkan ke halaman kata sandi baru...",
+    "success",
+  );
+
+  // Mengarahkan pengguna ke halaman penggantian kata sandi.
   setTimeout(function () {
-    arahkanKeDashboard();
-  }, 800);
+    window.location.href = RECOVERY_OTP_CONFIG.nextPage;
+  }, 1000);
 }
 
-// 20. Mengarahkan pengguna berdasarkan role.
-function arahkanKeDashboard() {
-  const dataAktif = sessionStorage.getItem(LOGIN_CONFIG.activeUser);
+// ============================================================
+// 18. MENGIRIM ULANG OTP PEMULIHAN
+// ============================================================
 
-  if (!dataAktif) {
-    window.location.href = "login.html";
-    return;
-  }
-
-  let pengguna;
-
-  try {
-    pengguna = JSON.parse(dataAktif);
-  } catch (error) {
-    console.error("Data pengguna aktif tidak valid:", error);
-    window.location.href = "login.html";
-    return;
-  }
-
-  const role = String(pengguna.role || "").toLowerCase();
-
-  // Tujuan dashboard sesuai role.
-  const halamanDashboard = {
-    pelapor: "../User/Dashboard/Dashboard/dashboard.html",
-    petugas: "../Petugas/Dashboard/Dashboard.html",
-    administrator: "../Admin/Dashboard/Dashboard.html",
-  };
-
-  const tujuan = halamanDashboard[role];
-
-  if (!tujuan) {
-    tampilkanPesan(
-      "Role pengguna tidak dikenali. Silakan login kembali.",
-      "error",
-    );
-    return;
-  }
-
-  window.location.href = tujuan;
-}
-
-// 21. Mengirim ulang OTP.
-function kirimUlangOTP() {
-  // Mengambil email pengguna.
-  const email = sessionStorage.getItem(LOGIN_CONFIG.email);
+function kirimUlangOTPPemulihan() {
+  // Memeriksa email pemulihan.
+  const email = sessionStorage.getItem(RECOVERY_OTP_CONFIG.email);
 
   if (!email) {
-    tampilkanPesan(
-      "Sesi login tidak ditemukan. Silakan login kembali.",
+    tampilkanPesanPemulihan(
+      "Sesi pemulihan tidak ditemukan. Silakan ulangi proses.",
       "error",
     );
     return;
   }
 
-  const expiry = Number(sessionStorage.getItem(LOGIN_CONFIG.expiry));
+  const expiry = Number(sessionStorage.getItem(RECOVERY_OTP_CONFIG.expiry));
 
-  // Kirim ulang hanya ketika OTP sudah kedaluwarsa.
+  // Memastikan OTP lama sudah kedaluwarsa.
   if (expiry && Date.now() < expiry) {
     return;
   }
 
   // Membuat kode OTP baru.
-  const otpBaru = buatKodeOTP();
+  const otpBaru = buatKodeOTPPemulihan();
 
   // Menyimpan OTP baru.
-  sessionStorage.setItem(LOGIN_CONFIG.otp, otpBaru);
+  sessionStorage.setItem(RECOVERY_OTP_CONFIG.otp, otpBaru);
 
-  // Memulai masa berlaku baru selama dua menit.
+  // Mengatur masa berlaku baru selama dua menit.
   sessionStorage.setItem(
-    LOGIN_CONFIG.expiry,
-    String(Date.now() + LOGIN_CONFIG.duration),
+    RECOVERY_OTP_CONFIG.expiry,
+    String(Date.now() + RECOVERY_OTP_CONFIG.duration),
   );
 
   // Mengembalikan kesempatan menjadi tiga kali.
   sessionStorage.setItem(
-    LOGIN_CONFIG.attempts,
-    String(LOGIN_CONFIG.maxAttempts),
+    RECOVERY_OTP_CONFIG.attempts,
+    String(RECOVERY_OTP_CONFIG.maxAttempts),
   );
 
   // Menghapus status verifikasi sebelumnya.
-  sessionStorage.removeItem(LOGIN_CONFIG.verified);
+  sessionStorage.removeItem(RECOVERY_OTP_CONFIG.verified);
 
-  // Mengosongkan kotak OTP.
+  // Mengosongkan dan mengaktifkan kembali input.
   inputOTP.forEach(function (input) {
     input.value = "";
     input.disabled = false;
@@ -643,30 +605,31 @@ function kirimUlangOTP() {
   // Menonaktifkan tombol kirim ulang.
   tombolKirimUlang.disabled = true;
 
-  // Memperbarui kode OTP simulasi.
-  tampilkanInformasiOTP();
+  // Memperbarui informasi OTP.
+  tampilkanInformasiOTPPemulihan();
 
-  // Memperbarui jumlah kesempatan.
-  perbaruiInformasiPercobaan();
-
-  // Menampilkan pesan.
-  tampilkanPesan(
+  // Menghapus notifikasi lama.
+  tampilkanPesanPemulihan(
     "Kode OTP baru berhasil dibuat. Silakan gunakan kode terbaru.",
     "success",
   );
 
-  // Memulai timer baru.
+  // Menghentikan timer lama dan menjalankan timer baru.
   clearInterval(intervalTimer);
-  jalankanTimerOTP();
 
-  // Fokus kembali ke input pertama.
+  jalankanTimerPemulihan();
+
+  // Mengembalikan fokus ke kotak pertama.
   inputOTP[0].focus();
 
-  console.log("OTP simulasi baru:", otpBaru);
+  console.log("OTP pemulihan baru:", otpBaru);
 }
 
-// 22. Membuat OTP acak delapan digit.
-function buatKodeOTP() {
+// ============================================================
+// 19. MEMBUAT OTP ACAK DELAPAN DIGIT
+// ============================================================
+
+function buatKodeOTPPemulihan() {
   const angka = new Uint32Array(1);
 
   if (window.crypto && window.crypto.getRandomValues) {
@@ -678,22 +641,31 @@ function buatKodeOTP() {
   return String(Math.floor(10000000 + Math.random() * 90000000));
 }
 
-// 23. Menonaktifkan formulir jika sesi tidak tersedia.
-function nonaktifkanFormulir() {
+// ============================================================
+// 20. MENONAKTIFKAN FORMULIR
+// ============================================================
+
+function nonaktifkanFormulirPemulihan() {
+  // Menonaktifkan seluruh kotak input.
   inputOTP.forEach(function (input) {
     input.disabled = true;
   });
 
+  // Menonaktifkan tombol verifikasi.
   if (tombolVerifikasi) {
     tombolVerifikasi.disabled = true;
   }
 
+  // Menonaktifkan tombol kirim ulang.
   if (tombolKirimUlang) {
     tombolKirimUlang.disabled = true;
   }
 }
 
-// 24. Membersihkan timer ketika meninggalkan halaman.
+// ============================================================
+// 21. MEMBERSIHKAN TIMER KETIKA MENINGGALKAN HALAMAN
+// ============================================================
+
 window.addEventListener("pagehide", function () {
   clearInterval(intervalTimer);
 });

@@ -9,50 +9,43 @@ const KUNCI_PENYIMPANAN = "sipfasReports";
 const PROFILE_KEY = "sipfasProfile";
 
 // 03. Data simulasi awal apabila LocalStorage masih kosong.
-const dataLaporanAwal = [
-  {
-    id: "LP-2024-089",
-    date: "24 Okt 2024",
-    facility: "Proyektor Lab Komputer 2",
-    priority: "Tinggi",
-    status: "Menunggu Verifikasi",
-  },
-  {
-    id: "LP-2024-085",
-    date: "22 Okt 2024",
-    facility: "Unit AC Split 2 PK",
-    priority: "Tinggi",
-    status: "Diproses",
-  },
-  {
-    id: "LP-2024-081",
-    date: "18 Okt 2024",
-    facility: "Papan Tulis Whiteboard",
-    priority: "Sedang",
-    status: "Selesai",
-  },
-  {
-    id: "LP-2024-076",
-    date: "15 Okt 2024",
-    facility: "Stop Kontak Meja 04",
-    priority: "Rendah",
-    status: "Selesai",
-  },
-  {
-    id: "LP-2024-072",
-    date: "12 Okt 2024",
-    facility: "Kipas Angin Dinding",
-    priority: "Rendah",
-    status: "Tidak Valid",
-  },
-  {
-    id: "LP-2024-070",
-    date: "10 Okt 2024",
-    facility: "Kursi Kuliah Lipat",
-    priority: "Rendah",
-    status: "Selesai",
-  },
-];
+// const dataLaporanAwal = [
+//   {
+//     id: "LP-2024-089",
+//     date: "24 Okt 2024",
+//     facility: "Proyektor Lab Komputer 2",
+//     priority: "Tinggi",
+//     status: "Menunggu Verifikasi",
+//   },
+//   {
+//     id: "LP-2024-085",
+//     date: "22 Okt 2024",
+//     facility: "Unit AC Split 2 PK",
+//     priority: "Tinggi",
+//     status: "Diproses",
+//   },
+//   {
+//     id: "LP-2024-076",
+//     date: "15 Okt 2024",
+//     facility: "Stop Kontak Meja 04",
+//     priority: "Rendah",
+//     status: "Selesai",
+//   },
+//   {
+//     id: "LP-2024-072",
+//     date: "12 Okt 2024",
+//     facility: "Kipas Angin Dinding",
+//     priority: "Rendah",
+//     status: "Tidak Valid",
+//   },
+//   {
+//     id: "LP-2024-070",
+//     date: "10 Okt 2024",
+//     facility: "Kursi Kuliah Lipat",
+//     priority: "Rendah",
+//     status: "Selesai",
+//   },
+// ];
 
 /* 04. Memulai halaman Riwayat Laporan dan sinkronisasi profil. */
 
@@ -101,29 +94,24 @@ function mulaiRiwayatLaporan() {
 
 /* =========================================================
    05. MENGAMBIL DATA DARI LOCALSTORAGE
+   Tidak menggunakan data dummy.
 ========================================================= */
 
 function ambilDataLaporan() {
   try {
     const dataTersimpan = localStorage.getItem(KUNCI_PENYIMPANAN);
 
-    // Menyimpan data simulasi jika penyimpanan masih kosong.
+    // Jika belum ada laporan, gunakan array kosong.
     if (dataTersimpan === null) {
-      localStorage.setItem(KUNCI_PENYIMPANAN, JSON.stringify(dataLaporanAwal));
-
-      return [...dataLaporanAwal];
+      return [];
     }
 
-    // Mengubah JSON menjadi array JavaScript.
     const dataLaporan = JSON.parse(dataTersimpan);
 
-    // Memeriksa bentuk data yang tersimpan.
     if (
       !Array.isArray(dataLaporan) ||
       !dataLaporan.every(function (laporan) {
-        return (
-          laporan && typeof laporan === "object" && !Array.isArray(laporan)
-        );
+        return laporan && typeof laporan === "object";
       })
     ) {
       throw new Error("Format data laporan tidak valid.");
@@ -132,11 +120,9 @@ function ambilDataLaporan() {
     return dataLaporan;
   } catch (error) {
     console.error("Gagal membaca data laporan:", error);
-
     return [];
   }
 }
-
 /* =========================================================
    06. MENYERAGAMKAN DATA LAPORAN
 ========================================================= */

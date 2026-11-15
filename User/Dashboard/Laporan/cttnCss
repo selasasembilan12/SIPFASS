@@ -1,0 +1,861 @@
+/* =====================================================
+   SIPFAS - HALAMAN BUAT LAPORAN KERUSAKAN
+   CSS KHUSUS HALAMAN LAPORAN
+   Struktur dan desain asli dipertahankan
+===================================================== */
+
+:root {
+  --navy: #1e3b5d;
+  --blue: #3268ed;
+  --dark-blue: #082c50;
+  --page-bg: #f6f8fb;
+  --text: #20252d;
+  --muted: #596170;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  font-family: "Inter", Arial, sans-serif;
+  color: var(--text);
+  background: var(--page-bg);
+  font-size: 13px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ================= LAYOUT ================= */
+
+.app-container {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar {
+  width: 264px;
+  min-width: 264px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--navy);
+  color: #fff;
+}
+
+.sidebar-logo {
+  width: 100%;
+  height: 72px;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.sidebar-logo img {
+  display: block;
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+  object-position: center;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  transform: translateY(2px);
+}
+
+.sidebar-brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  line-height: 1.2;
+}
+
+.sidebar-brand strong {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.sidebar-brand span {
+  color: #b9cce2;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* NAVIGASI SIDEBAR */
+
+.sidebar-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 24px 8px 0;
+}
+
+.nav-item {
+  width: 100%;
+  height: 33px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-radius: 9px;
+  color: #91a9ca;
+  font-size: 13px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.nav-item svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nav-item:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-item.active {
+  color: #fff;
+  background: #3268ed;
+}
+
+/* KELUAR */
+
+.logout-link {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: auto;
+  padding: 18px 23px 32px;
+  color: #91a9ca;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.logout-link svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logout-link:hover {
+  color: #fff;
+}
+
+/* ================= MAIN CONTENT ================= */
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ================= HEADER ================= */
+
+.top-header {
+  width: 100%;
+  height: 72px;
+  min-height: 72px;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-bottom: 1px solid #edf0f4;
+  box-shadow: 0 2px 5px rgba(20, 40, 70, 0.025);
+}
+
+.system-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #424955;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.system-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #0754d6;
+  flex-shrink: 0;
+}
+
+.header-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.header-name {
+  color: #20252d;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.header-avatar {
+  width: 33px;
+  height: 33px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #0754c9;
+  color: #fff;
+}
+
+.header-avatar svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ================= KONTEN HALAMAN ================= */
+
+.page-content {
+  width: 100%;
+  min-height: calc(100vh - 72px);
+  padding: 7px 30px 30px;
+  background: var(--page-bg);
+}
+
+.page-heading {
+  width: 615px;
+  max-width: 100%;
+  margin: 0 auto 20px;
+}
+
+.page-heading h1 {
+  margin-bottom: 3px;
+  color: var(--dark-blue);
+  font-size: 22px;
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.page-heading p {
+  color: #515762;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+/* ================= FORM CARD ================= */
+
+.form-card {
+  width: 615px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 29px 29px 29px;
+  background: #fff;
+  border: 1px solid #edf0f4;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(25, 45, 75, 0.045);
+}
+
+/* ================= JUDUL BAGIAN ================= */
+
+.form-section-heading {
+  width: 100%;
+  height: 36px;
+  padding: 0 14px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f5f6f8;
+  border-radius: 9px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-letter {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #082c50;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.section-title h2 {
+  color: #082c50;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.step-label {
+  color: #505662;
+  font-size: 10px;
+}
+
+/* ================= FORM INPUT ================= */
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label,
+.description-label label {
+  display: block;
+  margin-bottom: 8px;
+  color: #25282d;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.required {
+  color: #dc2626;
+}
+
+/* DROPDOWN */
+
+.select-wrapper {
+  width: 100%;
+  height: 43px;
+  position: relative;
+}
+
+.select-wrapper select {
+  width: 100%;
+  height: 100%;
+  padding: 0 38px 0 12px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid #f0f1f3;
+  border-radius: 9px;
+  outline: none;
+  background: #fff;
+  color: #30343a;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.select-wrapper select:focus {
+  border-color: #3268ed;
+  box-shadow: 0 0 0 3px rgba(50, 104, 237, 0.08);
+}
+
+.select-wrapper svg {
+  position: absolute;
+  top: 13px;
+  right: 11px;
+  width: 17px;
+  height: 17px;
+  display: block;
+  fill: none;
+  stroke: #444b55;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.form-group small {
+  display: block;
+  margin-top: 5px;
+  color: #565c65;
+  font-size: 10.5px;
+}
+
+/* ================= DESKRIPSI ================= */
+
+.description-group {
+  margin-top: 17px;
+  margin-bottom: 18px;
+}
+
+.description-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.description-label label {
+  margin-bottom: 7px;
+}
+
+.character-count {
+  margin-bottom: 7px;
+  color: #555c67;
+  font-size: 11px;
+}
+
+.description-group textarea {
+  display: block;
+  width: 100%;
+  height: 70px;
+  padding: 12px;
+  resize: vertical;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  color: #30343a;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.description-group textarea::placeholder {
+  color: #c0c5cf;
+}
+
+.description-group textarea:focus {
+  border-color: #3268ed;
+}
+
+/* ================= PENILAIAN KERUSAKAN ================= */
+
+.second-section {
+  margin-top: 1px;
+  margin-bottom: 16px;
+}
+
+.assessment-group {
+  margin-bottom: 22px;
+  padding: 0 3px;
+}
+
+.assessment-group h3 {
+  margin-bottom: 4px;
+  color: #272a30;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.assessment-description {
+  margin-left: 18px;
+  margin-bottom: 12px;
+  color: #555b65;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+/* PILIHAN RADIO */
+
+.radio-options {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.radio-card {
+  width: 100%;
+  min-height: 61px;
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid #f0f1f3;
+  border-radius: 9px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.radio-card:hover {
+  border-color: #cbd8f5;
+  background: #fbfcff;
+}
+
+.radio-card input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: #0754ed;
+  cursor: pointer;
+}
+
+.radio-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.radio-content strong {
+  color: #292d33;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.radio-content small {
+  color: #555b65;
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+.impact-group {
+  margin-top: 2px;
+  margin-bottom: 20px;
+}
+
+/* ================= TOMBOL AKSI ================= */
+
+.form-actions {
+  width: 100%;
+  padding-top: 25px;
+  border-top: 1px solid #e2e5e9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cancel-button {
+  width: 75px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #f1f3f5;
+  color: #292d33;
+  font-size: 12px;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.cancel-button:hover {
+  background: #e5e7eb;
+}
+
+.submit-button {
+  width: 163px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: none;
+  border-radius: 8px;
+  background: #0754d6;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 50, 150, 0.15);
+  transition: 0.2s;
+}
+
+.submit-button:hover {
+  background: #0646b6;
+}
+
+.submit-button svg {
+  width: 17px;
+  height: 17px;
+  display: block;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.submit-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* =====================================================
+   NOTIFIKASI SIPFAS
+   Digunakan pada halaman Buat Laporan
+===================================================== */
+
+.sipfas-notification {
+  position: fixed;
+  top: 22px;
+  left: 50%;
+  z-index: 99999;
+
+  width: calc(100% - 32px);
+  max-width: 440px;
+  min-height: 62px;
+  padding: 14px 42px 14px 16px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: translate(-50%, -18px);
+
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    visibility 0.25s ease;
+}
+
+.sipfas-notification.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+
+.notification-icon {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #dc2626;
+
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.notification-title {
+  color: #25282d;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.notification-message {
+  color: #596170;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.notification-close {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+
+  width: 25px;
+  height: 25px;
+
+  border: none;
+  background: transparent;
+  color: #777777;
+
+  font-size: 21px;
+  cursor: pointer;
+}
+
+.notification-close:hover {
+  color: #20252d;
+}
+
+.sipfas-notification.warning .notification-icon {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+.sipfas-notification.success .notification-icon {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.sipfas-notification.error .notification-icon {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 230px;
+    min-width: 230px;
+  }
+
+  .page-content {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+
+  .top-header {
+    padding: 0 20px;
+  }
+
+  .system-title {
+    font-size: 9px;
+    letter-spacing: 0;
+  }
+}
+
+@media (max-width: 650px) {
+  .app-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: 100%;
+    min-height: auto;
+  }
+
+  .sidebar-logo {
+    height: 65px;
+  }
+
+  .sidebar-navigation {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    padding: 10px;
+  }
+
+  .logout-link {
+    display: none;
+  }
+
+  .top-header {
+    height: 60px;
+    min-height: 60px;
+    padding: 0 14px;
+  }
+
+  .system-title {
+    max-width: 65%;
+    white-space: normal;
+    font-size: 8px;
+  }
+
+  .header-profile {
+    gap: 8px;
+  }
+
+  .header-name {
+    font-size: 11px;
+  }
+
+  .page-content {
+    padding: 18px 14px 30px;
+  }
+
+  .page-heading h1 {
+    font-size: 20px;
+  }
+
+  .form-card {
+    padding: 20px 16px;
+  }
+
+  .section-title h2 {
+    font-size: 13px;
+  }
+
+  .step-label {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sipfas-notification {
+    top: 12px;
+    width: calc(100% - 24px);
+    padding: 12px 38px 12px 12px;
+  }
+
+  .notification-title {
+    font-size: 12px;
+  }
+
+  .notification-message {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 380px) {
+  .form-section-heading {
+    padding: 0 9px;
+  }
+
+  .section-title {
+    gap: 5px;
+  }
+
+  .section-title h2 {
+    font-size: 11px;
+  }
+
+  .step-label {
+    font-size: 8px;
+  }
+
+  .form-actions {
+    gap: 10px;
+  }
+
+  .submit-button {
+    width: 145px;
+  }
+}

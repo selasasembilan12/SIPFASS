@@ -1,405 +1,417 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Riwayat Laporan | SIPFAS</title>
-
+    <script src="../../../assets/js/logout-confirmation.js"></script>
+    <script src="../../../assets/js/profile-sync.js"></script>
     <!-- FONT INTER -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- CSS RIWAYAT LAPORAN -->
-    <link rel="stylesheet" href="Riwayat-laporan.css">
-</head>
+    <link rel="stylesheet" href="Riwayat-laporan.css" />
+  </head>
 
-<body>
-
-<div class="app-container">
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-
+  <body>
+    <div class="app-container">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
         <!-- LOGO SIPFAS -->
         <a href="../Dashboard/dashboard.html" class="sidebar-logo">
-            <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS">
+          <img src="../../../assets/images/logo-sipfas.png" alt="Logo SIPFAS" />
 
-            <div class="sidebar-brand">
-                <strong>SIPFAS</strong>
-                <span>Informatika UNKHAIR</span>
-            </div>
+          <div class="sidebar-brand">
+            <strong>SIPFAS</strong>
+            <span>Informatika UNKHAIR</span>
+          </div>
         </a>
 
         <!-- NAVIGASI SIDEBAR -->
         <nav class="sidebar-navigation">
+          <a href="../Dashboard/dashboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" />
+              <rect x="14" y="3" width="7" height="7" />
+              <rect x="3" y="14" width="7" height="7" />
+              <rect x="14" y="14" width="7" height="7" />
+            </svg>
+            <span>Dashboard</span>
+          </a>
 
-            <a href="../Dashboard/dashboard.html" class="nav-item">
-                <svg viewBox="0 0 24 24">
-                    <rect x="3" y="3" width="7" height="7"/>
-                    <rect x="14" y="3" width="7" height="7"/>
-                    <rect x="3" y="14" width="7" height="7"/>
-                    <rect x="14" y="14" width="7" height="7"/>
-                </svg>
-                <span>Dashboard</span>
-            </a>
+          <a href="../Laporan/Laporan.html" class="nav-item">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 8v8M8 12h8" />
+            </svg>
+            <span>Buat Laporan</span>
+          </a>
 
-            <a href="../Laporan/Laporan.html" class="nav-item">
-                <svg viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="9"/>
-                    <path d="M12 8v8M8 12h8"/>
-                </svg>
-                <span>Buat Laporan</span>
-            </a>
+          <a href="Riwayat-laporan.html" class="nav-item active">
+            <svg viewBox="0 0 24 24">
+              <rect x="5" y="4" width="14" height="17" rx="1.5" />
+              <path d="M9 4V2h6v2M9 9h6M9 13h6M9 17h4" />
+            </svg>
+            <span>Laporan Saya</span>
+          </a>
 
-            <a href="Riwayat-laporan.html" class="nav-item active">
-                <svg viewBox="0 0 24 24">
-                    <rect x="5" y="4" width="14" height="17" rx="1.5"/>
-                    <path d="M9 4V2h6v2M9 9h6M9 13h6M9 17h4"/>
-                </svg>
-                <span>Laporan Saya</span>
-            </a>
-
-            <a href="../Profil/Profil.html" class="nav-item">
-                <svg viewBox="0 0 24 24">
-                    <circle cx="12" cy="8" r="3.5"/>
-                    <path d="M5 20v-1.5A4.5 4.5 0 0 1 9.5 14h5a4.5 4.5 0 0 1 4.5 4.5V20Z"/>
-                </svg>
-                <span>Profil</span>
-            </a>
-
+          <a href="../Profil/Profil.html" class="nav-item">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="8" r="3.5" />
+              <path
+                d="M5 20v-1.5A4.5 4.5 0 0 1 9.5 14h5a4.5 4.5 0 0 1 4.5 4.5V20Z"
+              />
+            </svg>
+            <span>Profil</span>
+          </a>
         </nav>
 
         <!-- TOMBOL KELUAR -->
         <a href="../../../auth/Login.html" class="logout-link">
-            <svg viewBox="0 0 24 24">
-                <path d="M10 17l5-5-5-5"/>
-                <path d="M15 12H3"/>
-                <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/>
-            </svg>
-            <span>Keluar</span>
+          <svg viewBox="0 0 24 24">
+            <path d="M10 17l5-5-5-5" />
+            <path d="M15 12H3" />
+            <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6" />
+          </svg>
+          <span>Keluar</span>
         </a>
+      </aside>
 
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <main class="main-content">
-
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
         <!-- HEADER -->
         <header class="top-header">
+          <div class="system-title">
+            <span class="system-dot"></span>
+            <span>SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS</span>
+          </div>
 
-            <div class="system-title">
-                <span class="system-dot"></span>
-                <span>SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS</span>
+          <div class="header-profile">
+            <span class="header-name">Ahmad Fauzi</span>
+
+            <div class="header-avatar">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="3" />
+                <path d="M5 20v-1a7 7 0 0 1 14 0v1" />
+              </svg>
             </div>
-
-            <div class="header-profile">
-                <span class="header-name">Ahmad Fauzi</span>
-
-                <div class="header-avatar">
-                    <svg viewBox="0 0 24 24">
-                        <circle cx="12" cy="8" r="3"/>
-                        <path d="M5 20v-1a7 7 0 0 1 14 0v1"/>
-                    </svg>
-                </div>
-            </div>
-
+          </div>
         </header>
 
         <!-- KONTEN HALAMAN -->
         <section class="page-content">
+          <!-- BREADCRUMB -->
+          <div class="breadcrumb">
+            <span>Beranda</span>
+            <span class="breadcrumb-separator">›</span>
+            <span>Pemeliharaan</span>
+            <span class="breadcrumb-separator">›</span>
 
-            <!-- BREADCRUMB -->
-            <div class="breadcrumb">
-                <span>Beranda</span>
-                <span class="breadcrumb-separator">›</span>
-                <span>Pemeliharaan</span>
-                <span class="breadcrumb-separator">›</span>
+            <!-- LINK MENUJU DETAIL LAPORAN -->
+            <a href="../Detail-laporan/Detail-laporan.html"> Laporan Saya </a>
+          </div>
 
-                <!-- LINK MENUJU DETAIL LAPORAN -->
-                <a href="../Detail-laporan/Detail-laporan.html">
-                    Laporan Saya
+          <!-- JUDUL -->
+          <h1 class="page-title">Laporan Saya</h1>
+
+          <!-- KARTU RIWAYAT LAPORAN -->
+          <section class="report-card">
+            <!-- TOOLBAR -->
+            <div class="table-toolbar">
+              <!-- PENCARIAN -->
+              <div class="search-box">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="10.8" cy="10.8" r="6.8" />
+                  <path d="m16 16 5 5" />
+                </svg>
+
+                <input
+                  type="text"
+                  placeholder="Cari laporan..."
+                  aria-label="Cari laporan"
+                />
+              </div>
+
+              <!-- FILTER DAN REFRESH -->
+              <div class="toolbar-actions">
+                <div class="filter-box">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M4 5h16l-6.5 7.5v5l-3 1.5v-6.5L4 5Z" />
+                  </svg>
+
+                  <select aria-label="Filter status">
+                    <option>Semua Status</option>
+                    <option>Menunggu Verifikasi</option>
+                    <option>Diproses</option>
+                    <option>Selesai</option>
+                    <option>Tidak Valid</option>
+                  </select>
+
+                  <svg class="select-arrow" viewBox="0 0 24 24">
+                    <path d="m7 10 5 5 5-5" />
+                  </svg>
+                </div>
+
+                <!-- MUAT ULANG -->
+                <a
+                  href="Riwayat-laporan.html"
+                  class="refresh-button"
+                  aria-label="Muat ulang halaman"
+                >
+                  <svg viewBox="0 0 24 24">
+                    <path d="M20 11a8 8 0 1 0 1 4" />
+                    <path d="M20 4v7h-7" />
+                  </svg>
                 </a>
+              </div>
             </div>
 
-            <!-- JUDUL -->
-            <h1 class="page-title">Laporan Saya</h1>
+            <!-- TABEL RIWAYAT LAPORAN -->
+            <div class="table-wrapper">
+              <table class="report-table">
+                <thead>
+                  <tr>
+                    <th>KODE LAPORAN</th>
+                    <th>TANGGAL</th>
+                    <th>FASILITAS</th>
+                    <th>PRIORITAS</th>
+                    <th>STATUS</th>
+                    <th>AKSI</th>
+                  </tr>
+                </thead>
 
-            <!-- KARTU RIWAYAT LAPORAN -->
-            <section class="report-card">
+                <tbody>
+                  <!-- LAPORAN 1 -->
+                  <!-- <tr>
+                    <td class="report-code">LP-2024-089</td>
+                    <td class="report-date">24 Okt 2024</td>
+                    <td class="facility-name">Proyektor Lab Komputer 2</td>
 
-                <!-- TOOLBAR -->
-                <div class="table-toolbar">
+                    <td>
+                      <span class="priority-badge priority-high">
+                        <span class="badge-dot"></span>
+                        Tinggi
+                      </span>
+                    </td>
 
-                    <!-- PENCARIAN -->
-                    <div class="search-box">
+                    <td>
+                      <span class="status-badge status-waiting">
+                        Menunggu Verifikasi
+                      </span>
+                    </td>
+
+                    <td>
+                      <a
+                        href="../Detail-laporan/Detail-laporan.html"
+                        class="detail-button"
+                      >
+                        Detail
                         <svg viewBox="0 0 24 24">
-                            <circle cx="10.8" cy="10.8" r="6.8"/>
-                            <path d="m16 16 5 5"/>
+                          <path
+                            d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"
+                          />
+                          <circle cx="12" cy="12" r="3" />
                         </svg>
+                      </a>
+                    </td>
+                  </tr>
 
-                        <input
-                            type="text"
-                            placeholder="Cari laporan..."
-                            aria-label="Cari laporan"
-                        >
-                    </div>
+                  LAPORAN 2
+                  <tr>
+                    <td class="report-code">LP-2024-085</td>
+                    <td class="report-date">22 Okt 2024</td>
+                    <td class="facility-name">
+                      Unit AC Split 2
+                      PKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
+                    </td>
 
-                    <!-- FILTER DAN REFRESH -->
-                    <div class="toolbar-actions">
+                    <td>
+                      <span class="priority-badge priority-high">
+                        <span class="badge-dot"></span>
+                        Tinggi
+                      </span>
+                    </td>
 
-                        <div class="filter-box">
-                            <svg viewBox="0 0 24 24">
-                                <path d="M4 5h16l-6.5 7.5v5l-3 1.5v-6.5L4 5Z"/>
-                            </svg>
+                    <td>
+                      <span class="status-badge status-process">
+                        Diproses
+                      </span>
+                    </td>
 
-                            <select aria-label="Filter status">
-                                <option>Semua Status</option>
-                                <option>Menunggu Verifikasi</option>
-                                <option>Diproses</option>
-                                <option>Selesai</option>
-                                <option>Tidak Valid</option>
-                            </select>
+                    <td>
+                      <a
+                        href="../Detail-laporan/Detail-laporan.html"
+                        class="detail-button"
+                      >
+                        Detail
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"
+                          />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </a>
+                    </td>
+                  </tr>
 
-                            <svg class="select-arrow" viewBox="0 0 24 24">
-                                <path d="m7 10 5 5 5-5"/>
-                            </svg>
-                        </div>
+                  LAPORAN 3
+                  <tr>
+                    <td class="report-code">LP-2024-081</td>
+                    <td class="report-date">18 Okt 2024</td>
+                    <td class="facility-name">Papan Tulis Whiteboard</td>
 
-                        <!-- MUAT ULANG -->
-                        <a
-                            href="Riwayat-laporan.html"
-                            class="refresh-button"
-                            aria-label="Muat ulang halaman"
-                        >
-                            <svg viewBox="0 0 24 24">
-                                <path d="M20 11a8 8 0 1 0 1 4"/>
-                                <path d="M20 4v7h-7"/>
-                            </svg>
-                        </a>
+                    <td>
+                      <span class="priority-badge priority-medium">
+                        <span class="badge-dot"></span>
+                        Sedang
+                      </span>
+                    </td>
 
-                    </div>
-                </div>
+                    <td>
+                      <span class="status-badge status-completed">
+                        Selesai
+                      </span>
+                    </td>
 
-                <!-- TABEL RIWAYAT LAPORAN -->
-                <div class="table-wrapper">
+                    <td>
+                      <a
+                        href="../Detail-laporan/Detail-laporan.html"
+                        class="detail-button"
+                      >
+                        Detail
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"
+                          />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </a>
+                    </td>
+                  </tr>
 
-                    <table class="report-table">
+                  LAPORAN 4
+                  <tr>
+                    <td class="report-code">LP-2024-076</td>
+                    <td class="report-date">15 Okt 2024</td>
+                    <td class="facility-name">Stop Kontak Meja 04</td>
 
-                        <thead>
-                            <tr>
-                                <th>KODE LAPORAN</th>
-                                <th>TANGGAL</th>
-                                <th>FASILITAS</th>
-                                <th>PRIORITAS</th>
-                                <th>STATUS</th>
-                                <th>AKSI</th>
-                            </tr>
-                        </thead>
+                    <td>
+                      <span class="priority-badge priority-low">
+                        <span class="badge-dot"></span>
+                        Rendah
+                      </span>
+                    </td>
 
-                        <tbody>
+                    <td>
+                      <span class="status-badge status-completed">
+                        Selesai
+                      </span>
+                    </td>
 
-                            <!-- LAPORAN 1 -->
-                            <tr>
-                                <td class="report-code">LP-2024-089</td>
-                                <td class="report-date">24 Okt 2024</td>
-                                <td class="facility-name">Proyektor Lab Komputer 2</td>
+                    <td>
+                      <a
+                        href="../Detail-laporan/Detail-laporan.html"
+                        class="detail-button"
+                      >
+                        Detail
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"
+                          />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </a>
+                    </td>
+                  </tr>
 
-                                <td>
-                                    <span class="priority-badge priority-high">
-                                        <span class="badge-dot"></span>
-                                        Tinggi
-                                    </span>
-                                </td>
+                  LAPORAN 5
+                  <tr>
+                    <td class="report-code">LP-2024-072</td>
+                    <td class="report-date">12 Okt 2024</td>
+                    <td class="facility-name">Kipas Angin Dinding</td>
 
-                                <td>
-                                    <span class="status-badge status-waiting">
-                                        Menunggu Verifikasi
-                                    </span>
-                                </td>
+                    <td>
+                      <span class="priority-badge priority-low">
+                        <span class="badge-dot"></span>
+                        Rendah
+                      </span>
+                    </td>
 
-                                <td>
-                                    <a href="../Detail-laporan/Detail-laporan.html" class="detail-button">
-                                        Detail
-                                        <svg viewBox="0 0 24 24">
-                                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
-                                            <circle cx="12" cy="12" r="3"/>
-                                        </svg>
-                                    </a>
-                                </td>
-                            </tr>
+                    <td>
+                      <span class="status-badge status-invalid">
+                        <svg viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="9" />
+                          <path d="m9 9 6 6m0-6-6 6" />
+                        </svg>
+                        Tidak Valid
+                      </span>
+                    </td>
 
-                            <!-- LAPORAN 2 -->
-                            <tr>
-                                <td class="report-code">LP-2024-085</td>
-                                <td class="report-date">22 Okt 2024</td>
-                                <td class="facility-name">Unit AC Split 2 PK</td>
+                    <td>
+                      <a
+                        href="../Detail-laporan/Detail-laporan.html"
+                        class="detail-button"
+                      >
+                        Detail
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"
+                          />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </a>
+                    </td>
+                  </tr>
 
-                                <td>
-                                    <span class="priority-badge priority-high">
-                                        <span class="badge-dot"></span>
-                                        Tinggi
-                                    </span>
-                                </td>
+                  LAPORAN 6
+                  <tr>
+                    <td class="report-code">LP-2024-070</td>
+                    <td class="report-date">10 Okt 2024</td>
+                    <td class="facility-name">Kursi Kuliah Lipat</td>
 
-                                <td>
-                                    <span class="status-badge status-process">
-                                        Diproses
-                                    </span>
-                                </td>
+                    <td>
+                      <span class="priority-badge priority-low">
+                        <span class="badge-dot"></span>
+                        Rendah
+                      </span>
+                    </td>
 
-                                <td>
-                                    <a href="../Detail-laporan/Detail-laporan.html" class="detail-button">
-                                        Detail
-                                        <svg viewBox="0 0 24 24">
-                                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
-                                            <circle cx="12" cy="12" r="3"/>
-                                        </svg>
-                                    </a>
-                                </td>
-                            </tr>
+                    <td>
+                      <span class="status-badge status-completed">
+                        Selesai
+                      </span>
+                    </td>
 
-                            <!-- LAPORAN 3 -->
-                            <tr>
-                                <td class="report-code">LP-2024-081</td>
-                                <td class="report-date">18 Okt 2024</td>
-                                <td class="facility-name">Papan Tulis Whiteboard</td>
-
-                                <td>
-                                    <span class="priority-badge priority-medium">
-                                        <span class="badge-dot"></span>
-                                        Sedang
-                                    </span>
-                                </td>
-
-                                <td>
-                                    <span class="status-badge status-completed">
-                                        Selesai
-                                    </span>
-                                </td>
-
-                                <td>
-                                    <a href="../Detail-laporan/Detail-laporan.html" class="detail-button">
-                                        Detail
-                                        <svg viewBox="0 0 24 24">
-                                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
-                                            <circle cx="12" cy="12" r="3"/>
-                                        </svg>
-                                    </a>
-                                </td>
-                            </tr>
-
-                            <!-- LAPORAN 4 -->
-                            <tr>
-                                <td class="report-code">LP-2024-076</td>
-                                <td class="report-date">15 Okt 2024</td>
-                                <td class="facility-name">Stop Kontak Meja 04</td>
-
-                                <td>
-                                    <span class="priority-badge priority-low">
-                                        <span class="badge-dot"></span>
-                                        Rendah
-                                    </span>
-                                </td>
-
-                                <td>
-                                    <span class="status-badge status-completed">
-                                        Selesai
-                                    </span>
-                                </td>
-
-                                <td>
-                                    <a href="../Detail-laporan/Detail-laporan.html" class="detail-button">
-                                        Detail
-                                        <svg viewBox="0 0 24 24">
-                                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
-                                            <circle cx="12" cy="12" r="3"/>
-                                        </svg>
-                                    </a>
-                                </td>
-                            </tr>
-
-                            <!-- LAPORAN 5 -->
-                            <tr>
-                                <td class="report-code">LP-2024-072</td>
-                                <td class="report-date">12 Okt 2024</td>
-                                <td class="facility-name">Kipas Angin Dinding</td>
-
-                                <td>
-                                    <span class="priority-badge priority-low">
-                                        <span class="badge-dot"></span>
-                                        Rendah
-                                    </span>
-                                </td>
-
-                                <td>
-                                    <span class="status-badge status-invalid">
-                                        <svg viewBox="0 0 24 24">
-                                            <circle cx="12" cy="12" r="9"/>
-                                            <path d="m9 9 6 6m0-6-6 6"/>
-                                        </svg>
-                                        Tidak Valid
-                                    </span>
-                                </td>
-
-                                <td>
-                                    <a href="../Detail-laporan/Detail-laporan.html" class="detail-button">
-                                        Detail
-                                        <svg viewBox="0 0 24 24">
-                                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
-                                            <circle cx="12" cy="12" r="3"/>
-                                        </svg>
-                                    </a>
-                                </td>
-                            </tr>
-
-                            <!-- LAPORAN 6 -->
-                            <tr>
-                                <td class="report-code">LP-2024-070</td>
-                                <td class="report-date">10 Okt 2024</td>
-                                <td class="facility-name">Kursi Kuliah Lipat</td>
-
-                                <td>
-                                    <span class="priority-badge priority-low">
-                                        <span class="badge-dot"></span>
-                                        Rendah
-                                    </span>
-                                </td>
-
-                                <td>
-                                    <span class="status-badge status-completed">
-                                        Selesai
-                                    </span>
-                                </td>
-
-                                <td>
-                                    <a href="../Detail-laporan/Detail-laporan.html" class="detail-button">
-                                        Detail
-                                        <svg viewBox="0 0 24 24">
-                                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
-                                            <circle cx="12" cy="12" r="3"/>
-                                        </svg>
-                                    </a>
-                                </td>
-                            </tr>
-
-                        </tbody>
-                    </table>
-
-                </div>
-
-            </section>
-
+                    <td>
+                      <a
+                        href="../Detail-laporan/Detail-laporan.html"
+                        class="detail-button"
+                      >
+                        Detail
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"
+                          />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </a>
+                    </td>
+                  </tr> -->
+                </tbody>
+              </table>
+            </div>
+          </section>
         </section>
+      </main>
+    </div>
 
-    </main>
-
-</div>
-
-<!-- JAVASCRIPT RIWAYAT LAPORAN -->
-<script src="Riwayat-laporan.js"></script>
-
-</body>
+    <!-- JAVASCRIPT RIWAYAT LAPORAN -->
+    <script src="Riwayat-laporan.js"></script>
+  </body>
 </html>

@@ -162,9 +162,74 @@ function buatTempatPesan() {
 
 // Menampilkan pesan informasi.
 function tampilkanPesanPassword(pesan, jenis) {
+  // NOTIFIKASI KEBERHASILAN DI TENGAH ATAS HALAMAN.
+  if (jenis === "success") {
+    // Menyembunyikan pesan di dalam formulir.
+    if (!pesanPassword) buatTempatPesan();
+
+    if (pesanPassword) {
+      pesanPassword.textContent = "";
+      pesanPassword.style.display = "none";
+    }
+
+    // Menghapus notifikasi sebelumnya jika ada.
+    const notifikasiLama = document.getElementById("passwordSuccessToast");
+
+    if (notifikasiLama) {
+      notifikasiLama.remove();
+    }
+
+    // Membuat wadah notifikasi.
+    const toast = document.createElement("div");
+
+    toast.id = "passwordSuccessToast";
+    toast.className = "password-success-toast";
+
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+    toast.setAttribute("aria-atomic", "true");
+
+    // Membuat ikon centang.
+    const toastIcon = document.createElement("div");
+
+    toastIcon.className = "password-success-toast-icon";
+    toastIcon.textContent = "✓";
+
+    // Membuat bagian isi notifikasi.
+    const toastContent = document.createElement("div");
+
+    toastContent.className = "password-success-toast-content";
+
+    // Membuat judul notifikasi.
+    const toastTitle = document.createElement("strong");
+
+    toastTitle.textContent = "Kata Sandi Berhasil Diperbarui";
+
+    // Membuat keterangan notifikasi.
+    const toastMessage = document.createElement("p");
+
+    toastMessage.textContent = pesan;
+
+    // Menggabungkan isi notifikasi.
+    toastContent.appendChild(toastTitle);
+    toastContent.appendChild(toastMessage);
+
+    toast.appendChild(toastIcon);
+    toast.appendChild(toastContent);
+
+    // Menampilkan notifikasi di tengah atas halaman.
+    document.body.appendChild(toast);
+
+    return;
+  }
+
+  // PESAN ERROR DAN INFORMASI TETAP DI DALAM FORM.
   if (!pesanPassword) buatTempatPesan();
 
   if (!pesanPassword) return;
+
+  // Menampilkan kembali pesan validasi.
+  pesanPassword.style.display = "block";
 
   pesanPassword.textContent = pesan;
 

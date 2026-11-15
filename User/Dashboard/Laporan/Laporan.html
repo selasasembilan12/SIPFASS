@@ -52,7 +52,7 @@
             <span>Buat Laporan</span>
           </a>
 
-          <!-- DIPERBAIKI: MENU LAPORAN SAYA -->
+          <!-- MENU LAPORAN SAYA -->
           <a href="../Riwayat-laporan/Riwayat-laporan.html" class="nav-item">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x="5" y="4" width="14" height="17" rx="1" />
@@ -116,7 +116,6 @@
 
           <!-- KARTU FORMULIR -->
           <div class="form-card">
-            <!-- DIPERBAIKI: FORM MENUJU RIWAYAT LAPORAN -->
             <form action="../Riwayat-laporan/Riwayat-laporan.html" method="get">
               <!-- BAGIAN A: INFORMASI FASILITAS -->
               <div class="form-section-heading">
@@ -139,17 +138,18 @@
                     <option value="" selected disabled>
                       Pilih Lokasi Fasilitas Kampus...
                     </option>
-                    <option value="gedung-informatika-lt1">
-                      Gedung Informatika Lantai 1
-                    </option>
-                    <option value="gedung-informatika-lt2">
-                      Gedung Informatika Lantai 2
-                    </option>
-                    <option value="gedung-informatika-lt3">
-                      Gedung Informatika Lantai 3
-                    </option>
-                    <option value="laboratorium">Laboratorium Komputer</option>
-                    <option value="ruang-kuliah">Ruang Kuliah</option>
+
+                    <option value="jt-1">JT-1</option>
+                    <option value="jt-2">JT-2</option>
+                    <option value="jt-3">JT-3</option>
+                    <option value="jt-4">JT-4</option>
+                    <option value="jt-5">JT-5</option>
+                    <option value="jt-6">JT-6</option>
+                    <option value="lab-jak">LAB. JAK</option>
+                    <option value="lab-rpl">LAB. RPL</option>
+                    <option value="ruang-prodi">Ruang Program Studi</option>
+                    <option value="ruang-tata-usaha">Ruang Tata Usaha</option>
+                    <option value="ruang-sidang">Ruang Sidang</option>
                   </select>
 
                   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -158,7 +158,8 @@
                 </div>
 
                 <small>
-                  Pilih gedung dan zona tempat unit perlengkapan berada.
+                  Pilih ruangan tempat fasilitas yang mengalami kerusakan
+                  berada.
                 </small>
               </div>
 
@@ -171,15 +172,19 @@
                 <div class="select-wrapper">
                   <select id="fasilitas" name="fasilitas" required>
                     <option value="" selected disabled>
-                      Pilih Sarana / Inventaris...
+                      Pilih Jenis Fasilitas...
                     </option>
-                    <option value="proyektor">Proyektor</option>
-                    <option value="ac">AC Split</option>
-                    <option value="papan-tulis">Papan Tulis Whiteboard</option>
-                    <option value="stop-kontak">Stop Kontak</option>
-                    <option value="kursi">Kursi Kuliah</option>
+
                     <option value="komputer">Komputer</option>
-                    <option value="kipas">Kipas Angin</option>
+                    <option value="tv-pembelajaran">TV Pembelajaran</option>
+                    <option value="ac">AC</option>
+                    <option value="lampu-ruangan">Lampu Ruangan</option>
+                    <option value="meja">Meja</option>
+                    <option value="kursi">Kursi</option>
+                    <option value="papan-tulis">Papan Tulis</option>
+                    <option value="stop-kontak">Stop Kontak</option>
+                    <option value="pintu">Pintu</option>
+                    <option value="proyektor">Proyektor</option>
                   </select>
 
                   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -187,9 +192,7 @@
                   </svg>
                 </div>
 
-                <small>
-                  Sesuai label kode inventaris yang tertera pada badan aset.
-                </small>
+                <small> Pilih jenis fasilitas yang mengalami kerusakan. </small>
               </div>
 
               <!-- DESKRIPSI KERUSAKAN -->

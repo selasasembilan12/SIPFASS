@@ -16,11 +16,18 @@
 
     <!-- CSS KONFIRMASI -->
     <link rel="stylesheet" href="Konfirmasi-laporan.css" />
+
+    <!-- JAVASCRIPT GLOBAL -->
+    <script src="../../../assets/js/logout-confirmation.js" defer></script>
+    <script src="../../../assets/js/profile-sync.js" defer></script>
+
+    <!-- JAVASCRIPT KONFIRMASI -->
+    <script src="Konfirmasi-laporan.js" defer></script>
   </head>
 
   <body>
     <div class="app-container">
-      <!-- ================= SIDEBAR ================= -->
+      <!-- SIDEBAR -->
       <aside class="sidebar">
         <!-- LOGO SIPFAS -->
         <a href="../Dashboard/dashboard.html" class="sidebar-logo">
@@ -34,7 +41,6 @@
 
         <!-- MENU NAVIGASI -->
         <nav class="sidebar-navigation">
-          <!-- DASHBOARD -->
           <a href="../Dashboard/dashboard.html" class="nav-item">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x="3" y="3" width="7" height="7" />
@@ -42,37 +48,30 @@
               <rect x="3" y="14" width="7" height="7" />
               <rect x="14" y="14" width="7" height="7" />
             </svg>
-
             <span>Dashboard</span>
           </a>
 
-          <!-- BUAT LAPORAN -->
           <a href="../Laporan/laporan.html" class="nav-item">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="12" cy="12" r="9" />
               <path d="M12 8v8M8 12h8" />
             </svg>
-
             <span>Buat Laporan</span>
           </a>
 
-          <!-- LAPORAN SAYA -->
           <a href="../Riwayat-laporan/Riwayat-laporan.html" class="nav-item">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x="5" y="4" width="14" height="17" rx="1" />
               <path d="M9 4V2h6v2M9 9h6M9 13h6M9 17h4" />
             </svg>
-
             <span>Laporan Saya</span>
           </a>
 
-          <!-- PROFIL -->
           <a href="../Profil/profil.html" class="nav-item">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="12" cy="7" r="4" />
               <path d="M4 21v-2a5 5 0 0 1 5-5h6a5 5 0 0 1 5 5v2z" />
             </svg>
-
             <span>Profil</span>
           </a>
         </nav>
@@ -84,24 +83,24 @@
             <path d="M16 17l5-5-5-5" />
             <path d="M21 12H9" />
           </svg>
-
           <span>Keluar</span>
         </a>
       </aside>
 
-      <!-- ================= KONTEN UTAMA ================= -->
+      <!-- KONTEN UTAMA -->
       <main class="main-content">
         <!-- HEADER -->
         <header class="top-header">
           <div class="system-title">
             <span class="system-dot"></span>
-
-            <span> SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS </span>
+            <span>SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS</span>
           </div>
 
-          <!-- PROFIL PENGGUNA -->
+          <!-- IDENTITAS PENGGUNA AKTIF -->
           <div class="header-profile">
-            <span class="header-name">Ahmad Fauzi</span>
+            <span class="header-profile-name" aria-live="polite">
+              Memuat profil...
+            </span>
 
             <div class="header-avatar">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -112,7 +111,7 @@
           </div>
         </header>
 
-        <!-- ================= AREA HALAMAN ================= -->
+        <!-- AREA HALAMAN -->
         <section class="page-content">
           <!-- BREADCRUMB -->
           <div class="breadcrumb">
@@ -130,7 +129,7 @@
             <span class="breadcrumb-current"> Konfirmasi Pengiriman </span>
           </div>
 
-          <!-- ================= KARTU KONFIRMASI ================= -->
+          <!-- KARTU KONFIRMASI -->
           <div class="confirmation-card">
             <!-- IKON BERHASIL -->
             <div class="success-icon">
@@ -141,7 +140,7 @@
               </div>
             </div>
 
-            <!-- JUDUL BERHASIL -->
+            <!-- JUDUL -->
             <div class="success-heading">
               <h1>Laporan Berhasil Dikirim!</h1>
 
@@ -156,19 +155,17 @@
             <div class="report-information">
               <!-- KODE LAPORAN -->
               <div class="information-row">
-                <span class="information-label"> Kode Laporan </span>
-
-                <strong class="report-code"> LP-2024-089 </strong>
+                <span class="information-label">Kode Laporan</span>
+                <strong class="report-code">-</strong>
               </div>
 
               <!-- NAMA FASILITAS -->
               <div class="information-row facility-row">
-                <span class="information-label"> Nama Fasilitas </span>
+                <span class="information-label">Nama Fasilitas</span>
 
                 <div class="information-value">
-                  <strong>Unit AC Split 2 PK</strong>
-
-                  <span>(Ruang Kuliah IF-301)</span>
+                  <strong id="facilityName">-</strong>
+                  <span id="facilityLocation">-</span>
                 </div>
               </div>
 
@@ -178,21 +175,19 @@
                   Rekomendasi Prioritas Awal
                 </span>
 
-                <span class="priority-badge"> Prioritas Tinggi </span>
+                <span class="priority-badge">-</span>
               </div>
 
-              <!-- STATUS LAPORAN -->
+              <!-- STATUS -->
               <div class="information-row">
-                <span class="information-label"> Status Laporan </span>
+                <span class="information-label">Status Laporan</span>
 
-                <span class="status-badge"> Menunggu Verifikasi </span>
+                <span class="status-badge">-</span>
               </div>
             </div>
 
-            <!-- ================= TOMBOL NAVIGASI ================= -->
+            <!-- TOMBOL NAVIGASI -->
             <div class="confirmation-actions">
-              <!-- LAPORAN SAYA -->
-              <!-- SUDAH DIHUBUNGKAN KE HALAMAN RIWAYAT -->
               <a
                 href="../Riwayat-laporan/Riwayat-laporan.html"
                 class="my-report-button"
@@ -200,8 +195,6 @@
                 Laporan Saya
               </a>
 
-              <!-- LIHAT DETAIL -->
-              <!-- SUDAH DIHUBUNGKAN KE HALAMAN DETAIL LAPORAN -->
               <a
                 href="../Detail-laporan/Detail-laporan.html"
                 class="detail-button"
@@ -217,7 +210,6 @@
         </section>
       </main>
     </div>
-    <!-- JavaScript Konfirmasi Laporan -->
-    <script src="Konfirmasi-laporan.js"></script>
+    <script src="../../../assets/js/profile-sync.js"></script>
   </body>
 </html>

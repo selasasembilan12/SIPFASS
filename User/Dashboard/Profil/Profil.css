@@ -1,42 +1,38 @@
-
 /* =====================================================
    HALAMAN PROFIL PELAPOR - SIPFAS
    ===================================================== */
 
 /* RESET */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 /* PALET WARNA */
 :root {
-    --navy: #1e3b60;
-    --blue: #2864f0;
-    --blue-hover: #1f56dc;
-    --text: #20252d;
-    --muted: #687d9d;
-    --page-bg: #f5f7fa;
-    --border: #e4e8ef;
+  --navy: #1e3b60;
+  --blue: #2864f0;
+  --blue-hover: #1f56dc;
+  --text: #20252d;
+  --muted: #687d9d;
+  --page-bg: #f5f7fa;
+  --border: #e4e8ef;
 }
 
 /* BODY */
 body {
-    min-height: 100vh;
-    font-family: 'Inter', Arial, sans-serif;
-    color: var(--text);
-    background: var(--page-bg);
+  min-height: 100vh;
+  font-family: "Inter", Arial, sans-serif;
+  color: var(--text);
+  background: var(--page-bg);
 }
 
-/* =====================================================
-   LAYOUT UTAMA
-   ===================================================== */
-
+/* LAYOUT UTAMA */
 .app-container {
-    display: flex;
-    width: 100%;
-    min-height: 100vh;
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
 }
 
 /* =====================================================
@@ -44,167 +40,164 @@ body {
    ===================================================== */
 
 .sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    z-index: 10;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 10;
 
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 
-    width: 248px;
-    min-width: 248px;
-    min-height: 100vh;
+  width: 248px;
+  min-width: 248px;
+  min-height: 100vh;
 
-    background: var(--navy);
+  background: var(--navy);
 }
 
 /* LOGO SIPFAS */
 .sidebar-logo {
-    width: 100%;
-    height: 72px;
+  width: 100%;
+  height: 72px;
 
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 
-    gap: 1px;
-    padding: 0 32px;
+  gap: 1px;
+  padding: 0 32px;
 
-    text-decoration: none;
-    border-bottom: 1px solid rgba(255,255,255,0.10);
-    flex-shrink: 0;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 }
 
-
 .sidebar-logo img {
-    display: block;
-    width: 62px;
-    height: 62px;
+  display: block;
+  width: 62px;
+  height: 62px;
 
-    object-fit: contain;
-    object-position: center;
+  object-fit: contain;
+  object-position: center;
 
-    flex-shrink: 0;
-    background: transparent;
-    border: none;
-    border-radius: 0;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
 
-    transform: translateY(2px);
+  transform: translateY(2px);
 }
 
 /* IDENTITAS BRAND */
 .sidebar-brand {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 
-    gap: 1px;
-    min-width: 0;
-    line-height: 1.2;
+  gap: 1px;
+  min-width: 0;
+  line-height: 1.2;
 }
 
 .sidebar-brand strong {
-    color: #ffffff;
-    font-size: 19px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
+  color: #ffffff;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
 .sidebar-brand span {
-    color: #b9cce2;
-    font-size: 12px;
-    font-weight: 400;
-    white-space: nowrap;
+  color: #b9cce2;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
 }
 
 /* NAVIGASI SIDEBAR */
 .sidebar-navigation {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    padding: 25px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 25px 8px;
 }
 
 .nav-item {
-    height: 37px;
+  height: 37px;
 
-    display: flex;
-    align-items: center;
-    gap: 9px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
 
-    padding: 0 14px;
+  padding: 0 14px;
+  border-radius: 9px;
 
-    border-radius: 9px;
+  color: #91a9c9;
+  text-decoration: none;
 
-    color: #91a9c9;
-    text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
 
-    font-size: 13px;
-    font-weight: 600;
-
-    transition: 0.2s;
+  transition: 0.2s;
 }
 
 .nav-item svg {
-    width: 17px;
-    height: 17px;
+  width: 17px;
+  height: 17px;
 
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 
-    flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .nav-item:hover {
-    background: rgba(255,255,255,0.08);
-    color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
 }
 
-/* MENU PROFIL AKTIF */
 .nav-item.active {
-    background: #3267f5;
-    color: #ffffff;
+  background: #3267f5;
+  color: #ffffff;
 }
 
 /* TOMBOL KELUAR */
 .logout-link {
-    height: 55px;
+  height: 55px;
 
-    display: flex;
-    align-items: center;
-    gap: 9px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
 
-    margin-top: auto;
-    margin-bottom: 8px;
-    padding: 0 23px;
+  margin-top: auto;
+  margin-bottom: 8px;
+  padding: 0 23px;
 
-    color: #91a9c9;
-    text-decoration: none;
+  color: #91a9c9;
+  text-decoration: none;
 
-    font-size: 13px;
-    font-weight: 600;
+  font-size: 13px;
+  font-weight: 600;
 
-    transition: 0.2s;
+  transition: 0.2s;
 }
 
 .logout-link svg {
-    width: 17px;
-    height: 17px;
+  width: 17px;
+  height: 17px;
 
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .logout-link:hover {
-    color: #ffffff;
+  color: #ffffff;
 }
 
 /* =====================================================
@@ -212,84 +205,101 @@ body {
    ===================================================== */
 
 .main-content {
-    flex: 1;
-    min-width: 0;
-    min-height: 100vh;
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
 
-    margin-left: 248px;
+  margin-left: 248px;
 }
 
 /* HEADER */
 .top-header {
-    height: 72px;
+  height: 72px;
 
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-    padding: 0 32px;
+  padding: 0 32px;
 
-    background: #ffffff;
-    border-bottom: 1px solid #edf0f4;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.025);
+  background: #ffffff;
+  border-bottom: 1px solid #edf0f4;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.025);
 }
 
 /* IDENTITAS SISTEM */
 .system-title {
-    display: flex;
-    align-items: center;
-    gap: 9px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
 
-    color: #454c58;
+  color: #454c58;
 
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.3px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
 }
 
 .system-dot {
-    width: 8px;
-    height: 8px;
+  width: 8px;
+  height: 8px;
 
-    background: #075bea;
-    border-radius: 50%;
-    flex-shrink: 0;
+  background: #075bea;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 /* PROFIL HEADER */
 .header-profile {
-    display: flex;
-    align-items: center;
-    gap: 17px;
+  display: flex;
+  align-items: center;
+  gap: 17px;
 }
 
 .header-name {
-    color: #20252d;
-    font-size: 13px;
-    font-weight: 600;
+  color: #20252d;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .header-avatar {
-    width: 33px;
-    height: 33px;
+  position: relative;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  width: 33px;
+  height: 33px;
 
-    background: #0754c9;
-    border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  background: #0754c9;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .header-avatar svg {
-    width: 18px;
-    height: 18px;
+  width: 18px;
+  height: 18px;
 
-    fill: none;
-    stroke: #ffffff;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.header-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.header-avatar img[hidden],
+.header-avatar svg[hidden] {
+  display: none;
 }
 
 /* =====================================================
@@ -297,41 +307,41 @@ body {
    ===================================================== */
 
 .page-content {
-    padding: 0 31px 32px;
+  padding: 0 31px 32px;
 }
 
 /* BREADCRUMB */
 .breadcrumb {
-    height: 21px;
+  height: 21px;
 
-    display: flex;
-    align-items: center;
-    gap: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 
-    color: #454c58;
-    font-size: 11px;
-    font-weight: 400;
+  color: #454c58;
+  font-size: 11px;
+  font-weight: 400;
 }
 
 .breadcrumb-separator {
-    color: #858d9b;
-    font-size: 15px;
+  color: #858d9b;
+  font-size: 15px;
 }
 
 .breadcrumb strong {
-    color: #075bea;
-    font-weight: 600;
+  color: #075bea;
+  font-weight: 600;
 }
 
 /* JUDUL HALAMAN */
 .page-title {
-    margin: 1px 0 24px;
+  margin: 1px 0 24px;
 
-    color: #20252d;
-    font-size: 23px;
-    line-height: 1.3;
-    font-weight: 700;
-    letter-spacing: -0.6px;
+  color: #20252d;
+  font-size: 23px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.6px;
 }
 
 /* =====================================================
@@ -339,18 +349,18 @@ body {
    ===================================================== */
 
 .profile-card {
-    width: 100%;
-    max-width: 750px;
+  width: 100%;
+  max-width: 750px;
 
-    margin: 0 auto;
-    padding: 31px 32px 30px;
+  margin: 0 auto;
+  padding: 31px 32px 30px;
 
-    background: #ffffff;
+  background: #ffffff;
 
-    border: 1px solid #eef0f3;
-    border-radius: 13px;
+  border: 1px solid #eef0f3;
+  border-radius: 13px;
 
-    box-shadow: 0 3px 13px rgba(31,50,76,0.06);
+  box-shadow: 0 3px 13px rgba(31, 50, 76, 0.06);
 }
 
 /* =====================================================
@@ -358,73 +368,164 @@ body {
    ===================================================== */
 
 .profile-identity {
-    display: flex;
-    align-items: center;
-    gap: 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
 
-    min-height: 96px;
+  min-height: 96px;
+}
+
+/* PEMBUNGKUS FOTO */
+.profile-photo-wrapper {
+  position: relative;
+
+  width: 95px;
+  height: 95px;
+
+  flex-shrink: 0;
 }
 
 /* FOTO PROFIL */
 .profile-photo {
-    width: 95px;
-    height: 95px;
+  width: 95px;
+  height: 95px;
 
-    flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    background: #e0e3e6;
-    border-radius: 50%;
+  overflow: hidden;
+
+  background: #e0e3e6;
+  border-radius: 50%;
+}
+
+.profile-photo img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profile-photo img[hidden] {
+  display: none;
+}
+
+/* FOTO DEFAULT */
+.photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+}
+
+.photo-placeholder svg {
+  width: 42px;
+  height: 42px;
+
+  fill: none;
+  stroke: #89919c;
+  stroke-width: 1.5;
+}
+
+.photo-placeholder[hidden] {
+  display: none;
+}
+
+/* IKON PENSIL FOTO */
+.photo-edit-button {
+  position: absolute;
+  right: 0;
+  bottom: 1px;
+  z-index: 2;
+
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  background: #2864f0;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+
+  color: #ffffff;
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.photo-edit-button svg {
+  width: 14px;
+  height: 14px;
+
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.photo-edit-button:hover {
+  background: #1f56dc;
+  transform: scale(1.08);
 }
 
 /* INFORMASI IDENTITAS */
 .identity-information {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .identity-information h2 {
-    color: #20252d;
-    font-size: 20px;
-    line-height: 1.3;
-    font-weight: 700;
+  color: #20252d;
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 700;
 }
 
 .identity-information p {
-    color: #555c67;
-    font-size: 11px;
-    line-height: 1.5;
+  color: #555c67;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 /* BADGE PELAPOR */
 .role-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-    min-width: 67px;
-    height: 19px;
+  min-width: 67px;
+  height: 19px;
 
-    margin-top: 7px;
-    padding: 0 10px;
+  margin-top: 7px;
+  padding: 0 10px;
 
-    background: #dce3ff;
-    color: #163361;
+  background: #dce3ff;
+  color: #163361;
 
-    border-radius: 20px;
+  border-radius: 20px;
 
-    font-size: 11px;
-    font-weight: 600;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 /* GARIS PEMBATAS */
 .section-divider {
-    width: 100%;
-    height: 1px;
+  width: 100%;
+  height: 1px;
 
-    margin: 22px 0 32px;
+  margin: 22px 0 32px;
 
-    background: #e2e5e9;
+  background: #e2e5e9;
 }
 
 /* =====================================================
@@ -432,61 +533,60 @@ body {
    ===================================================== */
 
 .profile-form {
-    width: 100%;
+  width: 100%;
 }
 
-/* KELOMPOK INPUT */
 .form-group {
-    width: 100%;
-    margin-bottom: 17px;
+  width: 100%;
+  margin-bottom: 17px;
 }
 
 /* LABEL */
 .form-group label {
-    display: block;
+  display: block;
 
-    margin-bottom: 7px;
+  margin-bottom: 7px;
 
-    color: #252a30;
-    font-size: 13px;
-    font-weight: 600;
+  color: #252a30;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-/* BARIS LABEL DAN KETERANGAN */
+/* BARIS LABEL */
 .label-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-    gap: 10px;
+  gap: 10px;
 }
 
 .label-row label {
-    margin-bottom: 7px;
+  margin-bottom: 7px;
 }
 
 /* KETERANGAN FIELD */
 .field-note {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 
-    margin-bottom: 7px;
+  margin-bottom: 7px;
 
-    color: #535a65;
-    font-size: 11px;
-    white-space: nowrap;
+  color: #535a65;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .field-note svg {
-    width: 12px;
-    height: 12px;
+  width: 12px;
+  height: 12px;
 
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* =====================================================
@@ -494,91 +594,88 @@ body {
    ===================================================== */
 
 .input-wrapper {
-    width: 100%;
-    height: 44px;
+  width: 100%;
+  height: 44px;
 
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 
-    padding: 0 14px;
+  padding: 0 14px;
 
-    background: #f0f2f5;
-    border: 1px solid transparent;
-    border-radius: 9px;
+  background: #f0f2f5;
+  border: 1px solid transparent;
+  border-radius: 9px;
 
-    transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
-/* IKON INPUT */
 .input-wrapper > svg:first-child {
-    width: 18px;
-    height: 18px;
+  width: 18px;
+  height: 18px;
 
-    flex-shrink: 0;
+  flex-shrink: 0;
 
-    fill: none;
-    stroke: #535a65;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  fill: none;
+  stroke: #535a65;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-/* INPUT TEXT */
 .input-wrapper input {
-    width: 100%;
-    min-width: 0;
-    height: 100%;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
 
-    padding: 0;
+  padding: 0;
 
-    border: none;
-    outline: none;
+  border: none;
+  outline: none;
 
-    background: transparent;
+  background: transparent;
 
-    color: #30343b;
+  color: #30343b;
 
-    font-family: inherit;
-    font-size: 13px;
+  font-family: inherit;
+  font-size: 13px;
 }
 
 .input-wrapper input::placeholder {
-    color: #9aa6b7;
-    opacity: 1;
+  color: #9aa6b7;
+  opacity: 1;
 }
 
-/* EFEK FOKUS */
 .input-wrapper:focus-within {
-    border-color: #2864f0;
-    box-shadow: 0 0 0 3px rgba(40,100,240,0.08);
+  border-color: #2864f0;
+  box-shadow: 0 0 0 3px rgba(40, 100, 240, 0.08);
 }
 
-/* INPUT TERKUNCI */
 .locked-input {
-    background: #eceef0;
+  background: #eceef0;
 }
 
 .locked-input input {
-    color: #626873;
+  color: #626873;
 }
 
 .locked-input input:focus {
-    outline: none;
+  outline: none;
 }
 
-/* IKON GEMBOK KANAN */
 .trailing-lock {
-    width: 16px !important;
-    height: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
 
-    flex-shrink: 0;
+  flex-shrink: 0;
 
-    fill: none;
-    stroke: #535a65;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  fill: none;
+  stroke: #535a65;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* =====================================================
@@ -586,84 +683,81 @@ body {
    ===================================================== */
 
 .password-divider {
-    margin: 30px 0 21px;
+  margin: 30px 0 21px;
 }
 
-/* JUDUL PASSWORD */
 .password-heading {
-    margin-bottom: 17px;
+  margin-bottom: 17px;
 }
 
 .password-heading h3 {
-    color: #252a30;
-    font-size: 13px;
-    font-weight: 700;
-    line-height: 1.5;
+  color: #252a30;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
 }
 
 .password-heading h3 span {
-    margin-left: 4px;
+  margin-left: 4px;
 
-    color: #626873;
-    font-size: 11px;
-    font-weight: 400;
+  color: #626873;
+  font-size: 11px;
+  font-weight: 400;
 }
 
 .password-heading p {
-    margin-top: 2px;
+  margin-top: 2px;
 
-    color: #535a65;
-    font-size: 11px;
-    line-height: 1.5;
+  color: #535a65;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
-/* INPUT PASSWORD */
 .password-input {
-    gap: 11px;
+  gap: 11px;
 }
 
 /* TOMBOL IKON MATA */
 .password-toggle {
-    width: 23px;
-    height: 28px;
+  width: 23px;
+  height: 28px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    flex-shrink: 0;
+  flex-shrink: 0;
 
-    padding: 0;
+  padding: 0;
 
-    border: none;
-    background: transparent;
+  border: none;
+  background: transparent;
 
-    color: #535a65;
-    cursor: pointer;
+  color: #535a65;
+  cursor: pointer;
 }
 
 .password-toggle svg {
-    width: 19px;
-    height: 19px;
+  width: 19px;
+  height: 19px;
 
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .password-toggle:hover {
-    color: var(--blue);
+  color: var(--blue);
 }
 
-/* PETUNJUK PASSWORD */
 .input-help {
-    margin-top: 6px;
+  margin-top: 6px;
 
-    color: #535a65;
-    font-size: 11px;
-    line-height: 1.5;
+  color: #535a65;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 /* =====================================================
@@ -671,98 +765,178 @@ body {
    ===================================================== */
 
 .form-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
 
-    margin-top: 31px;
+  margin-top: 31px;
 }
 
-/* TOMBOL BATAL */
 .cancel-button {
-    min-width: 97px;
-    height: 44px;
+  min-width: 97px;
+  height: 44px;
 
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 
-    padding: 0 15px;
+  padding: 0 15px;
 
-    background: #eceef0;
-    color: #252a30;
+  background: #eceef0;
+  color: #252a30;
 
-    border-radius: 8px;
-    text-decoration: none;
+  border-radius: 8px;
+  text-decoration: none;
 
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
 
-    transition: 0.2s;
+  transition: 0.2s;
 }
 
 .cancel-button svg {
-    width: 15px;
-    height: 15px;
+  width: 15px;
+  height: 15px;
 
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .cancel-button:hover {
-    background: #dfe2e6;
+  background: #dfe2e6;
 }
 
-/* TOMBOL SIMPAN */
 .save-button {
-    min-width: 191px;
-    height: 44px;
+  min-width: 191px;
+  height: 44px;
 
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
 
-    padding: 0 16px;
+  padding: 0 16px;
 
-    border: none;
-    border-radius: 8px;
+  border: none;
+  border-radius: 8px;
 
-    background: var(--blue);
-    color: #ffffff;
+  background: var(--blue);
+  color: #ffffff;
 
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
 
-    cursor: pointer;
+  cursor: pointer;
 
-    transition: background 0.2s, transform 0.2s;
+  transition:
+    background 0.2s,
+    transform 0.2s;
 }
 
 .save-button svg {
-    width: 16px;
-    height: 16px;
+  width: 16px;
+  height: 16px;
 
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .save-button:hover {
-    background: var(--blue-hover);
+  background: var(--blue-hover);
 }
 
 .save-button:active {
-    transform: translateY(1px);
+  transform: translateY(1px);
+}
+
+/* =====================================================
+   NOTIFIKASI PROFIL
+   ===================================================== */
+
+.profile-toast {
+  position: fixed;
+  top: 25px;
+  left: 50%;
+  z-index: 9999;
+
+  width: 435px;
+  max-width: calc(100% - 30px);
+
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  padding: 18px 22px;
+
+  background: #ffffff;
+  border-left: 4px solid #08a66a;
+  border-radius: 11px;
+
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.14);
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: translate(-50%, -20px);
+  transition: 0.3s ease;
+}
+
+.profile-toast.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+.toast-icon {
+  width: 43px;
+  height: 43px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  background: #e5f7ef;
+  border-radius: 50%;
+}
+
+.toast-icon svg {
+  width: 23px;
+  height: 23px;
+
+  fill: none;
+  stroke: #08a66a;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.toast-content strong {
+  display: block;
+
+  color: #1e3b60;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.toast-content p {
+  margin-top: 5px;
+
+  color: #687d9d;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 /* =====================================================
@@ -770,139 +944,241 @@ body {
    ===================================================== */
 
 @media (max-width: 900px) {
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+  }
 
-    .sidebar {
-        width: 220px;
-        min-width: 220px;
-    }
+  .main-content {
+    margin-left: 220px;
+  }
 
-    .main-content {
-        margin-left: 220px;
-    }
+  .page-content {
+    padding-right: 22px;
+    padding-left: 22px;
+  }
 
-    .page-content {
-        padding-right: 22px;
-        padding-left: 22px;
-    }
-
-    .profile-card {
-        max-width: 750px;
-    }
-
+  .profile-card {
+    max-width: 750px;
+  }
 }
 
 @media (max-width: 650px) {
+  .sidebar {
+    width: 75px;
+    min-width: 75px;
+  }
 
-    .sidebar {
-        width: 75px;
-        min-width: 75px;
-    }
+  .sidebar-logo {
+    padding: 0;
+    justify-content: center;
+  }
 
-    .sidebar-logo {
-        padding: 0;
-        justify-content: center;
-    }
+  .sidebar-logo img {
+    width: 38px;
+    height: 38px;
+  }
 
-    .sidebar-logo img {
-        width: 38px;
-        height: 38px;
-    }
+  .sidebar-brand,
+  .nav-item span,
+  .logout-link span {
+    display: none;
+  }
 
-    .sidebar-brand,
-    .nav-item span,
-    .logout-link span {
-        display: none;
-    }
+  .sidebar-navigation {
+    padding: 20px 8px;
+  }
 
-    .sidebar-navigation {
-        padding: 20px 8px;
-    }
+  .nav-item {
+    justify-content: center;
+    padding: 0;
+  }
 
-    .nav-item {
-        justify-content: center;
-        padding: 0;
-    }
+  .logout-link {
+    justify-content: center;
+    padding: 0;
+  }
 
-    .logout-link {
-        justify-content: center;
-        padding: 0;
-    }
+  .main-content {
+    margin-left: 75px;
+  }
 
-    .main-content {
-        margin-left: 75px;
-    }
+  .top-header {
+    padding: 0 15px;
+  }
 
-    .top-header {
-        padding: 0 15px;
-    }
+  .system-title {
+    font-size: 9px;
+  }
 
-    .system-title {
-        font-size: 9px;
-    }
+  .header-name {
+    display: none;
+  }
 
-    .header-name {
-        display: none;
-    }
+  .page-content {
+    padding: 0 14px 25px;
+  }
 
-    .page-content {
-        padding: 0 14px 25px;
-    }
+  .page-title {
+    font-size: 21px;
+  }
 
-    .page-title {
-        font-size: 21px;
-    }
+  .profile-card {
+    padding: 24px 18px;
+  }
 
-    .profile-card {
-        padding: 24px 18px;
-    }
+  .profile-identity {
+    gap: 15px;
+  }
 
-    .profile-identity {
-        gap: 15px;
-    }
+  .profile-photo-wrapper,
+  .profile-photo {
+    width: 75px;
+    height: 75px;
+  }
 
-    .profile-photo {
-        width: 75px;
-        height: 75px;
-    }
+  .photo-edit-button {
+    width: 27px;
+    height: 27px;
+  }
 
-    .identity-information h2 {
-        font-size: 17px;
-    }
+  .identity-information h2 {
+    font-size: 17px;
+  }
 
-    .password-heading h3 span {
-        display: block;
-        margin-left: 0;
-    }
-
+  .password-heading h3 span {
+    display: block;
+    margin-left: 0;
+  }
 }
 
 @media (max-width: 380px) {
+  .profile-card {
+    padding: 20px 13px;
+  }
 
-    .profile-card {
-        padding: 20px 13px;
-    }
+  .profile-photo-wrapper,
+  .profile-photo {
+    width: 65px;
+    height: 65px;
+  }
 
-    .profile-photo {
-        width: 65px;
-        height: 65px;
-    }
+  .identity-information h2 {
+    font-size: 15px;
+  }
 
-    .identity-information h2 {
-        font-size: 15px;
-    }
+  .field-note {
+    font-size: 9px;
+  }
 
-    .field-note {
-        font-size: 9px;
-    }
+  .form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
 
-    .form-actions {
-        flex-direction: column-reverse;
-        align-items: stretch;
-    }
+  .cancel-button,
+  .save-button {
+    width: 100%;
+  }
 
-    .cancel-button,
-    .save-button {
-        width: 100%;
-    }
+  .profile-toast {
+    padding: 14px;
+  }
+}
 
+/* FOTO PROFIL DAN TOMBOL EDIT */
+
+.profile-photo-wrapper {
+  position: relative !important;
+  width: 95px;
+  height: 95px;
+  flex-shrink: 0;
+}
+
+.profile-photo {
+  width: 95px;
+  height: 95px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e0e3e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profile-photo img[hidden] {
+  display: none !important;
+}
+
+.photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.photo-placeholder svg {
+  width: 42px;
+  height: 42px;
+  fill: none;
+  stroke: #89919c;
+  stroke-width: 1.5;
+}
+
+.photo-placeholder[hidden] {
+  display: none !important;
+}
+
+.photo-edit-button {
+  position: absolute !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 99 !important;
+
+  width: 32px !important;
+  height: 32px !important;
+
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  background: #2864f0 !important;
+  border: 3px solid #ffffff !important;
+  border-radius: 50% !important;
+
+  color: white !important;
+  cursor: pointer !important;
+}
+
+.photo-edit-button svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: white;
+  stroke-width: 2;
+}
+
+.photo-edit-button:hover {
+  background: #1f56dc !important;
+  transform: scale(1.08);
+}
+
+@media (max-width: 650px) {
+  .profile-photo-wrapper {
+    width: 75px;
+    height: 75px;
+  }
+
+  .profile-photo {
+    width: 75px;
+    height: 75px;
+  }
 }

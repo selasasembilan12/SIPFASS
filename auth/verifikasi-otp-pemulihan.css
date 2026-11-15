@@ -57,7 +57,7 @@ body {
 }
 
 /* ============================================================
-   IDENTITAS SIPFAS
+   05. IDENTITAS SIPFAS
 ============================================================ */
 
 .brand {
@@ -100,7 +100,7 @@ body {
 }
 
 /* ============================================================
-   JUDUL DAN EMAIL
+   06. JUDUL DAN EMAIL
 ============================================================ */
 
 .otp-header {
@@ -152,7 +152,7 @@ body {
 }
 
 /* ============================================================
-   INFORMASI OTP SIMULASI
+   07. INFORMASI OTP SIMULASI
 ============================================================ */
 
 .otp-code-info {
@@ -171,7 +171,7 @@ body {
 }
 
 /* ============================================================
-   INPUT OTP
+   08. INPUT OTP
 ============================================================ */
 
 #otpForm {
@@ -218,7 +218,7 @@ body {
 }
 
 /* ============================================================
-   INFORMASI KESEMPATAN
+   09. INFORMASI KESEMPATAN
 ============================================================ */
 
 .attempt-row {
@@ -245,7 +245,8 @@ body {
 }
 
 /* ============================================================
-   PESAN VALIDASI
+   10. NOTIFIKASI OTP
+   Posisi: Tengah Atas Layar
 ============================================================ */
 
 .otp-message {
@@ -262,18 +263,136 @@ body {
   margin: 0;
 }
 
+/* NOTIFIKASI AKTIF. */
+.otp-message:not(:empty) {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  z-index: 99999;
+
+  width: min(460px, calc(100% - 32px));
+  min-height: 58px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+
+  margin: 0;
+  padding: 14px 18px;
+
+  border: 1px solid transparent;
+  border-left: 4px solid;
+  border-radius: 10px;
+
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
+
+  box-shadow: 0 8px 28px rgba(31, 50, 76, 0.16);
+
+  transform: translate(-50%, 0);
+  animation: notificationTopIn 0.25s ease;
+}
+
+/* NOTIFIKASI ERROR. */
+.otp-message.is-error:not(:empty) {
+  background: #fff1f1;
+  border-color: #f7cccc;
+  border-left-color: #dc4545;
+  color: #b42323 !important;
+}
+
+/* IKON ERROR. */
+.otp-message.is-error:not(:empty)::before {
+  content: "!";
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #dc4545;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* NOTIFIKASI BERHASIL. */
+.otp-message.is-success:not(:empty) {
+  background: #edfaf3;
+  border-color: #c9eed9;
+  border-left-color: #168447;
+  color: #087447 !important;
+}
+
+/* IKON BERHASIL. */
+.otp-message.is-success:not(:empty)::before {
+  content: "✓";
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #168447;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* NOTIFIKASI INFORMASI. */
+.otp-message.is-info:not(:empty) {
+  background: #eff5ff;
+  border-color: #d4e3ff;
+  border-left-color: #2864f0;
+  color: #0755d5 !important;
+}
+
+/* IKON INFORMASI. */
+.otp-message.is-info:not(:empty)::before {
+  content: "i";
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #2864f0;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* ANIMASI NOTIFIKASI DARI ATAS. */
+@keyframes notificationTopIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
 /* ============================================================
-   TIMER OTP
+   11. TIMER OTP
 ============================================================ */
 
 .timer-row {
   width: 100%;
-  min-height: 43px;
+  min-height: 46px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 8px 0 13px;
-  padding: 0 12px;
+  margin: 10px 0 14px;
+  padding: 0 13px;
+  border: 1px solid #e7edf5;
   border-radius: 9px;
   background: #f1f5fb;
   color: var(--muted);
@@ -296,14 +415,22 @@ body {
 }
 
 .timer-value {
+  min-width: 48px;
+  text-align: right;
   color: var(--blue);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  transition: color 0.2s;
+}
+
+/* TIMER KEDALUWARSA. */
+.timer-value.expired {
+  color: var(--error);
 }
 
 /* ============================================================
-   TOMBOL VERIFIKASI
+   12. TOMBOL VERIFIKASI
 ============================================================ */
 
 .verify-button {
@@ -349,7 +476,7 @@ body {
 }
 
 /* ============================================================
-   KIRIM ULANG OTP
+   13. KIRIM ULANG OTP
 ============================================================ */
 
 .resend-row {
@@ -385,7 +512,7 @@ body {
 }
 
 /* ============================================================
-   INFORMASI TAMBAHAN
+   14. INFORMASI TAMBAHAN
 ============================================================ */
 
 .otp-note {
@@ -397,7 +524,7 @@ body {
 }
 
 /* ============================================================
-   KEMBALI KE LOGIN
+   15. KEMBALI KE LOGIN
 ============================================================ */
 
 .back-link {
@@ -425,7 +552,7 @@ body {
 }
 
 /* ============================================================
-   RESPONSIVE TABLET DAN HP
+   16. RESPONSIVE TABLET DAN HP
 ============================================================ */
 
 @media (max-width: 520px) {
@@ -451,9 +578,25 @@ body {
     border-radius: 7px;
     font-size: 17px;
   }
+
+  .otp-message:not(:empty) {
+    top: 14px;
+    width: calc(100% - 24px);
+    padding: 12px 13px;
+    gap: 9px;
+    font-size: 11px;
+  }
+
+  .timer-row {
+    min-height: 43px;
+    font-size: 11px;
+  }
 }
 
-/* HP DENGAN LAYAR SANGAT KECIL. */
+/* ============================================================
+   17. HP DENGAN LAYAR SANGAT KECIL
+============================================================ */
+
 @media (max-width: 360px) {
   .otp-card {
     padding-right: 13px;
@@ -478,7 +621,10 @@ body {
   }
 }
 
-/* LAYAR PENDEK AGAR KARTU TIDAK TERPOTONG. */
+/* ============================================================
+   18. LAYAR PENDEK AGAR KARTU TIDAK TERPOTONG
+============================================================ */
+
 @media (max-height: 650px) {
   .otp-page {
     align-items: flex-start;

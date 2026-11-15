@@ -1,7 +1,7 @@
-
 /* ============================================================
    SIPFAS - RIWAYAT LAPORAN
    File: Riwayat-Laporan.js
+   VERSI REVISI + SINKRONISASI PROFIL & FOTO PETUGAS
 
    PERBAIKAN:
    1. Memperbaiki pembacaan nama lengkap pelapor.
@@ -18,1579 +18,1495 @@
    12. Mengaktifkan pencarian dan filter.
    13. Memperbaiki tombol Detail Riwayat.
    14. Sinkronisasi perubahan Local Storage.
-   15. Mempertahankan navigasi sidebar.
+   15. Sinkronisasi profil & foto petugas yang masuk secara realtime.
+   16. Mempertahankan navigasi sidebar.
 
    STORAGE:
    sipfas_verifikasi_laporan
    sipfas_penanganan_laporan
    sipfas_selected_report
+   sipfasActiveUser
+   sipfasUsers
+   sipfas_profile_photo_<username>
 ============================================================ */
 
 (() => {
-    "use strict";
+  "use strict";
 
-    /* ========================================================
+  /* ========================================================
        1. KONFIGURASI PENYIMPANAN
     ======================================================== */
 
-    const VERIFICATION_KEY = "sipfas_verifikasi_laporan";
-    const HANDLING_KEY = "sipfas_penanganan_laporan";
-    const SELECTED_KEY = "sipfas_selected_report";
+  const VERIFICATION_KEY = "sipfas_verifikasi_laporan";
+  const HANDLING_KEY = "sipfas_penanganan_laporan";
+  const SELECTED_KEY = "sipfas_selected_report";
+  const ACTIVE_USER_KEY = "sipfasActiveUser";
+  const PENDING_USER_KEY = "sipfasPendingLogin";
+  const USERS_KEY = "sipfasUsers";
+  const PHOTO_PREFIX = "sipfas_profile_photo_";
 
-    /* ========================================================
+  /* ========================================================
        2. INISIALISASI HALAMAN
     ======================================================== */
 
-    document.addEventListener("DOMContentLoaded", initialize);
+  document.addEventListener("DOMContentLoaded", initialize);
 
-    function initialize() {
+  function initialize() {
+    /* Mengambil elemen HTML berdasarkan ID. */
+    const $ = (id) => document.getElementById(id);
 
-        /* Mengambil elemen HTML berdasarkan ID. */
-        const $ = id => document.getElementById(id);
+    /* Mengambil elemen pencarian dan filter. */
+    const searchInput = $("searchHistory");
+    const statusFilter = $("statusHistory");
 
-        /* Mengambil elemen pencarian dan filter. */
-        const searchInput = $("searchHistory");
-        const statusFilter = $("statusHistory");
+    /* Mengambil elemen tabel arsip. */
+    const historyRows = $("historyRows");
+    const recordCount = $("recordCount");
+    const historyEmpty = $("historyEmpty");
 
-        /* Mengambil elemen tabel arsip. */
-        const historyRows = $("historyRows");
-        const recordCount = $("recordCount");
-        const historyEmpty = $("historyEmpty");
+    /* Mengambil elemen panel detail. */
+    const historyDetail = $("historyDetail");
+    const detailTitle = $("detailTitle");
+    const detailReporter = $("detailReporter");
+    const detailDate = $("detailDate");
+    const detailValidation = $("detailValidation");
+    const detailPriority = $("detailPriority");
+    const detailAction = $("detailAction");
+    const detailNote = $("detailNote");
 
-        /* Mengambil elemen panel detail. */
-        const historyDetail = $("historyDetail");
-        const detailTitle = $("detailTitle");
-        const detailReporter = $("detailReporter");
-        const detailDate = $("detailDate");
-        const detailValidation = $("detailValidation");
-        const detailPriority = $("detailPriority");
-        const detailAction = $("detailAction");
-        const detailNote = $("detailNote");
+    /* Mengambil elemen navigasi. */
+    const sidebar = $("sidebar");
+    const menuToggle = $("menuToggle");
+    const pageOverlay = $("pageOverlay");
+    const logoutLink = $("logoutLink");
 
-        /* Mengambil elemen navigasi. */
-        const sidebar = $("sidebar");
-        const menuToggle = $("menuToggle");
-        const pageOverlay = $("pageOverlay");
-        const logoutLink = $("logoutLink");
+    /* Memastikan elemen utama tersedia. */
+    if (
+      !searchInput ||
+      !statusFilter ||
+      !historyRows ||
+      !recordCount ||
+      !historyEmpty
+    ) {
+      console.error("[SIPFAS] Elemen utama Riwayat Laporan tidak ditemukan.");
+      return;
+    }
 
-        /* Memastikan elemen utama tersedia. */
-        if (
-            !searchInput ||
-            !statusFilter ||
-            !historyRows ||
-            !recordCount ||
-            !historyEmpty
-        ) {
-            console.error(
-                "[SIPFAS] Elemen utama Riwayat Laporan tidak ditemukan."
-            );
-            return;
-        }
-
-        /* ====================================================
+    /* ====================================================
            3. STATE PROGRAM
         ==================================================== */
 
-        /* Menyimpan kode laporan yang sedang dipilih. */
-        let selectedRecordCode = null;
+    let selectedRecordCode = null;
+    let allHistoryRecords = [];
+    const initialRecords = getInitialRecords();
 
-        /* Menyimpan seluruh data arsip. */
-        let allHistoryRecords = [];
-
-        /* Mengambil data awal HTML hanya satu kali. */
-        const initialRecords = getInitialRecords();
-
-        /* ====================================================
+    /* ====================================================
            4. NORMALISASI TEKS
         ==================================================== */
 
-        function normalizeText(value) {
+    function normalizeText(value) {
+      return String(value ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+    }
 
-            /* Mengubah nilai menjadi teks dan membersihkan spasi. */
-            return String(value ?? "")
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .replace(/\s+/g, " ")
-                .trim()
-                .toLowerCase();
+    function normalizeCode(value) {
+      return String(value ?? "")
+        .replace(/\s+/g, "")
+        .trim()
+        .toUpperCase();
+    }
+
+    /* ====================================================
+           4B. SINKRONISASI PROFIL & FOTO PETUGAS LOGIN
+        ==================================================== */
+
+    function parseStoredJson(storage, key) {
+      try {
+        const raw = storage.getItem(key);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (error) {
+        console.warn(`[SIPFAS] Gagal membaca data ${key}:`, error);
+        return null;
+      }
+    }
+
+    function formatRoleLabel(role) {
+      const value = normalizeText(role);
+
+      if (value === "administrator" || value === "admin") {
+        return "Administrator";
+      }
+
+      if (value === "petugas") {
+        return "Petugas";
+      }
+
+      if (value === "pelapor" || value === "user") {
+        return "Pelapor";
+      }
+
+      return "Petugas";
+    }
+
+    function getInitials(name) {
+      const parts = String(name || "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+      if (parts.length === 0) return "PT";
+
+      if (parts.length === 1) {
+        return parts[0].slice(0, 2).toUpperCase();
+      }
+
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    function getActiveOfficerProfile() {
+      const activeUser =
+        parseStoredJson(localStorage, ACTIVE_USER_KEY) ||
+        parseStoredJson(sessionStorage, ACTIVE_USER_KEY) ||
+        parseStoredJson(sessionStorage, PENDING_USER_KEY) ||
+        parseStoredJson(localStorage, PENDING_USER_KEY);
+
+      if (!activeUser || typeof activeUser !== "object") {
+        return null;
+      }
+
+      const users = parseStoredJson(localStorage, USERS_KEY);
+      let matchedAccount = null;
+
+      if (Array.isArray(users)) {
+        const activeId = String(activeUser.id || "").trim();
+        const activeUsername = normalizeText(activeUser.username);
+        const activeEmail = normalizeText(activeUser.email);
+
+        matchedAccount =
+          users.find((account) => {
+            if (!account) return false;
+
+            const accId = String(account.id || "").trim();
+            const accUsername = normalizeText(account.username);
+            const accEmail = normalizeText(account.email);
+
+            return (
+              (activeId && accId === activeId) ||
+              (activeUsername && accUsername === activeUsername) ||
+              (activeEmail && accEmail === activeEmail)
+            );
+          }) || null;
+      }
+
+      const merged = {
+        ...(matchedAccount || {}),
+        ...activeUser,
+      };
+
+      const displayName = String(
+        merged.name ||
+          merged.fullName ||
+          merged.nama ||
+          merged.username ||
+          "Petugas SIPFAS",
+      ).trim();
+
+      const photoKey = merged.username
+        ? PHOTO_PREFIX + encodeURIComponent(normalizeText(merged.username))
+        : "";
+
+      const storedPhoto =
+        (photoKey ? localStorage.getItem(photoKey) : null) ||
+        merged.avatar ||
+        merged.photo ||
+        merged.foto ||
+        "";
+
+      return {
+        id: merged.id || "",
+        name: displayName,
+        username: merged.username || "",
+        email: merged.email || "",
+        role: formatRoleLabel(merged.role),
+        avatar: storedPhoto,
+        initials: getInitials(displayName),
+      };
+    }
+
+    function renderAvatarElement(el, profile) {
+      if (!el) return;
+
+      if (el.tagName === "IMG") {
+        if (profile.avatar) {
+          el.src = profile.avatar;
+        }
+        el.alt = `Foto ${profile.name}`;
+        return;
+      }
+
+      const svgIcon = el.querySelector("svg");
+      let imgInside = el.querySelector(".profile-header-photo, img");
+      let initialsEl = el.querySelector(".profile-header-initials");
+
+      if (profile.avatar) {
+        if (svgIcon) {
+          svgIcon.style.display = "none";
         }
 
-        function normalizeCode(value) {
-
-            /* Menyeragamkan kode laporan. */
-            return String(value ?? "")
-                .replace(/\s+/g, "")
-                .trim()
-                .toUpperCase();
+        if (initialsEl) {
+          initialsEl.remove();
         }
 
-        /* ====================================================
+        if (!imgInside) {
+          imgInside = document.createElement("img");
+          imgInside.className = "profile-header-photo";
+          el.appendChild(imgInside);
+        }
+
+        imgInside.src = profile.avatar;
+        imgInside.alt = `Foto ${profile.name}`;
+
+        Object.assign(imgInside.style, {
+          width: "100%",
+          height: "100%",
+          display: "block",
+          objectFit: "cover",
+          borderRadius: "50%",
+        });
+
+        el.style.overflow = "hidden";
+      } else {
+        if (imgInside) {
+          imgInside.remove();
+        }
+
+        if (svgIcon) {
+          svgIcon.style.display = "none";
+        }
+
+        if (!initialsEl) {
+          initialsEl = document.createElement("span");
+          initialsEl.className = "profile-header-initials";
+          el.appendChild(initialsEl);
+        }
+
+        initialsEl.textContent = profile.initials;
+
+        Object.assign(initialsEl.style, {
+          display: "flex",
+          width: "100%",
+          height: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#ffffff",
+          fontWeight: "700",
+          fontSize: "14px",
+        });
+      }
+
+      el.setAttribute(
+        "aria-label",
+        profile.avatar
+          ? `Foto profil ${profile.name}`
+          : `Profil ${profile.name}`,
+      );
+    }
+
+    function synchronizeOfficerProfile() {
+      const profile = getActiveOfficerProfile();
+
+      if (!profile) {
+        console.warn("[SIPFAS] Sesi akun petugas aktif tidak ditemukan.");
+        return;
+      }
+
+      const nameSelectors = [
+        "#officerName",
+        "#petugasName",
+        "#profileName",
+        "#userName",
+        ".officer-name",
+        ".petugas-name",
+        ".profile-name",
+        ".user-name",
+        ".account-name",
+        "[data-profile-name]",
+        "[data-user-name]",
+      ];
+
+      document.querySelectorAll(nameSelectors.join(", ")).forEach((el) => {
+        el.textContent = profile.name;
+      });
+
+      const roleSelectors = [
+        "#officerRole",
+        "#petugasRole",
+        "#profileRole",
+        "#userRole",
+        ".officer-role",
+        ".petugas-role",
+        ".profile-role",
+        ".user-role",
+        ".account-role",
+        "[data-profile-role]",
+        "[data-user-role]",
+      ];
+
+      document.querySelectorAll(roleSelectors.join(", ")).forEach((el) => {
+        el.textContent = profile.role;
+      });
+
+      const emailSelectors = [
+        "#officerEmail",
+        "#profileEmail",
+        "#userEmail",
+        ".profile-email",
+        ".user-email",
+        "[data-profile-email]",
+      ];
+
+      if (profile.email) {
+        document.querySelectorAll(emailSelectors.join(", ")).forEach((el) => {
+          el.textContent = profile.email;
+        });
+      }
+
+      const avatarSelectors = [
+        ".profile-area .profile-avatar",
+        "#profileAvatar",
+        "#userAvatar",
+        "#officerAvatar",
+        ".profile-avatar",
+        ".user-avatar",
+        ".avatar",
+        "[data-profile-avatar]",
+      ];
+
+      document.querySelectorAll(avatarSelectors.join(", ")).forEach((el) => {
+        renderAvatarElement(el, profile);
+      });
+
+      const profileContainers = document.querySelectorAll(
+        ".user-profile, .profile-box, .header-profile, .sidebar-profile",
+      );
+
+      profileContainers.forEach((container) => {
+        const hasExplicit = container.querySelector(nameSelectors.join(", "));
+
+        if (hasExplicit) return;
+
+        const strongEl = container.querySelector("strong, h4, h5, .name");
+        const subEl = container.querySelector("small, span:not(.avatar), p");
+
+        if (strongEl) {
+          strongEl.textContent = profile.name;
+        }
+
+        if (subEl && subEl !== strongEl && !subEl.querySelector("img")) {
+          subEl.textContent = profile.role;
+        }
+      });
+
+      console.log(
+        `[SIPFAS] Profil & foto petugas tersinkronisasi: ${profile.name} (${profile.role})`,
+      );
+    }
+
+    /* ====================================================
            5. MENGAMBIL FIELD PERTAMA YANG TERSEDIA
         ==================================================== */
 
-        function firstValue(object, keys, fallback = "") {
+    function firstValue(object, keys, fallback = "") {
+      if (!object || typeof object !== "object") {
+        return fallback;
+      }
 
-            /* Memastikan sumber data berbentuk objek. */
-            if (!object || typeof object !== "object") {
-                return fallback;
-            }
+      for (const key of keys) {
+        const value = object[key];
 
-            /* Memeriksa seluruh kemungkinan nama properti. */
-            for (const key of keys) {
-
-                const value = object[key];
-
-                /* Mengembalikan nilai pertama yang tidak kosong. */
-                if (
-                    value !== undefined &&
-                    value !== null &&
-                    String(value).trim() !== ""
-                ) {
-                    return value;
-                }
-            }
-
-            /* Mengembalikan nilai cadangan jika tidak ditemukan. */
-            return fallback;
+        if (
+          value !== undefined &&
+          value !== null &&
+          String(value).trim() !== ""
+        ) {
+          return value;
         }
+      }
 
-        /* ====================================================
+      return fallback;
+    }
+
+    /* ====================================================
            6. MEMERIKSA NILAI KOSONG
         ==================================================== */
 
-        function isEmpty(value) {
+    function isEmpty(value) {
+      return (
+        value === undefined ||
+        value === null ||
+        String(value).trim() === "" ||
+        String(value).trim() === "-"
+      );
+    }
 
-            /* Memeriksa nilai yang tidak tersedia. */
-            return (
-                value === undefined ||
-                value === null ||
-                String(value).trim() === "" ||
-                String(value).trim() === "-"
-            );
-        }
-
-        /* ====================================================
+    /* ====================================================
            7. MEMBACA LOCAL STORAGE
         ==================================================== */
 
-        function readStorage(key) {
+    function readStorage(key) {
+      try {
+        const raw = localStorage.getItem(key);
 
-            try {
-
-                /* Mengambil data mentah dari Local Storage. */
-                const raw = localStorage.getItem(key);
-
-                /* Mengembalikan objek kosong jika belum tersedia. */
-                if (!raw) {
-                    return {};
-                }
-
-                /* Mengubah JSON menjadi objek JavaScript. */
-                const data = JSON.parse(raw);
-
-                /* Memastikan data memiliki struktur yang benar. */
-                if (!data || typeof data !== "object") {
-                    return {};
-                }
-
-                return data;
-
-            } catch (error) {
-
-                /* Mencatat kesalahan tanpa menghapus data. */
-                console.error(
-                    "[SIPFAS] Gagal membaca Local Storage:",
-                    key,
-                    error
-                );
-
-                return {};
-            }
+        if (!raw) {
+          return {};
         }
 
-        /* ====================================================
+        const data = JSON.parse(raw);
+
+        if (!data || typeof data !== "object") {
+          return {};
+        }
+
+        return data;
+      } catch (error) {
+        console.error("[SIPFAS] Gagal membaca Local Storage:", key, error);
+
+        return {};
+      }
+    }
+
+    /* ====================================================
            8. MEMBACA DATA LAPORAN TERPILIH
         ==================================================== */
 
-        function getSelectedReport() {
+    function getSelectedReport() {
+      return readStorage(SELECTED_KEY);
+    }
 
-            /* Membaca laporan yang terakhir dipilih. */
-            return readStorage(SELECTED_KEY);
-        }
-
-        /* ====================================================
+    /* ====================================================
            9. MENGUBAH DATA MENJADI FORMAT SERAGAM
         ==================================================== */
 
-        function convertToRecords(data) {
+    function convertToRecords(data) {
+      const records = [];
 
-            /* Menyiapkan tempat penyimpanan hasil konversi. */
-            const records = [];
+      if (Array.isArray(data)) {
+        data.forEach((item) => {
+          if (!item || typeof item !== "object") {
+            return;
+          }
 
-            /* Memproses data jika berbentuk array. */
-            if (Array.isArray(data)) {
+          const code = normalizeCode(
+            firstValue(
+              item,
+              ["reportCode", "kodeLaporan", "kode_laporan", "code", "id"],
+              "",
+            ),
+          );
 
-                data.forEach(item => {
-
-                    /* Mengabaikan data yang bukan objek. */
-                    if (!item || typeof item !== "object") {
-                        return;
-                    }
-
-                    /* Mengambil kode unik laporan. */
-                    const code = normalizeCode(
-                        firstValue(item, [
-                            "reportCode",
-                            "kodeLaporan",
-                            "kode_laporan",
-                            "code",
-                            "id"
-                        ], "")
-                    );
-
-                    /* Menambahkan laporan jika kode tersedia. */
-                    if (code) {
-                        records.push({
-                            code,
-                            data: item
-                        });
-                    }
-                });
-
-                return records;
-            }
-
-            /* Memproses data jika berbentuk objek. */
-            if (!data || typeof data !== "object") {
-                return records;
-            }
-
-            /* Mengambil setiap pasangan kode dan data. */
-            Object.entries(data).forEach(([key, value]) => {
-
-                /* Mengabaikan nilai yang tidak berbentuk objek. */
-                if (!value || typeof value !== "object") {
-                    return;
-                }
-
-                /* Mengambil kode dari properti atau key objek. */
-                const code = normalizeCode(
-                    firstValue(value, [
-                        "reportCode",
-                        "kodeLaporan",
-                        "kode_laporan",
-                        "code",
-                        "id"
-                    ], key)
-                );
-
-                /* Memasukkan data laporan ke daftar. */
-                if (code) {
-                    records.push({
-                        code,
-                        data: value
-                    });
-                }
+          if (code) {
+            records.push({
+              code,
+              data: item,
             });
+          }
+        });
 
-            return records;
+        return records;
+      }
+
+      if (!data || typeof data !== "object") {
+        return records;
+      }
+
+      Object.entries(data).forEach(([key, value]) => {
+        if (!value || typeof value !== "object") {
+          return;
         }
 
-        /* ====================================================
+        const code = normalizeCode(
+          firstValue(
+            value,
+            ["reportCode", "kodeLaporan", "kode_laporan", "code", "id"],
+            key,
+          ),
+        );
+
+        if (code) {
+          records.push({
+            code,
+            data: value,
+          });
+        }
+      });
+
+      return records;
+    }
+
+    /* ====================================================
            10. MEMBACA DATA AWAL HTML
         ==================================================== */
 
-        function getInitialRecords() {
+    function getInitialRecords() {
+      const records = [];
 
-            /* Menyiapkan daftar arsip awal. */
-            const records = [];
+      historyRows.querySelectorAll("tr").forEach((row) => {
+        const cells = Array.from(row.querySelectorAll("td"));
 
-            /* Membaca baris tabel sebelum proses render. */
-            historyRows.querySelectorAll("tr").forEach(row => {
-
-                /* Mengambil seluruh kolom tabel. */
-                const cells = Array.from(
-                    row.querySelectorAll("td")
-                );
-
-                /* Mengabaikan baris yang tidak lengkap. */
-                if (cells.length < 6) {
-                    return;
-                }
-
-                /* Mengambil kode laporan. */
-                const code = normalizeCode(
-                    row.dataset.code ||
-                    cells[0].textContent.match(
-                        /LPR[-\s]?\d{4}[-\s]?\d+/i
-                    )?.[0]
-                );
-
-                /* Mengabaikan laporan tanpa kode. */
-                if (!code) {
-                    return;
-                }
-
-                /* Mengambil prioritas awal. */
-                const priority = cells[3]
-                    .querySelector(".priority-pill")
-                    ?.textContent.trim() || "-";
-
-                /* Mengambil status akhir awal. */
-                const statusText = normalizeText(
-                    cells[4].textContent
-                );
-
-                /* Menentukan status arsip awal. */
-                const finalStatus =
-                    statusText.includes("tidak valid")
-                        ? "tidak-valid"
-                        : "selesai";
-
-                /* Menyimpan data awal laporan. */
-                records.push({
-
-                    code,
-
-                    facility: cells[1].innerText.trim(),
-
-                    location: cells[2].innerText.trim(),
-
-                    priority,
-
-                    finalStatus,
-
-                    completionDate: cells[5].innerText.trim(),
-
-                    reporter: "-",
-
-                    reporterNim: "",
-
-                    reportDate: "-",
-
-                    validation: "-",
-
-                    action: "-",
-
-                    note: ""
-
-                });
-            });
-
-            return records;
+        if (cells.length < 6) {
+          return;
         }
 
-        /* ====================================================
+        const code = normalizeCode(
+          row.dataset.code ||
+            cells[0].textContent.match(/LPR[-\s]?\d{4}[-\s]?\d+/i)?.[0],
+        );
+
+        if (!code) {
+          return;
+        }
+
+        const priority =
+          cells[3].querySelector(".priority-pill")?.textContent.trim() || "-";
+
+        const statusText = normalizeText(cells[4].textContent);
+
+        const finalStatus = statusText.includes("tidak valid")
+          ? "tidak-valid"
+          : "selesai";
+
+        records.push({
+          code,
+
+          facility: cells[1].innerText.trim(),
+
+          location: cells[2].innerText.trim(),
+
+          priority,
+
+          finalStatus,
+
+          completionDate: cells[5].innerText.trim(),
+
+          reporter: "-",
+
+          reporterNim: "",
+
+          reportDate: "-",
+
+          validation: "-",
+
+          action: "-",
+
+          note: "",
+        });
+      });
+
+      return records;
+    }
+
+    /* ====================================================
            11. MEMISAHKAN NAMA PELAPOR DAN NIM
         ==================================================== */
 
-        function parseReporter(rawValue) {
+    function parseReporter(rawValue) {
+      const raw = String(rawValue ?? "")
+        .replace(/\r/g, "")
+        .trim();
 
-            /* Mengubah sumber identitas menjadi teks. */
-            const raw = String(rawValue ?? "")
-                .replace(/\r/g, "")
-                .trim();
+      if (!raw) {
+        return {
+          name: "",
+          nim: "",
+        };
+      }
 
-            /* Mengembalikan nilai kosong jika tidak tersedia. */
-            if (!raw) {
-                return {
-                    name: "",
-                    nim: ""
-                };
-            }
+      const lines = raw
+        .split(/\n+/)
+        .map((line) => line.trim())
+        .filter(Boolean);
 
-            /* Memisahkan identitas berdasarkan baris. */
-            const lines = raw
-                .split(/\n+/)
-                .map(line => line.trim())
-                .filter(Boolean);
+      let nameParts = [];
+      let nim = "";
 
-            /* Menyiapkan variabel nama dan NIM. */
-            let nameParts = [];
-            let nim = "";
-
-            /* Memeriksa setiap baris identitas. */
-            lines.forEach(line => {
-
-                /* Mengabaikan keterangan program studi. */
-                if (/program\s+studi/i.test(line)) {
-                    return;
-                }
-
-                /* Mencari nomor NIM dengan atau tanpa label. */
-                const nimMatch = line.match(
-                    /(?:NIM\s*[:.-]?\s*)?(\d{6,20})/i
-                );
-
-                /* Mengambil NIM jika ditemukan. */
-                if (nimMatch) {
-
-                    nim = nimMatch[1];
-
-                    /* Menghapus nomor NIM dari teks nama. */
-                    const remaining = line
-                        .replace(nimMatch[0], "")
-                        .replace(/NIM\s*[:.-]?/i, "")
-                        .trim();
-
-                    /* Mempertahankan teks nama yang tersisa. */
-                    if (remaining) {
-                        nameParts.push(remaining);
-                    }
-
-                    return;
-                }
-
-                /* Menghapus awalan label identitas. */
-                const cleanLine = line
-                    .replace(/^(nama\s*[:.-]?\s*)/i, "")
-                    .replace(/^(pelapor\s*[:.-]?\s*)/i, "")
-                    .trim();
-
-                /* Menambahkan baris nama. */
-                if (cleanLine) {
-                    nameParts.push(cleanLine);
-                }
-            });
-
-            /* Menggabungkan seluruh bagian nama. */
-            const name = nameParts
-                .join(" ")
-                .replace(/\s+/g, " ")
-                .trim();
-
-            /* Mengembalikan nama lengkap dan NIM. */
-            return {
-                name,
-                nim
-            };
+      lines.forEach((line) => {
+        if (/program\s+studi/i.test(line)) {
+          return;
         }
 
-        /* ====================================================
+        const nimMatch = line.match(/(?:NIM\s*[:.-]?\s*)?(\d{6,20})/i);
+
+        if (nimMatch) {
+          nim = nimMatch[1];
+
+          const remaining = line
+            .replace(nimMatch[0], "")
+            .replace(/NIM\s*[:.-]?/i, "")
+            .trim();
+
+          if (remaining) {
+            nameParts.push(remaining);
+          }
+
+          return;
+        }
+
+        const cleanLine = line
+          .replace(/^(nama\s*[:.-]?\s*)/i, "")
+          .replace(/^(pelapor\s*[:.-]?\s*)/i, "")
+          .trim();
+
+        if (cleanLine) {
+          nameParts.push(cleanLine);
+        }
+      });
+
+      const name = nameParts.join(" ").replace(/\s+/g, " ").trim();
+
+      return {
+        name,
+        nim,
+      };
+    }
+
+    /* ====================================================
            12. MENGAMBIL IDENTITAS PELAPOR SECARA LENGKAP
         ==================================================== */
 
-        function getReporterInformation(
-            verification,
-            handling,
-            selected,
-            initial
-        ) {
+    function getReporterInformation(verification, handling, selected, initial) {
+      const rawReporter = firstValue(
+        verification,
+        ["reporter", "pelapor", "namaPelapor"],
+        firstValue(
+          handling,
+          ["reporter", "pelapor", "namaPelapor"],
+          selected.reporter || "",
+        ),
+      );
 
-            /* Mengambil sumber identitas mentah. */
-            const rawReporter = firstValue(
-                verification,
-                [
-                    "reporter",
-                    "pelapor",
-                    "namaPelapor"
-                ],
-                firstValue(
-                    handling,
-                    [
-                        "reporter",
-                        "pelapor",
-                        "namaPelapor"
-                    ],
-                    selected.reporter || ""
-                )
-            );
+      const parsed = parseReporter(rawReporter);
 
-            /* Memisahkan nama dan NIM dari teks mentah. */
-            const parsed = parseReporter(rawReporter);
+      const explicitName = firstValue(
+        verification,
+        ["reporterName", "namaPelapor", "nama", "reporter_name"],
+        firstValue(
+          handling,
+          ["reporterName", "namaPelapor"],
+          selected.reporterName || initial.reporter || "",
+        ),
+      );
 
-            /* Mengambil nama yang tersimpan secara eksplisit. */
-            const explicitName = firstValue(
-                verification,
-                [
-                    "reporterName",
-                    "namaPelapor",
-                    "nama",
-                    "reporter_name"
-                ],
-                firstValue(
-                    handling,
-                    [
-                        "reporterName",
-                        "namaPelapor"
-                    ],
-                    selected.reporterName || initial.reporter || ""
-                )
-            );
+      const explicitNim = firstValue(
+        verification,
+        ["reporterNim", "nim", "nomorInduk"],
+        firstValue(
+          handling,
+          ["reporterNim", "nim"],
+          selected.reporterNim || initial.reporterNim || "",
+        ),
+      );
 
-            /* Mengambil NIM yang tersimpan. */
-            const explicitNim = firstValue(
-                verification,
-                [
-                    "reporterNim",
-                    "nim",
-                    "nomorInduk"
-                ],
-                firstValue(
-                    handling,
-                    [
-                        "reporterNim",
-                        "nim"
-                    ],
-                    selected.reporterNim || initial.reporterNim || ""
-                )
-            );
+      const nimContainsName =
+        !isEmpty(explicitNim) &&
+        !/^\d{6,20}$/.test(String(explicitNim).replace(/\D/g, ""));
 
-            /* Memeriksa apakah field NIM ternyata berisi nama. */
-            const nimContainsName =
-                !isEmpty(explicitNim) &&
-                !/^\d{6,20}$/.test(
-                    String(explicitNim).replace(/\D/g, "")
-                );
+      let name = String(explicitName || "").trim();
 
-            /* Menyusun nama dari field eksplisit. */
-            let name = String(explicitName || "").trim();
+      if (nimContainsName) {
+        name = [name, String(explicitNim).trim()].filter(Boolean).join(" ");
+      }
 
-            /* Memulihkan bagian nama yang dahulu salah masuk ke field NIM. */
-            if (nimContainsName) {
+      if (
+        parsed.name &&
+        parsed.name.split(/\s+/).length > name.split(/\s+/).length
+      ) {
+        name = parsed.name;
+      }
 
-                name = [
-                    name,
-                    String(explicitNim).trim()
-                ].filter(Boolean).join(" ");
+      let nim =
+        parsed.nim ||
+        (/^\d{6,20}$/.test(String(explicitNim).replace(/\D/g, ""))
+          ? String(explicitNim).replace(/\D/g, "")
+          : "");
 
-            }
+      name = name.replace(/\s+/g, " ").trim();
 
-            /* Nama lengkap dari teks mentah lebih diutamakan. */
-            if (
-                parsed.name &&
-                parsed.name.split(/\s+/).length >
-                name.split(/\s+/).length
-            ) {
-                name = parsed.name;
-            }
+      return {
+        name: name || "-",
+        nim,
+      };
+    }
 
-            /* Mengambil NIM yang benar-benar berupa angka. */
-            let nim = parsed.nim ||
-                (
-                    /^\d{6,20}$/.test(
-                        String(explicitNim).replace(/\D/g, "")
-                    )
-                        ? String(explicitNim).replace(/\D/g, "")
-                        : ""
-                );
-
-            /* Menghapus pengulangan spasi pada nama. */
-            name = name.replace(/\s+/g, " ").trim();
-
-            /* Mengembalikan identitas yang telah diperbaiki. */
-            return {
-                name: name || "-",
-                nim
-            };
-        }
-
-        /* ====================================================
+    /* ====================================================
            13. MEMBACA KEPUTUSAN VERIFIKASI
         ==================================================== */
 
-        function getDecision(data) {
+    function getDecision(data) {
+      const decision = normalizeText(
+        firstValue(
+          data,
+          [
+            "decision",
+            "keputusan",
+            "decisionLabel",
+            "hasilVerifikasi",
+            "statusVerifikasi",
+            "verificationStatus",
+            "validationStatus",
+          ],
+          "",
+        ),
+      );
 
-            /* Mengambil keputusan dari data verifikasi. */
-            const decision = normalizeText(
-                firstValue(data, [
-                    "decision",
-                    "keputusan",
-                    "decisionLabel",
-                    "hasilVerifikasi",
-                    "statusVerifikasi",
-                    "verificationStatus",
-                    "validationStatus"
-                ], "")
-            );
+      if (
+        decision.includes("invalid") ||
+        decision.includes("tidak valid") ||
+        decision.includes("ditolak")
+      ) {
+        return "Tidak Valid";
+      }
 
-            /* Mengidentifikasi keputusan tidak valid. */
-            if (
-                decision.includes("invalid") ||
-                decision.includes("tidak valid") ||
-                decision.includes("ditolak")
-            ) {
-                return "Tidak Valid";
-            }
+      if (
+        decision === "valid" ||
+        decision === "laporan valid" ||
+        decision === "diterima"
+      ) {
+        return "Valid";
+      }
 
-            /* Mengidentifikasi keputusan valid. */
-            if (
-                decision === "valid" ||
-                decision === "laporan valid" ||
-                decision === "diterima"
-            ) {
-                return "Valid";
-            }
+      return "-";
+    }
 
-            return "-";
-        }
-
-        /* ====================================================
+    /* ====================================================
            14. MEMBACA PRIORITAS C4.5
         ==================================================== */
 
-        function getPriority(verification, handling, initial) {
+    function getPriority(verification, handling, initial) {
+      const verificationPriority = firstValue(
+        verification,
+        [
+          "priorityLabel",
+          "priority",
+          "prioritas",
+          "hasilKlasifikasi",
+          "hasilC45",
+          "klasifikasi",
+          "rekomendasi",
+        ],
+        "",
+      );
 
-            /* Mengambil prioritas terbaru dari verifikasi. */
-            const verificationPriority = firstValue(
-                verification,
-                [
-                    "priorityLabel",
-                    "priority",
-                    "prioritas",
-                    "hasilKlasifikasi",
-                    "hasilC45",
-                    "klasifikasi",
-                    "rekomendasi"
-                ],
-                ""
-            );
+      const handlingPriority = firstValue(
+        handling,
+        ["priorityLabel", "priority", "prioritas"],
+        "",
+      );
 
-            /* Mengambil prioritas dari penanganan jika tersedia. */
-            const handlingPriority = firstValue(
-                handling,
-                [
-                    "priorityLabel",
-                    "priority",
-                    "prioritas"
-                ],
-                ""
-            );
+      if (!isEmpty(verificationPriority)) {
+        return verificationPriority;
+      }
 
-            /* Menggunakan prioritas verifikasi terlebih dahulu. */
-            if (!isEmpty(verificationPriority)) {
-                return verificationPriority;
-            }
+      if (!isEmpty(handlingPriority)) {
+        return handlingPriority;
+      }
 
-            /* Menggunakan prioritas penanganan sebagai cadangan. */
-            if (!isEmpty(handlingPriority)) {
-                return handlingPriority;
-            }
+      return initial.priority || "-";
+    }
 
-            /* Mempertahankan prioritas awal HTML. */
-            return initial.priority || "-";
-        }
-
-        /* ====================================================
+    /* ====================================================
            15. MEMBACA STATUS PENANGANAN
         ==================================================== */
 
-        function getHandlingStatus(data) {
+    function getHandlingStatus(data) {
+      return normalizeText(
+        firstValue(
+          data,
+          ["status", "handlingStatus", "statusPenanganan", "statusLabel"],
+          "",
+        ),
+      );
+    }
 
-            /* Mengambil status penanganan. */
-            return normalizeText(
-                firstValue(data, [
-                    "status",
-                    "handlingStatus",
-                    "statusPenanganan",
-                    "statusLabel"
-                ], "")
-            );
-        }
-
-        /* ====================================================
+    /* ====================================================
            16. MENENTUKAN STATUS AKHIR
         ==================================================== */
 
-        function getFinalStatus(
-            verification,
-            handling,
-            initial
-        ) {
+    function getFinalStatus(verification, handling, initial) {
+      const decision = getDecision(verification);
+      const handlingStatus = getHandlingStatus(handling);
 
-            /* Mengambil keputusan verifikasi. */
-            const decision = getDecision(verification);
+      if (decision === "Tidak Valid") {
+        return "tidak-valid";
+      }
 
-            /* Mengambil status penanganan. */
-            const handlingStatus = getHandlingStatus(handling);
+      if (
+        handlingStatus === "selesai" ||
+        handlingStatus === "ditutup" ||
+        handlingStatus === "completed" ||
+        handlingStatus === "closed"
+      ) {
+        return "selesai";
+      }
 
-            /* Laporan tidak valid tetap berstatus tidak valid. */
-            if (decision === "Tidak Valid") {
-                return "tidak-valid";
-            }
+      if (initial.code) {
+        return initial.finalStatus;
+      }
 
-            /* Penanganan selesai menjadi arsip selesai. */
-            if (
-                handlingStatus === "selesai" ||
-                handlingStatus === "ditutup" ||
-                handlingStatus === "completed" ||
-                handlingStatus === "closed"
-            ) {
-                return "selesai";
-            }
+      return null;
+    }
 
-            /* Mempertahankan status arsip HTML lama. */
-            if (initial.code) {
-                return initial.finalStatus;
-            }
-
-            /* Laporan baru yang belum selesai tidak masuk arsip. */
-            return null;
-        }
-
-        /* ====================================================
+    /* ====================================================
            17. FORMAT TANGGAL
         ==================================================== */
 
-        function formatDate(value) {
+    function formatDate(value) {
+      if (isEmpty(value)) {
+        return "-";
+      }
 
-            /* Mempertahankan teks kosong sebagai tanda strip. */
-            if (isEmpty(value)) {
-                return "-";
-            }
+      const text = String(value).trim();
+      const date = new Date(text);
 
-            /* Mengubah nilai menjadi teks. */
-            const text = String(value).trim();
+      if (Number.isNaN(date.getTime())) {
+        return text;
+      }
 
-            /* Membuat objek tanggal. */
-            const date = new Date(text);
+      return (
+        new Intl.DateTimeFormat("id-ID", {
+          timeZone: "Asia/Jayapura",
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }).format(date) + " WIT"
+      );
+    }
 
-            /* Mempertahankan format asli jika tanggal tidak valid. */
-            if (Number.isNaN(date.getTime())) {
-                return text;
-            }
-
-            /* Mengubah tanggal menjadi format Indonesia WIT. */
-            return new Intl.DateTimeFormat("id-ID", {
-                timeZone: "Asia/Jayapura",
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false
-            }).format(date) + " WIT";
-        }
-
-        /* ====================================================
+    /* ====================================================
            18. MEMBANGUN SELURUH DATA RIWAYAT
         ==================================================== */
 
-        function buildHistoryRecords() {
+    function buildHistoryRecords() {
+      const verificationData = convertToRecords(readStorage(VERIFICATION_KEY));
 
-            /* Membaca seluruh hasil verifikasi. */
-            const verificationData = convertToRecords(
-                readStorage(VERIFICATION_KEY)
-            );
+      const handlingData = convertToRecords(readStorage(HANDLING_KEY));
 
-            /* Membaca seluruh hasil penanganan. */
-            const handlingData = convertToRecords(
-                readStorage(HANDLING_KEY)
-            );
+      const selected = getSelectedReport();
 
-            /* Membaca laporan yang terakhir dipilih. */
-            const selected = getSelectedReport();
+      const verificationMap = new Map(
+        verificationData.map((item) => [item.code, item.data]),
+      );
 
-            /* Membuat peta data verifikasi berdasarkan kode. */
-            const verificationMap = new Map(
-                verificationData.map(item => [
-                    item.code,
-                    item.data
-                ])
-            );
+      const handlingMap = new Map(
+        handlingData.map((item) => [item.code, item.data]),
+      );
 
-            /* Membuat peta data penanganan berdasarkan kode. */
-            const handlingMap = new Map(
-                handlingData.map(item => [
-                    item.code,
-                    item.data
-                ])
-            );
+      const allCodes = new Set([
+        ...initialRecords.map((item) => item.code),
+        ...verificationMap.keys(),
+        ...handlingMap.keys(),
+      ]);
 
-            /* Menggabungkan semua kode laporan. */
-            const allCodes = new Set([
-                ...initialRecords.map(item => item.code),
-                ...verificationMap.keys(),
-                ...handlingMap.keys()
-            ]);
+      const records = [];
 
-            /* Menyiapkan daftar hasil akhir. */
-            const records = [];
+      allCodes.forEach((code) => {
+        const initial = initialRecords.find((item) => item.code === code) || {};
 
-            /* Mengolah setiap laporan secara independen. */
-            allCodes.forEach(code => {
+        const verification = verificationMap.get(code) || {};
 
-                /* Mengambil data awal berdasarkan kode. */
-                const initial = initialRecords.find(
-                    item => item.code === code
-                ) || {};
+        const handling = handlingMap.get(code) || {};
 
-                /* Mengambil data verifikasi berdasarkan kode. */
-                const verification =
-                    verificationMap.get(code) || {};
+        const selectedForThisReport =
+          normalizeCode(selected.id || selected.reportCode) === code
+            ? selected
+            : {};
 
-                /* Mengambil data penanganan berdasarkan kode. */
-                const handling =
-                    handlingMap.get(code) || {};
+        const finalStatus = getFinalStatus(verification, handling, initial);
 
-                /* Menggunakan laporan terpilih hanya jika kodenya sama. */
-                const selectedForThisReport =
-                    normalizeCode(
-                        selected.id || selected.reportCode
-                    ) === code
-                        ? selected
-                        : {};
-
-                /* Menentukan status akhir laporan. */
-                const finalStatus = getFinalStatus(
-                    verification,
-                    handling,
-                    initial
-                );
-
-                /* Mengabaikan laporan yang belum masuk arsip. */
-                if (!finalStatus) {
-                    return;
-                }
-
-                /* Mengambil identitas pelapor secara lengkap. */
-                const reporter = getReporterInformation(
-                    verification,
-                    handling,
-                    selectedForThisReport,
-                    initial
-                );
-
-                /* Mengambil nama fasilitas. */
-                const facility = firstValue(
-                    verification,
-                    [
-                        "facilityName",
-                        "facility",
-                        "fasilitas",
-                        "namaFasilitas"
-                    ],
-                    firstValue(
-                        handling,
-                        [
-                            "facilityName",
-                            "facility",
-                            "fasilitas"
-                        ],
-                        selectedForThisReport.facility ||
-                        initial.facility ||
-                        "-"
-                    )
-                );
-
-                /* Mengambil lokasi fasilitas. */
-                const location = firstValue(
-                    verification,
-                    [
-                        "facilityLocation",
-                        "location",
-                        "lokasi",
-                        "lokasiFasilitas"
-                    ],
-                    firstValue(
-                        handling,
-                        [
-                            "facilityLocation",
-                            "location",
-                            "lokasi"
-                        ],
-                        selectedForThisReport.location ||
-                        initial.location ||
-                        "-"
-                    )
-                );
-
-                /* Mengambil tanggal masuk laporan. */
-                const reportDate = firstValue(
-                    verification,
-                    [
-                        "reportTime",
-                        "reportDate",
-                        "tanggalLaporan",
-                        "tanggalMasuk",
-                        "createdAt",
-                        "date"
-                    ],
-                    firstValue(
-                        handling,
-                        [
-                            "reportTime",
-                            "reportDate",
-                            "tanggalLaporan"
-                        ],
-                        selectedForThisReport.date ||
-                        initial.reportDate ||
-                        "-"
-                    )
-                );
-
-                /* Mengambil hasil verifikasi. */
-                const validation = getDecision(verification);
-
-                /* Mengambil prioritas C4.5. */
-                const priority = getPriority(
-                    verification,
-                    handling,
-                    initial
-                );
-
-                /* Mengambil tindak lanjut teknisi. */
-                const action = firstValue(
-                    handling,
-                    [
-                        "followUp",
-                        "followUpAction",
-                        "tindakLanjut",
-                        "tindakLanjutPerbaikan",
-                        "action"
-                    ],
-                    "-"
-                );
-
-                /* Mengambil catatan akhir petugas. */
-                const note = firstValue(
-                    handling,
-                    [
-                        "officerNotes",
-                        "catatanPetugas",
-                        "finalNote",
-                        "completionNotes",
-                        "notes"
-                    ],
-                    "-"
-                );
-
-                /* Mengambil tanggal penyelesaian. */
-                const completionDate = firstValue(
-                    handling,
-                    [
-                        "updatedAtLabel",
-                        "updatedAt",
-                        "completionDate",
-                        "tanggalPenyelesaian",
-                        "tanggalSelesai"
-                    ],
-                    initial.completionDate || "-"
-                );
-
-                /* Memasukkan seluruh informasi ke objek laporan. */
-                records.push({
-
-                    code,
-
-                    reporter: reporter.name,
-
-                    reporterNim: reporter.nim,
-
-                    facility,
-
-                    location,
-
-                    reportDate: formatDate(reportDate),
-
-                    validation,
-
-                    priority,
-
-                    action,
-
-                    note,
-
-                    finalStatus,
-
-                    completionDate: formatDate(completionDate)
-
-                });
-            });
-
-            /* Mengembalikan seluruh arsip yang telah digabungkan. */
-            return records;
+        if (!finalStatus) {
+          return;
         }
 
-        /* ====================================================
+        const reporter = getReporterInformation(
+          verification,
+          handling,
+          selectedForThisReport,
+          initial,
+        );
+
+        const facility = firstValue(
+          verification,
+          ["facilityName", "facility", "fasilitas", "namaFasilitas"],
+          firstValue(
+            handling,
+            ["facilityName", "facility", "fasilitas"],
+            selectedForThisReport.facility || initial.facility || "-",
+          ),
+        );
+
+        const location = firstValue(
+          verification,
+          ["facilityLocation", "location", "lokasi", "lokasiFasilitas"],
+          firstValue(
+            handling,
+            ["facilityLocation", "location", "lokasi"],
+            selectedForThisReport.location || initial.location || "-",
+          ),
+        );
+
+        const reportDate = firstValue(
+          verification,
+          [
+            "reportTime",
+            "reportDate",
+            "tanggalLaporan",
+            "tanggalMasuk",
+            "createdAt",
+            "date",
+          ],
+          firstValue(
+            handling,
+            ["reportTime", "reportDate", "tanggalLaporan"],
+            selectedForThisReport.date || initial.reportDate || "-",
+          ),
+        );
+
+        const validation = getDecision(verification);
+
+        const priority = getPriority(verification, handling, initial);
+
+        const action = firstValue(
+          handling,
+          [
+            "followUp",
+            "followUpAction",
+            "tindakLanjut",
+            "tindakLanjutPerbaikan",
+            "action",
+          ],
+          "-",
+        );
+
+        const note = firstValue(
+          handling,
+          [
+            "officerNotes",
+            "catatanPetugas",
+            "finalNote",
+            "completionNotes",
+            "notes",
+          ],
+          "-",
+        );
+
+        const completionDate = firstValue(
+          handling,
+          [
+            "updatedAtLabel",
+            "updatedAt",
+            "completionDate",
+            "tanggalPenyelesaian",
+            "tanggalSelesai",
+          ],
+          initial.completionDate || "-",
+        );
+
+        records.push({
+          code,
+
+          reporter: reporter.name,
+
+          reporterNim: reporter.nim,
+
+          facility,
+
+          location,
+
+          reportDate: formatDate(reportDate),
+
+          validation,
+
+          priority,
+
+          action,
+
+          note,
+
+          finalStatus,
+
+          completionDate: formatDate(completionDate),
+        });
+      });
+
+      return records;
+    }
+
+    /* ====================================================
            19. MEMBUAT BADGE PRIORITAS
         ==================================================== */
 
-        function createPriorityBadge(priority) {
+    function createPriorityBadge(priority) {
+      const badge = document.createElement("span");
 
-            /* Membuat elemen badge. */
-            const badge = document.createElement("span");
+      badge.className = "priority-pill";
 
-            /* Menetapkan class dasar. */
-            badge.className = "priority-pill";
+      const value = normalizeText(priority);
 
-            /* Menormalkan nilai prioritas. */
-            const value = normalizeText(priority);
+      if (value.includes("tinggi")) {
+        badge.classList.add("high");
+      } else if (value.includes("rendah")) {
+        badge.classList.add("low");
+      } else {
+        badge.classList.add("medium");
+      }
 
-            /* Memberikan warna berdasarkan tingkat prioritas. */
-            if (value.includes("tinggi")) {
+      badge.textContent = isEmpty(priority) ? "-" : priority;
 
-                badge.classList.add("high");
+      return badge;
+    }
 
-            } else if (value.includes("rendah")) {
-
-                badge.classList.add("low");
-
-            } else {
-
-                badge.classList.add("medium");
-            }
-
-            /* Menampilkan label prioritas. */
-            badge.textContent = isEmpty(priority) ? "-" : priority;
-
-            return badge;
-        }
-
-        /* ====================================================
+    /* ====================================================
            20. MEMBUAT BADGE STATUS
         ==================================================== */
 
-        function createStatusBadge(status) {
+    function createStatusBadge(status) {
+      const badge = document.createElement("span");
 
-            /* Membuat elemen status. */
-            const badge = document.createElement("span");
+      badge.className = "final-status";
 
-            /* Menetapkan class dasar. */
-            badge.className = "final-status";
+      if (status === "selesai") {
+        badge.classList.add("done");
 
-            /* Menentukan tampilan status. */
-            if (status === "selesai") {
+        badge.textContent = "✓ Selesai";
+      } else {
+        badge.classList.add("invalid");
 
-                badge.classList.add("done");
+        badge.textContent = "⊗ Tidak Valid";
+      }
 
-                badge.textContent = "✓ Selesai";
+      return badge;
+    }
 
-            } else {
-
-                badge.classList.add("invalid");
-
-                badge.textContent = "⊗ Tidak Valid";
-            }
-
-            return badge;
-        }
-
-        /* ====================================================
+    /* ====================================================
            21. MERENDER TABEL ARSIP
         ==================================================== */
 
-        function renderHistory(records) {
+    function renderHistory(records) {
+      historyRows.replaceChildren();
 
-            /* Mengosongkan tabel hasil render sebelumnya. */
-            historyRows.replaceChildren();
+      records.forEach((record) => {
+        const row = document.createElement("tr");
 
-            /* Membuat baris untuk setiap laporan. */
-            records.forEach(record => {
+        row.dataset.code = record.code;
 
-                /* Membuat elemen baris. */
-                const row = document.createElement("tr");
+        row.dataset.status = record.finalStatus;
 
-                /* Menyimpan identitas laporan pada baris. */
-                row.dataset.code = record.code;
+        const codeCell = document.createElement("td");
 
-                row.dataset.status = record.finalStatus;
+        const codeLabel = document.createElement("span");
 
-                /* Membuat kolom kode laporan. */
-                const codeCell = document.createElement("td");
+        codeLabel.className = "history-code";
 
-                const codeLabel = document.createElement("span");
+        codeLabel.textContent = record.code;
 
-                codeLabel.className = "history-code";
+        codeCell.appendChild(codeLabel);
 
-                codeLabel.textContent = record.code;
+        row.appendChild(codeCell);
 
-                codeCell.appendChild(codeLabel);
+        const facilityCell = document.createElement("td");
 
-                row.appendChild(codeCell);
+        facilityCell.className = "history-facility";
 
-                /* Membuat kolom fasilitas. */
-                const facilityCell = document.createElement("td");
+        facilityCell.textContent = record.facility;
 
-                facilityCell.className = "history-facility";
+        row.appendChild(facilityCell);
 
-                facilityCell.textContent = record.facility;
+        const locationCell = document.createElement("td");
 
-                row.appendChild(facilityCell);
+        locationCell.textContent = record.location;
 
-                /* Membuat kolom lokasi. */
-                const locationCell = document.createElement("td");
+        row.appendChild(locationCell);
 
-                locationCell.textContent = record.location;
+        const priorityCell = document.createElement("td");
 
-                row.appendChild(locationCell);
+        priorityCell.appendChild(createPriorityBadge(record.priority));
 
-                /* Membuat kolom prioritas. */
-                const priorityCell = document.createElement("td");
+        row.appendChild(priorityCell);
 
-                priorityCell.appendChild(
-                    createPriorityBadge(record.priority)
-                );
+        const statusCell = document.createElement("td");
 
-                row.appendChild(priorityCell);
+        statusCell.appendChild(createStatusBadge(record.finalStatus));
 
-                /* Membuat kolom status akhir. */
-                const statusCell = document.createElement("td");
+        row.appendChild(statusCell);
 
-                statusCell.appendChild(
-                    createStatusBadge(record.finalStatus)
-                );
+        const dateCell = document.createElement("td");
 
-                row.appendChild(statusCell);
+        dateCell.textContent = record.completionDate;
 
-                /* Membuat kolom tanggal penyelesaian. */
-                const dateCell = document.createElement("td");
+        row.appendChild(dateCell);
 
-                dateCell.textContent = record.completionDate;
+        const actionCell = document.createElement("td");
 
-                row.appendChild(dateCell);
+        const button = document.createElement("button");
 
-                /* Membuat kolom aksi. */
-                const actionCell = document.createElement("td");
+        button.type = "button";
 
-                const button = document.createElement("button");
+        button.className = "detail-history";
 
-                button.type = "button";
+        button.dataset.code = record.code;
 
-                button.className = "detail-history";
+        button.textContent = "Detail Riwayat";
 
-                button.dataset.code = record.code;
+        actionCell.appendChild(button);
 
-                button.textContent = "Detail Riwayat";
+        row.appendChild(actionCell);
 
-                actionCell.appendChild(button);
+        historyRows.appendChild(row);
+      });
 
-                row.appendChild(actionCell);
+      recordCount.textContent = `Menampilkan ${records.length} dari ${allHistoryRecords.length} Data Terekam`;
 
-                /* Memasukkan baris ke tabel. */
-                historyRows.appendChild(row);
-            });
+      historyEmpty.hidden = records.length > 0;
+    }
 
-            /* Memperbarui jumlah data arsip. */
-            recordCount.textContent =
-                `Menampilkan ${records.length} dari ${allHistoryRecords.length} Data Terekam`;
-
-            /* Menampilkan pesan jika tidak ada data. */
-            historyEmpty.hidden = records.length > 0;
-        }
-
-        /* ====================================================
+    /* ====================================================
            22. MENAMPILKAN DETAIL RIWAYAT
         ==================================================== */
 
-        function showHistoryDetail(code) {
+    function showHistoryDetail(code) {
+      const normalizedCode = normalizeCode(code);
 
-            /* Menyeragamkan kode laporan. */
-            const normalizedCode = normalizeCode(code);
+      const record = allHistoryRecords.find(
+        (item) => item.code === normalizedCode,
+      );
 
-            /* Mencari laporan berdasarkan kode unik. */
-            const record = allHistoryRecords.find(
-                item => item.code === normalizedCode
-            );
+      if (!record) {
+        console.warn(
+          "[SIPFAS] Detail laporan tidak ditemukan:",
+          normalizedCode,
+        );
 
-            /* Menghentikan proses jika laporan tidak ditemukan. */
-            if (!record) {
+        return;
+      }
 
-                console.warn(
-                    "[SIPFAS] Detail laporan tidak ditemukan:",
-                    normalizedCode
-                );
+      selectedRecordCode = normalizedCode;
 
-                return;
-            }
+      const statusText =
+        record.finalStatus === "selesai" ? "Selesai Diperbaiki" : "Tidak Valid";
 
-            /* Menyimpan kode laporan aktif. */
-            selectedRecordCode = normalizedCode;
+      if (detailTitle) {
+        detailTitle.textContent = `Detail Riwayat Terpilih: ${record.code} — ${statusText}`;
+      }
 
-            /* Menentukan judul berdasarkan status akhir. */
-            const statusText =
-                record.finalStatus === "selesai"
-                    ? "Selesai Diperbaiki"
-                    : "Tidak Valid";
+      if (detailReporter) {
+        detailReporter.textContent = record.reporter;
+      }
 
-            /* Memperbarui judul panel detail. */
-            if (detailTitle) {
-                detailTitle.textContent =
-                    `Detail Riwayat Terpilih: ${record.code} — ${statusText}`;
-            }
+      if (detailDate) {
+        detailDate.textContent = record.reportDate;
+      }
 
-            /* Menampilkan nama lengkap pelapor. */
-            if (detailReporter) {
-                detailReporter.textContent = record.reporter;
-            }
+      if (detailValidation) {
+        detailValidation.textContent = record.validation;
 
-            /* Menampilkan tanggal masuk laporan. */
-            if (detailDate) {
-                detailDate.textContent = record.reportDate;
-            }
+        detailValidation.classList.remove("valid-label", "invalid-label");
 
-            /* Menampilkan hasil verifikasi. */
-            if (detailValidation) {
-
-                detailValidation.textContent = record.validation;
-
-                detailValidation.classList.remove(
-                    "valid-label",
-                    "invalid-label"
-                );
-
-                if (record.validation === "Tidak Valid") {
-
-                    detailValidation.classList.add("invalid-label");
-
-                } else {
-
-                    detailValidation.classList.add("valid-label");
-                }
-            }
-
-            /* Menampilkan prioritas C4.5. */
-            if (detailPriority) {
-
-                detailPriority.textContent = record.priority;
-
-                detailPriority.classList.remove(
-                    "high",
-                    "medium",
-                    "low"
-                );
-
-                const priority = normalizeText(record.priority);
-
-                if (priority.includes("tinggi")) {
-
-                    detailPriority.classList.add("high");
-
-                } else if (priority.includes("rendah")) {
-
-                    detailPriority.classList.add("low");
-
-                } else {
-
-                    detailPriority.classList.add("medium");
-                }
-            }
-
-            /* Menampilkan tindak lanjut teknisi. */
-            if (detailAction) {
-                detailAction.textContent = record.action;
-            }
-
-            /* Menampilkan catatan akhir petugas. */
-            if (detailNote) {
-                detailNote.textContent = record.note;
-            }
-
-            /* Memperbarui badge status panel. */
-            const detailState = historyDetail?.querySelector(
-                ".detail-state"
-            );
-
-            if (detailState) {
-                detailState.textContent = statusText;
-            }
-
-            /* Memperbarui ikon status panel. */
-            const detailCheck = historyDetail?.querySelector(
-                ".detail-check"
-            );
-
-            if (detailCheck) {
-                detailCheck.textContent =
-                    record.finalStatus === "selesai" ? "✓" : "⊗";
-            }
-
-            /* Memastikan panel detail terlihat. */
-            if (historyDetail) {
-                historyDetail.hidden = false;
-            }
-
-            /* Memperbarui tombol yang sedang aktif. */
-            historyRows
-                .querySelectorAll(".detail-history")
-                .forEach(button => {
-
-                    button.classList.toggle(
-                        "active",
-                        normalizeCode(button.dataset.code) === normalizedCode
-                    );
-                });
-
-            /* Menampilkan data detail pada Console untuk pemeriksaan. */
-            console.log(
-                "[SIPFAS] Detail laporan aktif:",
-                record
-            );
+        if (record.validation === "Tidak Valid") {
+          detailValidation.classList.add("invalid-label");
+        } else {
+          detailValidation.classList.add("valid-label");
         }
+      }
 
-        /* ====================================================
+      if (detailPriority) {
+        detailPriority.textContent = record.priority;
+
+        detailPriority.classList.remove("high", "medium", "low");
+
+        const priority = normalizeText(record.priority);
+
+        if (priority.includes("tinggi")) {
+          detailPriority.classList.add("high");
+        } else if (priority.includes("rendah")) {
+          detailPriority.classList.add("low");
+        } else {
+          detailPriority.classList.add("medium");
+        }
+      }
+
+      if (detailAction) {
+        detailAction.textContent = record.action;
+      }
+
+      if (detailNote) {
+        detailNote.textContent = record.note;
+      }
+
+      const detailState = historyDetail?.querySelector(".detail-state");
+
+      if (detailState) {
+        detailState.textContent = statusText;
+      }
+
+      const detailCheck = historyDetail?.querySelector(".detail-check");
+
+      if (detailCheck) {
+        detailCheck.textContent = record.finalStatus === "selesai" ? "✓" : "⊗";
+      }
+
+      if (historyDetail) {
+        historyDetail.hidden = false;
+      }
+
+      historyRows.querySelectorAll(".detail-history").forEach((button) => {
+        button.classList.toggle(
+          "active",
+          normalizeCode(button.dataset.code) === normalizedCode,
+        );
+      });
+
+      console.log("[SIPFAS] Detail laporan aktif:", record);
+    }
+
+    /* ====================================================
            23. PENCARIAN DAN FILTER
         ==================================================== */
 
-        function searchHistory() {
+    function searchHistory() {
+      const keyword = normalizeText(searchInput.value);
 
-            /* Mengambil kata kunci pencarian. */
-            const keyword = normalizeText(searchInput.value);
+      const selectedStatus = normalizeText(statusFilter.value);
 
-            /* Mengambil filter status. */
-            const selectedStatus = normalizeText(
-                statusFilter.value
-            );
+      const filteredRecords = allHistoryRecords.filter((record) => {
+        const searchable = normalizeText(
+          [
+            record.code,
+            record.reporter,
+            record.reporterNim,
+            record.facility,
+            record.location,
+            record.priority,
+            record.validation,
+            record.action,
+            record.note,
+          ].join(" "),
+        );
 
-            /* Menyaring seluruh data laporan. */
-            const filteredRecords = allHistoryRecords.filter(
-                record => {
+        const matchesSearch = !keyword || searchable.includes(keyword);
 
-                    /* Menggabungkan seluruh informasi untuk pencarian. */
-                    const searchable = normalizeText([
-                        record.code,
-                        record.reporter,
-                        record.reporterNim,
-                        record.facility,
-                        record.location,
-                        record.priority,
-                        record.validation,
-                        record.action,
-                        record.note
-                    ].join(" "));
+        const matchesStatus =
+          selectedStatus === "semua" ||
+          selectedStatus === "" ||
+          record.finalStatus === selectedStatus;
 
-                    /* Memeriksa kecocokan kata kunci. */
-                    const matchesSearch =
-                        !keyword || searchable.includes(keyword);
+        return matchesSearch && matchesStatus;
+      });
 
-                    /* Memeriksa kecocokan status. */
-                    const matchesStatus =
-                        selectedStatus === "semua" ||
-                        selectedStatus === "" ||
-                        record.finalStatus === selectedStatus;
+      renderHistory(filteredRecords);
+    }
 
-                    /* Mengembalikan hasil kedua filter. */
-                    return matchesSearch && matchesStatus;
-                }
-            );
-
-            /* Menampilkan hasil penyaringan. */
-            renderHistory(filteredRecords);
-        }
-
-        /* ====================================================
+    /* ====================================================
            24. MEMPERBARUI SELURUH DATA
         ==================================================== */
 
-        function refreshHistory() {
+    function refreshHistory() {
+      allHistoryRecords = buildHistoryRecords();
 
-            /* Mengambil ulang data dari seluruh sumber. */
-            allHistoryRecords = buildHistoryRecords();
+      searchHistory();
 
-            /* Memperbarui tabel berdasarkan filter aktif. */
-            searchHistory();
+      const selectedExists = allHistoryRecords.some(
+        (record) => record.code === selectedRecordCode,
+      );
 
-            /* Mempertahankan detail yang sedang dipilih. */
-            const selectedExists = allHistoryRecords.some(
-                record => record.code === selectedRecordCode
-            );
+      if (selectedExists) {
+        showHistoryDetail(selectedRecordCode);
+      } else if (allHistoryRecords.length > 0) {
+        showHistoryDetail(allHistoryRecords[0].code);
+      } else {
+        selectedRecordCode = null;
 
-            if (selectedExists) {
-
-                showHistoryDetail(selectedRecordCode);
-
-            } else if (allHistoryRecords.length > 0) {
-
-                showHistoryDetail(allHistoryRecords[0].code);
-
-            } else {
-
-                selectedRecordCode = null;
-
-                if (historyDetail) {
-                    historyDetail.hidden = true;
-                }
-            }
-
-            /* Menampilkan ringkasan data pada Console. */
-            console.log(
-                "[SIPFAS] Data arsip diperbarui:",
-                allHistoryRecords
-            );
+        if (historyDetail) {
+          historyDetail.hidden = true;
         }
+      }
 
-        /* ====================================================
+      console.log("[SIPFAS] Data arsip diperbarui:", allHistoryRecords);
+    }
+
+    /* ====================================================
            25. EVENT TOMBOL DETAIL RIWAYAT
         ==================================================== */
 
-        historyRows.addEventListener("click", event => {
+    historyRows.addEventListener("click", (event) => {
+      const button = event.target.closest(".detail-history");
 
-            /* Mencari tombol detail yang diklik. */
-            const button = event.target.closest(".detail-history");
+      if (!button || !historyRows.contains(button)) {
+        return;
+      }
 
-            /* Menghentikan proses jika bukan tombol detail. */
-            if (!button || !historyRows.contains(button)) {
-                return;
-            }
+      event.preventDefault();
 
-            /* Mencegah perilaku default tombol. */
-            event.preventDefault();
+      showHistoryDetail(button.dataset.code);
+    });
 
-            /* Membuka detail berdasarkan kode laporan. */
-            showHistoryDetail(button.dataset.code);
-        });
-
-        /* ====================================================
+    /* ====================================================
            26. EVENT PENCARIAN
         ==================================================== */
 
-        searchInput.addEventListener(
-            "input",
-            searchHistory
-        );
+    searchInput.addEventListener("input", searchHistory);
 
-        /* ====================================================
+    /* ====================================================
            27. EVENT FILTER STATUS
         ==================================================== */
 
-        statusFilter.addEventListener(
-            "change",
-            searchHistory
-        );
+    statusFilter.addEventListener("change", searchHistory);
 
-        /* ====================================================
-           28. SINKRONISASI LOCAL STORAGE
+    /* ====================================================
+           28. SINKRONISASI LOCAL STORAGE & PROFIL REALTIME
         ==================================================== */
 
-        window.addEventListener("storage", event => {
+    window.addEventListener("storage", (event) => {
+      if (
+        event.key === VERIFICATION_KEY ||
+        event.key === HANDLING_KEY ||
+        event.key === SELECTED_KEY ||
+        event.key === null
+      ) {
+        refreshHistory();
+      }
 
-            /* Memperbarui data jika penyimpanan berubah. */
-            if (
-                event.key === VERIFICATION_KEY ||
-                event.key === HANDLING_KEY ||
-                event.key === SELECTED_KEY ||
-                event.key === null
-            ) {
-                refreshHistory();
-            }
-        });
+      if (
+        event.key === ACTIVE_USER_KEY ||
+        event.key === USERS_KEY ||
+        (event.key && event.key.startsWith(PHOTO_PREFIX)) ||
+        event.key === null
+      ) {
+        synchronizeOfficerProfile();
+      }
+    });
 
-        /* ====================================================
+    window.addEventListener(
+      "sipfas:profile-updated",
+      synchronizeOfficerProfile,
+    );
+
+    /* ====================================================
            29. SINKRONISASI HASIL VERIFIKASI
         ==================================================== */
 
-        window.addEventListener(
-            "sipfas:verification-saved",
-            refreshHistory
-        );
+    window.addEventListener("sipfas:verification-saved", refreshHistory);
 
-        /* ====================================================
+    /* ====================================================
            30. SINKRONISASI HASIL PENANGANAN
         ==================================================== */
 
-        window.addEventListener(
-            "sipfas:handling-saved",
-            refreshHistory
-        );
+    window.addEventListener("sipfas:handling-saved", refreshHistory);
 
-        /* ====================================================
+    /* ====================================================
            31. SINKRONISASI SAAT HALAMAN AKTIF
         ==================================================== */
 
-        window.addEventListener(
-            "pageshow",
-            refreshHistory
-        );
+    window.addEventListener("pageshow", () => {
+      synchronizeOfficerProfile();
+      refreshHistory();
+    });
 
-        document.addEventListener(
-            "visibilitychange",
-            () => {
+    window.addEventListener("focus", synchronizeOfficerProfile);
 
-                /* Memperbarui data ketika pengguna kembali. */
-                if (!document.hidden) {
-                    refreshHistory();
-                }
-            }
-        );
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        synchronizeOfficerProfile();
+        refreshHistory();
+      }
+    });
 
-        /* ====================================================
+    /* ====================================================
            32. SIDEBAR RESPONSIF
         ==================================================== */
 
-        function setSidebar(open) {
+    function setSidebar(open) {
+      sidebar?.classList.toggle("open", open);
+      sidebar?.classList.toggle("active", open);
 
-            /* Mengubah kondisi sidebar. */
-            sidebar?.classList.toggle("open", open);
+      pageOverlay?.classList.toggle("show", open);
+      pageOverlay?.classList.toggle("active", open);
 
-            sidebar?.classList.toggle("active", open);
+      menuToggle?.setAttribute("aria-expanded", String(open));
+    }
 
-            /* Mengubah kondisi overlay. */
-            pageOverlay?.classList.toggle("show", open);
+    menuToggle?.addEventListener("click", () => {
+      const isOpen =
+        sidebar?.classList.contains("open") ||
+        sidebar?.classList.contains("active");
 
-            pageOverlay?.classList.toggle("active", open);
+      setSidebar(!isOpen);
+    });
 
-            /* Memperbarui aksesibilitas tombol menu. */
-            menuToggle?.setAttribute(
-                "aria-expanded",
-                String(open)
-            );
-        }
+    pageOverlay?.addEventListener("click", () => {
+      setSidebar(false);
+    });
 
-        /* Mengaktifkan tombol buka/tutup sidebar. */
-        menuToggle?.addEventListener("click", () => {
+    document.querySelectorAll(".nav-link").forEach((link) => {
+      link.addEventListener("click", () => {
+        setSidebar(false);
+      });
+    });
 
-            const isOpen =
-                sidebar?.classList.contains("open") ||
-                sidebar?.classList.contains("active");
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        setSidebar(false);
+      }
+    });
 
-            setSidebar(!isOpen);
-        });
-
-        /* Menutup sidebar melalui overlay. */
-        pageOverlay?.addEventListener("click", () => {
-            setSidebar(false);
-        });
-
-        /* Menutup sidebar setelah navigasi dipilih. */
-        document.querySelectorAll(".nav-link").forEach(link => {
-
-            link.addEventListener("click", () => {
-                setSidebar(false);
-            });
-        });
-
-        /* Menutup sidebar menggunakan tombol Escape. */
-        document.addEventListener("keydown", event => {
-
-            if (event.key === "Escape") {
-                setSidebar(false);
-            }
-        });
-
-        /* ====================================================
+    /* ====================================================
            33. TOMBOL KELUAR
         ==================================================== */
 
-        logoutLink?.addEventListener("click", event => {
+    logoutLink?.addEventListener("click", (event) => {
+      event.preventDefault();
 
-            /* Mencegah navigasi sebelum konfirmasi. */
-            event.preventDefault();
+      const confirmation = window.confirm(
+        "Apakah Anda yakin ingin keluar dari sistem SIPFAS?",
+      );
 
-            /* Meminta konfirmasi kepada pengguna. */
-            const confirmation = window.confirm(
-                "Apakah Anda yakin ingin keluar dari sistem SIPFAS?"
-            );
+      if (!confirmation) {
+        return;
+      }
 
-            /* Membatalkan proses jika pengguna memilih tidak. */
-            if (!confirmation) {
-                return;
-            }
+      // Menghapus sesi autentikasi saja.
+      // Data laporan di Local Storage tetap dipertahankan.
+      [
+        "sipfasPendingLogin",
+        "sipfasLoginEmail",
+        "sipfasLoginOtp",
+        "sipfasLoginOtpExpiresAt",
+        "sipfasLoginAttempts",
+        "sipfasLoginVerified",
+        "sipfasActiveUser",
+      ].forEach((key) => {
+        sessionStorage.removeItem(key);
+        localStorage.removeItem(key);
+      });
 
-            /* Mengarahkan pengguna ke halaman login. */
-            window.location.href = logoutLink.href;
-        });
+      window.location.href = logoutLink.href;
+    });
 
-        /* ====================================================
+    /* ====================================================
            34. MENJALANKAN HALAMAN
         ==================================================== */
 
-        /* Memuat seluruh data saat halaman pertama dibuka. */
-        refreshHistory();
+    synchronizeOfficerProfile();
+    refreshHistory();
 
-        /* Menampilkan informasi inisialisasi. */
-        console.log(
-            "[SIPFAS] Riwayat Laporan berhasil diinisialisasi."
-        );
-    }
-
+    console.log(
+      "[SIPFAS] Riwayat Laporan & foto profil petugas berhasil diinisialisasi.",
+    );
+  }
 })();

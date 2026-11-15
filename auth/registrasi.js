@@ -10,7 +10,15 @@ document.addEventListener("DOMContentLoaded", function () {
 // 02. Menentukan nama penyimpanan akun pengguna.
 const USER_STORAGE_KEY = "sipfasUsers";
 
-// 03. Mengambil seluruh data akun yang tersimpan.
+// 03. Pola validasi email.
+const EMAIL_PATTERN =
+  /^[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+$/i;
+
+// 04. Pola validasi kata sandi.
+// Minimal 8 karakter, huruf besar, huruf kecil, dan angka.
+const PASSWORD_PATTERN = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,}$/;
+
+// 05. Mengambil seluruh data akun yang tersimpan.
 function getRegisteredUsers() {
   try {
     const savedUsers = localStorage.getItem(USER_STORAGE_KEY);
@@ -32,7 +40,7 @@ function getRegisteredUsers() {
   }
 }
 
-// 04. Menyimpan data akun pengguna.
+// 06. Menyimpan data akun pengguna.
 function saveRegisteredUsers(users) {
   try {
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(users));
@@ -44,7 +52,7 @@ function saveRegisteredUsers(users) {
   }
 }
 
-// 05. Menginisialisasi halaman registrasi.
+// 07. Menginisialisasi halaman registrasi.
 function initializeRegistration() {
   const registerForm = document.getElementById("registerForm");
 
@@ -68,7 +76,7 @@ function initializeRegistration() {
   console.log("Registrasi SIPFAS siap digunakan.");
 }
 
-// 06. Menghapus pesan error ketika input diperbaiki.
+// 08. Menghapus pesan error ketika input diperbaiki.
 function initializeInputValidation() {
   const fields = [
     ["fullName", "fullNameError"],
@@ -88,12 +96,13 @@ function initializeInputValidation() {
     input.addEventListener("input", function () {
       error.textContent = "";
       input.removeAttribute("aria-invalid");
+
       showFormMessage("", "");
     });
   });
 }
 
-// 07. Menampilkan pesan kesalahan pada masing-masing input.
+// 09. Menampilkan pesan kesalahan pada masing-masing input.
 function showFieldError(inputId, errorId, message) {
   const input = document.getElementById(inputId);
   const error = document.getElementById(errorId);
@@ -104,7 +113,7 @@ function showFieldError(inputId, errorId, message) {
   input.setAttribute("aria-invalid", "true");
 }
 
-// 08. Menghapus seluruh pesan kesalahan.
+// 10. Menghapus seluruh pesan kesalahan.
 function clearAllErrors() {
   const errorIds = [
     "fullNameError",
@@ -128,7 +137,7 @@ function clearAllErrors() {
   });
 }
 
-// 09. Menampilkan pesan informasi pada formulir.
+// 11. Menampilkan pesan informasi pada formulir.
 function showFormMessage(message, type) {
   const element = document.getElementById("formMessage");
 
@@ -145,7 +154,7 @@ function showFormMessage(message, type) {
   }
 }
 
-// 10. Mengaktifkan tombol tampil dan sembunyikan password.
+// 12. Mengaktifkan tombol tampil dan sembunyikan password.
 function initializePasswordToggle() {
   const buttons = document.querySelectorAll(".eye-button");
 
@@ -175,24 +184,34 @@ function initializePasswordToggle() {
   });
 }
 
-// 11. Memeriksa data akun yang sudah terdaftar.
+// 13. Memeriksa data akun yang sudah terdaftar.
 function checkDuplicateAccount(nim, username, email) {
   const users = getRegisteredUsers();
 
   return {
-    nimExists: users.some((user) => String(user.nim || "").trim() === nim),
+    nimExists: users.some(function (user) {
+      return String(user.nim || "").trim() === nim;
+    }),
 
-    usernameExists: users.some(
-      (user) => String(user.username || "").toLowerCase() === username,
-    ),
+    usernameExists: users.some(function (user) {
+      return (
+        String(user.username || "")
+          .trim()
+          .toLowerCase() === username
+      );
+    }),
 
-    emailExists: users.some(
-      (user) => String(user.email || "").toLowerCase() === email,
-    ),
+    emailExists: users.some(function (user) {
+      return (
+        String(user.email || "")
+          .trim()
+          .toLowerCase() === email
+      );
+    }),
   };
 }
 
-// 12. Memproses seluruh pendaftaran akun.
+// 14. Memproses seluruh pendaftaran akun.
 function processRegistration() {
   clearAllErrors();
   showFormMessage("", "");
@@ -204,6 +223,25 @@ function processRegistration() {
   const emailInput = document.getElementById("email");
   const passwordInput = document.getElementById("password");
   const confirmPasswordInput = document.getElementById("confirmPassword");
+
+  // Memastikan seluruh elemen tersedia.
+  if (
+    !fullNameInput ||
+    !nimInput ||
+    !usernameInput ||
+    !emailInput ||
+    !passwordInput ||
+    !confirmPasswordInput
+  ) {
+    console.error("Elemen formulir registrasi tidak lengkap.");
+
+    showFormMessage(
+      "Formulir tidak dapat diproses. Periksa kembali halaman registrasi.",
+      "error",
+    );
+
+    return;
+  }
 
   // Mengambil nilai input.
   const fullName = fullNameInput.value.trim();
@@ -221,7 +259,7 @@ function processRegistration() {
     }
   }
 
-  // 13. Validasi nama lengkap.
+  // 15. Validasi nama lengkap.
   if (!fullName) {
     showFieldError("fullName", "fullNameError", "Nama lengkap wajib diisi.");
 
@@ -236,7 +274,7 @@ function processRegistration() {
     setInvalid(fullNameInput);
   }
 
-  // 14. Validasi NIM.
+  // 16. Validasi NIM.
   if (!nim) {
     showFieldError("nim", "nimError", "NIM wajib diisi.");
 
@@ -251,7 +289,7 @@ function processRegistration() {
     setInvalid(nimInput);
   }
 
-  // 15. Validasi username.
+  // 17. Validasi username.
   const usernamePattern = /^[a-zA-Z0-9][a-zA-Z0-9._-]{2,29}$/;
 
   if (!username) {
@@ -268,35 +306,37 @@ function processRegistration() {
     setInvalid(usernameInput);
   }
 
-  // 16. Validasi email.
+  // 18. Validasi format email.
   if (!email) {
     showFieldError("email", "emailError", "Email wajib diisi.");
 
     setInvalid(emailInput);
-  } else if (!emailInput.checkValidity()) {
-    showFieldError("email", "emailError", "Format email tidak valid.");
+  } else if (!EMAIL_PATTERN.test(email) || !emailInput.checkValidity()) {
+    showFieldError(
+      "email",
+      "emailError",
+      "Format email tidak valid. Contoh: nama@gmail.com.",
+    );
 
     setInvalid(emailInput);
   }
 
-  // 17. Validasi kata sandi.
-  const passwordPattern = /^(?=.*[A-Za-z])(?=.*[0-9]).{8,}$/;
-
+  // 19. Validasi kata sandi.
   if (!password) {
     showFieldError("password", "passwordError", "Kata sandi wajib diisi.");
 
     setInvalid(passwordInput);
-  } else if (!passwordPattern.test(password)) {
+  } else if (!PASSWORD_PATTERN.test(password)) {
     showFieldError(
       "password",
       "passwordError",
-      "Minimal 8 karakter dan harus mengandung huruf serta angka.",
+      "Kata sandi minimal 8 karakter dan wajib mengandung huruf besar, huruf kecil, serta angka.",
     );
 
     setInvalid(passwordInput);
   }
 
-  // 18. Validasi konfirmasi kata sandi.
+  // 20. Validasi konfirmasi kata sandi.
   if (!confirmPassword) {
     showFieldError(
       "confirmPassword",
@@ -315,7 +355,7 @@ function processRegistration() {
     setInvalid(confirmPasswordInput);
   }
 
-  // 19. Menghentikan proses apabila input tidak valid.
+  // 21. Menghentikan proses apabila input tidak valid.
   if (firstInvalidInput) {
     showFormMessage("Periksa kembali data yang kamu masukkan.", "error");
 
@@ -323,7 +363,7 @@ function processRegistration() {
     return;
   }
 
-  // 20. Memeriksa apakah NIM, username, atau email sudah digunakan.
+  // 22. Memeriksa apakah NIM, username, atau email sudah digunakan.
   const duplicate = checkDuplicateAccount(nim, username, email);
 
   if (duplicate.nimExists) {
@@ -344,6 +384,7 @@ function processRegistration() {
     setInvalid(emailInput);
   }
 
+  // Menghentikan proses apabila terdapat data duplikat.
   if (firstInvalidInput) {
     showFormMessage("Data akun sudah digunakan. Periksa kembali.", "error");
 
@@ -351,7 +392,7 @@ function processRegistration() {
     return;
   }
 
-  // 21. Membuat identitas akun baru.
+  // 23. Membuat identitas akun baru.
   const newUser = {
     id: "USR-" + Date.now(),
 
@@ -364,8 +405,7 @@ function processRegistration() {
     email: email,
 
     // Password hanya untuk simulasi frontend.
-    // Nantinya diganti dengan password hash dari backend.
-
+    // Untuk aplikasi produksi gunakan backend dan password hashing.
     password: password,
 
     role: "pelapor",
@@ -373,12 +413,12 @@ function processRegistration() {
     createdAt: new Date().toISOString(),
   };
 
-  // 22. Menambahkan akun baru ke daftar pengguna.
+  // 24. Menambahkan akun baru ke daftar pengguna.
   const users = getRegisteredUsers();
 
   users.push(newUser);
 
-  // 23. Menyimpan akun ke localStorage.
+  // 25. Menyimpan akun ke LocalStorage.
   const saved = saveRegisteredUsers(users);
 
   if (!saved) {
@@ -387,7 +427,7 @@ function processRegistration() {
     return;
   }
 
-  // 24. Menampilkan informasi hasil registrasi.
+  // 26. Menampilkan informasi hasil registrasi.
   console.log("===== REGISTRASI SIPFAS =====");
   console.log("ID:", newUser.id);
   console.log("Nama:", newUser.name);
@@ -397,7 +437,7 @@ function processRegistration() {
   console.log("Role:", newUser.role);
   console.log("=============================");
 
-  // 25. Memberikan informasi keberhasilan.
+  // 27. Memberikan informasi keberhasilan.
   showFormMessage(
     "Registrasi berhasil! Mengarahkan ke halaman login...",
     "success",
@@ -412,7 +452,7 @@ function processRegistration() {
     submitButton.style.cursor = "not-allowed";
   }
 
-  // 26. Mengarahkan pengguna ke halaman login.
+  // 28. Mengarahkan pengguna ke halaman login.
   setTimeout(function () {
     window.location.href = "login.html";
   }, 1500);

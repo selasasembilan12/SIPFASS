@@ -1,795 +1,1336 @@
-
 /* ============================================================
    SIPFAS - VERIFIKASI LAPORAN
    File: Verifikasi-Laporan.js
+   VERSI FINAL REVISI SINKRONISASI WAKTU & PROFIL PETUGAS
 
    FITUR:
-   1. Pencarian laporan.
-   2. Filter prioritas C4.5.
-   3. Sinkronisasi prioritas terbaru.
-   4. Sinkronisasi status verifikasi.
-   5. Tombol Periksa untuk setiap pelapor.
-   6. Penyimpanan identitas laporan terpilih.
-   7. Perbaikan nama lengkap dan NIM pelapor.
-   8. Sidebar responsif.
-   9. Konfirmasi keluar.
+   1. Membaca daftar laporan dari tabel HTML.
+   2. Membaca identitas nama dan NIM pelapor.
+   3. Membaca fasilitas dan lokasi laporan.
+   4. Pencarian laporan.
+   5. Filter prioritas C4.5.
+   6. Sinkronisasi status verifikasi.
+   7. Sinkronisasi prioritas hasil verifikasi.
+   8. Penyimpanan laporan terpilih.
+   9. Navigasi Detail Verifikasi.
+   10. Sinkronisasi Local Storage.
+   11. Sinkronisasi waktu verifikasi terbaru.
+   12. Sinkronisasi profil & foto petugas yang login.
+   13. Sidebar responsif.
+   14. Konfirmasi keluar.
 
-   PENYIMPANAN:
-   Setiap laporan menggunakan kode unik sebagai identitas.
+   LOCAL STORAGE & SESSION STORAGE:
+   - sipfas_verifikasi_laporan
+   - sipfas_selected_report
+   - sipfasActiveUser
+   - sipfasUsers
+   - sipfas_profile_photo_<username>
+
+   ZONA WAKTU:
+   WIT - Ternate, Maluku Utara (UTC+09:00)
+
+   CATATAN:
+   Tidak menghapus data laporan.
+   Tidak mengubah struktur HTML dan CSS.
+   Tidak menggunakan jam realtime.
 ============================================================ */
 
 (() => {
-    "use strict";
+  "use strict";
 
-    document.addEventListener("DOMContentLoaded", () => {
+  /* ========================================================
+       1. INISIALISASI PROGRAM
+    ======================================================== */
 
-        /* ====================================================
-           1. KONFIGURASI
+  document.addEventListener("DOMContentLoaded", initializeVerificationPage);
+
+  function initializeVerificationPage() {
+    /* ====================================================
+           2. KONFIGURASI
         ==================================================== */
 
-        const STORAGE_KEY = "sipfas_verifikasi_laporan";
-        const SELECTED_REPORT_KEY = "sipfas_selected_report";
+    const STORAGE_KEY = "sipfas_verifikasi_laporan";
 
-        /* ====================================================
-           2. ELEMEN HTML
+    const SELECTED_REPORT_KEY = "sipfas_selected_report";
+
+    const ACTIVE_USER_KEY = "sipfasActiveUser";
+
+    const PENDING_USER_KEY = "sipfasPendingLogin";
+
+    const USERS_KEY = "sipfasUsers";
+
+    const PHOTO_PREFIX = "sipfas_profile_photo_";
+
+    const TIME_ZONE = "Asia/Jayapura";
+
+    const DETAIL_URL =
+      "../Detail-Verifikasi-Laporan/Detail-Verifikasi-Laporan.html";
+
+    /* ====================================================
+           3. MENGAMBIL ELEMEN HTML
         ==================================================== */
 
-        const searchInput = document.getElementById("searchReport");
-        const priorityFilter = document.getElementById("priorityFilter");
+    const $ = (id) => document.getElementById(id);
 
-        const table = document.querySelector(".verification-table");
-        const tableBody = table?.querySelector("tbody");
+    const searchInput = $("searchReport");
 
-        const emptyState = document.getElementById("emptyState");
+    const priorityFilter = $("priorityFilter");
 
-        const sidebar = document.getElementById("sidebar");
-        const menuToggle = document.getElementById("menuToggle");
-        const pageOverlay = document.getElementById("pageOverlay");
-        const logoutLink = document.getElementById("logoutLink");
+    const table = document.querySelector(".verification-table");
 
-        /* Memastikan elemen utama halaman tersedia. */
-        if (!searchInput || !priorityFilter || !tableBody) {
-            console.error("[SIPFAS] Elemen utama tidak ditemukan.");
-            return;
+    const tableBody = table ? table.querySelector("tbody") : null;
+
+    const emptyState = $("emptyState");
+
+    const sidebar = $("sidebar");
+
+    const menuToggle = $("menuToggle");
+
+    const pageOverlay = $("pageOverlay");
+
+    const logoutLink = $("logoutLink");
+
+    /* ====================================================
+           4. VALIDASI ELEMEN HTML
+        ==================================================== */
+
+    if (!searchInput || !priorityFilter || !tableBody) {
+      console.error(
+        "[SIPFAS] Elemen pencarian, filter, atau tabel tidak ditemukan.",
+      );
+
+      return;
+    }
+
+    /* Mengambil seluruh baris laporan. */
+
+    const reportRows = Array.from(tableBody.querySelectorAll("tr"));
+
+    /* ====================================================
+           5. NORMALISASI TEKS
+        ==================================================== */
+
+    function normalizeText(value) {
+      return String(value ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+    }
+
+    /* ====================================================
+           6. NORMALISASI KODE LAPORAN
+        ==================================================== */
+
+    function normalizeCode(value) {
+      const text = String(value ?? "")
+        .replace(/\s+/g, "")
+        .trim()
+        .toUpperCase();
+
+      const match = text.match(/LPR-\d{4}-\d+/i);
+
+      return match ? match[0].toUpperCase() : text;
+    }
+
+    /* ====================================================
+           7. NORMALISASI STATUS VERIFIKASI
+        ==================================================== */
+
+    function normalizeDecision(value) {
+      const decision = normalizeText(value);
+
+      if (
+        decision === "valid" ||
+        decision === "laporan valid" ||
+        decision === "terverifikasi" ||
+        decision === "selesai diverifikasi"
+      ) {
+        return "valid";
+      }
+
+      if (
+        decision === "invalid" ||
+        decision === "tidak valid" ||
+        decision === "laporan tidak valid"
+      ) {
+        return "invalid";
+      }
+
+      return "";
+    }
+
+    /* ====================================================
+           8. NORMALISASI PRIORITAS
+        ==================================================== */
+
+    function normalizePriority(value) {
+      const priority = normalizeText(value);
+
+      if (priority.includes("tinggi")) {
+        return "tinggi";
+      }
+
+      if (priority.includes("sedang")) {
+        return "sedang";
+      }
+
+      if (priority.includes("rendah")) {
+        return "rendah";
+      }
+
+      return "";
+    }
+
+    /* ====================================================
+           8B. SINKRONISASI PROFIL & FOTO PETUGAS LOGIN
+        ==================================================== */
+
+    function parseStoredJson(storage, key) {
+      try {
+        const raw = storage.getItem(key);
+
+        if (!raw) return null;
+
+        return JSON.parse(raw);
+      } catch (error) {
+        console.warn(`[SIPFAS] Gagal membaca data ${key}:`, error);
+
+        return null;
+      }
+    }
+
+    function formatRoleLabel(role) {
+      const value = normalizeText(role);
+
+      if (value === "administrator" || value === "admin") {
+        return "Administrator";
+      }
+
+      if (value === "petugas") {
+        return "Petugas";
+      }
+
+      if (value === "pelapor" || value === "user") {
+        return "Pelapor";
+      }
+
+      return "Petugas";
+    }
+
+    function getInitials(name) {
+      const parts = String(name || "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+      if (parts.length === 0) return "PT";
+
+      if (parts.length === 1) {
+        return parts[0].slice(0, 2).toUpperCase();
+      }
+
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    function getActiveOfficerProfile() {
+      const activeUser =
+        parseStoredJson(localStorage, ACTIVE_USER_KEY) ||
+        parseStoredJson(sessionStorage, ACTIVE_USER_KEY) ||
+        parseStoredJson(sessionStorage, PENDING_USER_KEY) ||
+        parseStoredJson(localStorage, PENDING_USER_KEY);
+
+      if (!activeUser || typeof activeUser !== "object") {
+        return null;
+      }
+
+      const users = parseStoredJson(localStorage, USERS_KEY);
+
+      let matchedAccount = null;
+
+      if (Array.isArray(users)) {
+        const activeId = String(activeUser.id || "").trim();
+
+        const activeUsername = normalizeText(activeUser.username);
+
+        const activeEmail = normalizeText(activeUser.email);
+
+        matchedAccount =
+          users.find((account) => {
+            if (!account) return false;
+
+            const accId = String(account.id || "").trim();
+
+            const accUsername = normalizeText(account.username);
+
+            const accEmail = normalizeText(account.email);
+
+            return (
+              (activeId && accId === activeId) ||
+              (activeUsername && accUsername === activeUsername) ||
+              (activeEmail && accEmail === activeEmail)
+            );
+          }) || null;
+      }
+
+      const merged = {
+        ...(matchedAccount || {}),
+        ...activeUser,
+      };
+
+      const displayName = String(
+        merged.name ||
+          merged.fullName ||
+          merged.nama ||
+          merged.username ||
+          "Petugas SIPFAS",
+      ).trim();
+
+      const photoKey = merged.username
+        ? PHOTO_PREFIX + encodeURIComponent(normalizeText(merged.username))
+        : "";
+
+      const storedPhoto =
+        (photoKey ? localStorage.getItem(photoKey) : null) ||
+        merged.avatar ||
+        merged.photo ||
+        merged.foto ||
+        "";
+
+      return {
+        id: merged.id || "",
+        name: displayName,
+        username: merged.username || "",
+        email: merged.email || "",
+        role: formatRoleLabel(merged.role),
+        avatar: storedPhoto,
+        initials: getInitials(displayName),
+      };
+    }
+
+    function renderAvatarElement(el, profile) {
+      if (!el) return;
+
+      if (el.tagName === "IMG") {
+        if (profile.avatar) {
+          el.src = profile.avatar;
         }
 
-        /* Mengambil seluruh baris laporan dari tabel. */
-        const reportRows = Array.from(
-            tableBody.querySelectorAll("tr")
+        el.alt = `Foto ${profile.name}`;
+        return;
+      }
+
+      const svgIcon = el.querySelector("svg");
+      let imgInside = el.querySelector(".profile-header-photo, img");
+      let initialsEl = el.querySelector(".profile-header-initials");
+
+      if (profile.avatar) {
+        if (svgIcon) {
+          svgIcon.style.display = "none";
+        }
+
+        if (initialsEl) {
+          initialsEl.remove();
+        }
+
+        if (!imgInside) {
+          imgInside = document.createElement("img");
+          imgInside.className = "profile-header-photo";
+          el.appendChild(imgInside);
+        }
+
+        imgInside.src = profile.avatar;
+        imgInside.alt = `Foto ${profile.name}`;
+
+        Object.assign(imgInside.style, {
+          width: "100%",
+          height: "100%",
+          display: "block",
+          objectFit: "cover",
+          borderRadius: "50%",
+        });
+
+        el.style.overflow = "hidden";
+      } else {
+        if (imgInside) {
+          imgInside.remove();
+        }
+
+        if (svgIcon) {
+          svgIcon.style.display = "none";
+        }
+
+        if (!initialsEl) {
+          initialsEl = document.createElement("span");
+          initialsEl.className = "profile-header-initials";
+          el.appendChild(initialsEl);
+        }
+
+        initialsEl.textContent = profile.initials;
+
+        Object.assign(initialsEl.style, {
+          display: "flex",
+          width: "100%",
+          height: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#ffffff",
+          fontWeight: "700",
+          fontSize: "14px",
+        });
+      }
+
+      el.setAttribute(
+        "aria-label",
+        profile.avatar
+          ? `Foto profil ${profile.name}`
+          : `Profil ${profile.name}`,
+      );
+    }
+
+    function synchronizeOfficerProfile() {
+      const profile = getActiveOfficerProfile();
+
+      if (!profile) {
+        console.warn("[SIPFAS] Sesi akun petugas aktif tidak ditemukan.");
+
+        return;
+      }
+
+      /* Memperbarui nama profil pada header/sidebar. */
+      const nameSelectors = [
+        "#officerName",
+        "#petugasName",
+        "#profileName",
+        "#userName",
+        ".officer-name",
+        ".petugas-name",
+        ".profile-name",
+        ".user-name",
+        ".account-name",
+        "[data-profile-name]",
+        "[data-user-name]",
+      ];
+
+      document.querySelectorAll(nameSelectors.join(", ")).forEach((el) => {
+        el.textContent = profile.name;
+      });
+
+      /* Memperbarui label role/jabatan petugas. */
+      const roleSelectors = [
+        "#officerRole",
+        "#petugasRole",
+        "#profileRole",
+        "#userRole",
+        ".officer-role",
+        ".petugas-role",
+        ".profile-role",
+        ".user-role",
+        ".account-role",
+        "[data-profile-role]",
+        "[data-user-role]",
+      ];
+
+      document.querySelectorAll(roleSelectors.join(", ")).forEach((el) => {
+        el.textContent = profile.role;
+      });
+
+      /* Memperbarui email jika ditampilkan di profil. */
+      const emailSelectors = [
+        "#officerEmail",
+        "#profileEmail",
+        "#userEmail",
+        ".profile-email",
+        ".user-email",
+        "[data-profile-email]",
+      ];
+
+      if (profile.email) {
+        document.querySelectorAll(emailSelectors.join(", ")).forEach((el) => {
+          el.textContent = profile.email;
+        });
+      }
+
+      /* Memperbarui foto avatar atau inisial petugas. */
+      const avatarSelectors = [
+        ".profile-area .profile-avatar",
+        "#profileAvatar",
+        "#userAvatar",
+        "#officerAvatar",
+        ".profile-avatar",
+        ".user-avatar",
+        ".avatar",
+        "[data-profile-avatar]",
+      ];
+
+      document.querySelectorAll(avatarSelectors.join(", ")).forEach((el) => {
+        renderAvatarElement(el, profile);
+      });
+
+      /* Fallback untuk struktur .user-profile / .profile-info tanpa class spesifik anak. */
+      const profileContainers = document.querySelectorAll(
+        ".user-profile, .profile-box, .header-profile, .sidebar-profile",
+      );
+
+      profileContainers.forEach((container) => {
+        const hasExplicit = container.querySelector(nameSelectors.join(", "));
+
+        if (hasExplicit) return;
+
+        const strongEl = container.querySelector("strong, h4, h5, .name");
+
+        const subEl = container.querySelector("small, span:not(.avatar), p");
+
+        if (strongEl) {
+          strongEl.textContent = profile.name;
+        }
+
+        if (subEl && subEl !== strongEl && !subEl.querySelector("img")) {
+          subEl.textContent = profile.role;
+        }
+      });
+
+      console.log(
+        `[SIPFAS] Profil & foto petugas tersinkronisasi: ${profile.name} (${profile.role})`,
+      );
+    }
+
+    /* ====================================================
+           9. MEMBERSIHKAN TEKS KOLOM
+        ==================================================== */
+
+    function cleanCell(cell) {
+      return String(cell?.innerText || cell?.textContent || "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    /* ====================================================
+           10. MEMBACA KODE LAPORAN
+        ==================================================== */
+
+    function getReportCode(row) {
+      if (!row) return "";
+
+      return normalizeCode(row.dataset.reportCode || cleanCell(row.cells[0]));
+    }
+
+    /* ====================================================
+           11. MEMBACA NAMA PELAPOR
+        ==================================================== */
+
+    function getReporterName(row) {
+      const reporterCell = row?.cells[1];
+
+      if (!reporterCell) return "";
+
+      const strong = reporterCell.querySelector("strong");
+
+      if (strong) {
+        return cleanCell(strong);
+      }
+
+      const small = reporterCell.querySelector("small");
+
+      let name = cleanCell(reporterCell);
+
+      if (small) {
+        name = name.replace(cleanCell(small), "");
+      }
+
+      return name.trim();
+    }
+
+    /* ====================================================
+           12. MEMBACA NIM PELAPOR
+        ==================================================== */
+
+    function getReporterNim(row) {
+      const reporterCell = row?.cells[1];
+
+      if (!reporterCell) return "";
+
+      const small = reporterCell.querySelector("small");
+
+      if (small) {
+        return cleanCell(small);
+      }
+
+      const text = cleanCell(reporterCell);
+
+      const match = text.match(/\b\d{6,20}\b/);
+
+      return match ? match[0] : "";
+    }
+
+    /* ====================================================
+           13. MEMBACA NAMA FASILITAS
+        ==================================================== */
+
+    function getFacility(row) {
+      return cleanCell(row?.cells[2]);
+    }
+
+    /* ====================================================
+           14. MEMBACA LOKASI FASILITAS
+        ==================================================== */
+
+    function getLocation(row) {
+      return cleanCell(row?.cells[3]);
+    }
+
+    /* ====================================================
+           15. MEMBACA TANGGAL LAPORAN
+        ==================================================== */
+
+    function getReportDate(row) {
+      const dateCell = row?.cells[4];
+
+      return (
+        row?.dataset.createdAt ||
+        row?.dataset.reportTime ||
+        dateCell?.dataset.timestamp ||
+        cleanCell(dateCell)
+      );
+    }
+
+    /* ====================================================
+           16. MEMBACA PRIORITAS LAPORAN
+        ==================================================== */
+
+    function getReportPriority(row) {
+      const datasetPriority = normalizePriority(row?.dataset.priority);
+
+      if (datasetPriority) {
+        return datasetPriority;
+      }
+
+      return normalizePriority(cleanCell(row?.cells[5]));
+    }
+
+    /* ====================================================
+           17. MEMBACA DATA VERIFIKASI
+        ==================================================== */
+
+    function getVerificationData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+
+        if (raw === null) {
+          return {};
+        }
+
+        const data = JSON.parse(raw);
+
+        if (!data || typeof data !== "object" || Array.isArray(data)) {
+          throw new Error("Format penyimpanan verifikasi tidak valid.");
+        }
+
+        return data;
+      } catch (error) {
+        console.error("[SIPFAS] Kesalahan membaca data verifikasi:", error);
+
+        return null;
+      }
+    }
+
+    /* ====================================================
+           18. SINKRONISASI WAKTU VERIFIKASI TERBARU
+        ==================================================== */
+
+    function getLatestVerificationTimestamp() {
+      const verificationData = getVerificationData();
+
+      if (verificationData === null) {
+        return null;
+      }
+
+      const timestamps = Object.values(verificationData)
+        .filter((item) => {
+          if (!item || !item.verifiedAt) {
+            return false;
+          }
+
+          const decision = normalizeDecision(
+            item.decision || item.decisionLabel || item.status,
+          );
+
+          return Boolean(decision);
+        })
+        .map((item) => {
+          const date = new Date(item.verifiedAt);
+
+          return Number.isNaN(date.getTime()) ? null : date;
+        })
+        .filter(Boolean);
+
+      if (timestamps.length === 0) {
+        return null;
+      }
+
+      return timestamps.reduce((latest, current) => {
+        return current.getTime() > latest.getTime() ? current : latest;
+      });
+    }
+
+    /* ====================================================
+           19. FORMAT WAKTU WIT
+        ==================================================== */
+
+    function formatLatestVerificationTime(timestamp) {
+      if (!timestamp) {
+        return "Belum ada verifikasi";
+      }
+
+      const date = new Date(timestamp);
+
+      if (Number.isNaN(date.getTime())) {
+        return "Belum ada verifikasi";
+      }
+
+      const time = new Intl.DateTimeFormat("id-ID", {
+        timeZone: TIME_ZONE,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hourCycle: "h23",
+      }).format(date);
+
+      const reportDate = new Intl.DateTimeFormat("en-CA", {
+        timeZone: TIME_ZONE,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(date);
+
+      const today = new Intl.DateTimeFormat("en-CA", {
+        timeZone: TIME_ZONE,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date());
+
+      if (reportDate === today) {
+        return `Hari ini, ${time} WIT`;
+      }
+
+      const formattedDate = new Intl.DateTimeFormat("id-ID", {
+        timeZone: TIME_ZONE,
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }).format(date);
+
+      return `${formattedDate}, pukul ${time} WIT`;
+    }
+
+    /* ====================================================
+           20. MEMPERBARUI TAMPILAN UPDATE TERAKHIR
+        ==================================================== */
+
+    function updateLatestVerificationDisplay() {
+      const timestamp = getLatestVerificationTimestamp();
+
+      if (timestamp === null) {
+        const data = getVerificationData();
+
+        if (data === null) {
+          return;
+        }
+      }
+
+      const formattedTime = formatLatestVerificationTime(timestamp);
+
+      const explicitElement = document.querySelector(
+        "#lastUpdate, " +
+          "#lastUpdated, " +
+          ".last-update, " +
+          ".update-terakhir, " +
+          "[data-last-update]",
+      );
+
+      if (explicitElement) {
+        explicitElement.textContent = `Update Terakhir: ${formattedTime}`;
+
+        return;
+      }
+
+      const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT,
+      );
+
+      let node;
+
+      while ((node = walker.nextNode())) {
+        if (/Update Terakhir\s*:/i.test(node.nodeValue)) {
+          node.nodeValue = node.nodeValue.replace(
+            /Update Terakhir\s*:.*/i,
+            `Update Terakhir: ${formattedTime}`,
+          );
+
+          return;
+        }
+      }
+
+      console.warn("[SIPFAS] Elemen Update Terakhir tidak ditemukan.");
+    }
+
+    /* ====================================================
+           21. MENYIMPAN LAPORAN TERPILIH
+        ==================================================== */
+
+    function saveSelectedReport(report) {
+      try {
+        localStorage.setItem(SELECTED_REPORT_KEY, JSON.stringify(report));
+
+        const saved = JSON.parse(localStorage.getItem(SELECTED_REPORT_KEY));
+
+        if (!saved || normalizeCode(saved.id) !== normalizeCode(report.id)) {
+          throw new Error("Validasi penyimpanan laporan gagal.");
+        }
+
+        return true;
+      } catch (error) {
+        console.error("[SIPFAS] Gagal menyimpan laporan terpilih:", error);
+
+        return false;
+      }
+    }
+
+    /* ====================================================
+           22. SINKRONISASI STATUS VERIFIKASI
+        ==================================================== */
+
+    function synchronizeVerification() {
+      const verificationData = getVerificationData();
+
+      if (verificationData === null) {
+        console.error("[SIPFAS] Sinkronisasi dibatalkan.");
+
+        return;
+      }
+
+      reportRows.forEach((row) => {
+        const reportCode = getReportCode(row);
+
+        const statusCell = row.cells[6];
+
+        const priorityCell = row.cells[5];
+
+        if (!reportCode || !statusCell) {
+          return;
+        }
+
+        const statusPill = statusCell.querySelector(".status-pill");
+
+        if (!statusPill) {
+          return;
+        }
+
+        const savedData = verificationData[reportCode];
+
+        const decision = normalizeDecision(
+          savedData?.decision || savedData?.decisionLabel || savedData?.status,
         );
 
-        /* ====================================================
-           3. NORMALISASI TEKS
-        ==================================================== */
+        /* --------------------------------------------
+                   LAPORAN BELUM DIVERIFIKASI
+                -------------------------------------------- */
 
-        function normalizeText(value) {
-            return String(value ?? "")
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .replace(/\s+/g, " ")
-                .trim()
-                .toLowerCase();
+        if (!savedData || !decision) {
+          statusPill.textContent = "Menunggu Verifikasi";
+
+          row.dataset.verificationStatus = "menunggu";
+
+          statusPill.setAttribute("aria-label", "Menunggu Verifikasi");
+
+          statusPill.removeAttribute("title");
+
+          return;
         }
 
-        /* ====================================================
-           4. MEMBERSIHKAN ISI KOLOM
-        ==================================================== */
+        /* --------------------------------------------
+                   LAPORAN VALID
+                -------------------------------------------- */
 
-        function cleanCell(cell) {
-            return String(
-                cell?.innerText || cell?.textContent || ""
-            )
-                .replace(/\s+/g, " ")
-                .trim();
+        if (decision === "valid") {
+          statusPill.textContent = "Terverifikasi";
+
+          row.dataset.verificationStatus = "valid";
+
+          statusPill.setAttribute("aria-label", "Terverifikasi");
         }
 
-        /* ====================================================
-           5. MENGAMBIL KODE LAPORAN
-        ==================================================== */
+        /* --------------------------------------------
+                   LAPORAN TIDAK VALID
+                -------------------------------------------- */
 
-        function getReportCode(row) {
-            const raw = cleanCell(row.cells[0]);
+        if (decision === "invalid") {
+          statusPill.textContent = "Tidak Valid";
 
-            const match = raw.match(
-                /LPR[-\s]?\d{4}[-\s]?\d+/i
-            );
+          row.dataset.verificationStatus = "invalid";
 
-            return match
-                ? match[0].replace(/\s+/g, "").toUpperCase()
-                : raw.replace(/\s+/g, "");
+          statusPill.setAttribute("aria-label", "Tidak Valid");
         }
 
-        /* ====================================================
-           6. NORMALISASI PRIORITAS
-        ==================================================== */
+        /* --------------------------------------------
+                   WAKTU VERIFIKASI
+                -------------------------------------------- */
 
-        function normalizePriority(value) {
-            const priority = normalizeText(value);
+        if (savedData.verifiedAt) {
+          const verifiedDate = new Date(savedData.verifiedAt);
 
-            if (priority.includes("tinggi")) return "tinggi";
-            if (priority.includes("sedang")) return "sedang";
-            if (priority.includes("rendah")) return "rendah";
-
-            return "";
+          if (!Number.isNaN(verifiedDate.getTime())) {
+            statusPill.title =
+              "Waktu verifikasi: " + formatLatestVerificationTime(verifiedDate);
+          }
         }
 
-        /* ====================================================
-           7. MEMBACA DATA LOCAL STORAGE
-        ==================================================== */
-
-        function getVerificationData() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-
-                if (!raw) return {};
-
-                const data = JSON.parse(raw);
-
-                if (
-                    !data ||
-                    typeof data !== "object" ||
-                    Array.isArray(data)
-                ) {
-                    throw new Error("Format data tidak valid.");
-                }
-
-                return data;
-
-            } catch (error) {
-                console.error(
-                    "[SIPFAS] Gagal membaca data:",
-                    error
-                );
-
-                return null;
-            }
-        }
-
-        /* ====================================================
-           8. MEMBACA PRIORITAS LAPORAN
-        ==================================================== */
-
-        function getReportPriority(row) {
-
-            /* Membaca prioritas terbaru dari atribut baris. */
-            const datasetPriority = normalizePriority(
-                row.getAttribute("data-priority")
-            );
-
-            if (datasetPriority) {
-                return datasetPriority;
-            }
-
-            /* Membaca prioritas dari kolom tabel. */
-            return normalizePriority(
-                cleanCell(row.cells[5])
-            );
-        }
-
-        /* ====================================================
-           9. MEMPERBARUI BADGE PRIORITAS C4.5
-        ==================================================== */
-
-        function updatePriorityBadge(row, priority) {
-            const priorityCell = row.cells[5];
-
-            if (!priorityCell) {
-                console.warn(
-                    "[SIPFAS] Kolom prioritas tidak ditemukan:",
-                    getReportCode(row)
-                );
-                return;
-            }
-
-            /* Menentukan konfigurasi warna setiap prioritas. */
-            const styles = {
-                tinggi: {
-                    label: "Tinggi",
-                    background: "#FEE2E2",
-                    color: "#B91C1C",
-                    dot: "#DC2626"
-                },
-
-                sedang: {
-                    label: "Sedang",
-                    background: "#FEF3C7",
-                    color: "#92400E",
-                    dot: "#D97706"
-                },
-
-                rendah: {
-                    label: "Rendah",
-                    background: "#D1FAE5",
-                    color: "#047857",
-                    dot: "#059669"
-                }
-            };
-
-            const config = styles[priority];
-
-            if (!config) return;
-
-            /* Memperbarui atribut prioritas pada baris. */
-            row.dataset.priority = priority;
-
-            row.setAttribute(
-                "data-priority",
-                priority
-            );
-
-            /* Membuat badge prioritas terbaru. */
-            const badge = document.createElement("span");
-
-            badge.className = "priority-badge";
-            badge.dataset.priority = priority;
-
-            badge.style.display = "inline-flex";
-            badge.style.alignItems = "center";
-            badge.style.justifyContent = "center";
-            badge.style.gap = "8px";
-            badge.style.padding = "6px 14px";
-            badge.style.borderRadius = "999px";
-            badge.style.backgroundColor = config.background;
-            badge.style.color = config.color;
-            badge.style.fontWeight = "500";
-            badge.style.whiteSpace = "nowrap";
-
-            /* Membuat titik indikator warna. */
-            const dot = document.createElement("span");
-
-            dot.style.width = "8px";
-            dot.style.height = "8px";
-            dot.style.borderRadius = "50%";
-            dot.style.backgroundColor = config.dot;
-            dot.style.flexShrink = "0";
-
-            badge.appendChild(dot);
-
-            badge.appendChild(
-                document.createTextNode(config.label)
-            );
-
-            /* Mengganti badge lama dengan badge terbaru. */
-            priorityCell.replaceChildren(badge);
-
-            console.log(
-                `[SIPFAS] Prioritas ${getReportCode(row)} diperbarui menjadi ${config.label}.`
-            );
-        }
-
-        /* ====================================================
-           10. MEMPERBARUI STATUS VERIFIKASI
-        ==================================================== */
-
-        function updateRowStatus(row, decision) {
-            const statusCell = row.cells[6];
-
-            if (!statusCell) return;
-
-            let statusPill = statusCell.querySelector(
-                ".status-pill"
-            );
-
-            if (!statusPill) {
-                statusPill = statusCell.querySelector("span");
-            }
-
-            if (!statusPill) return;
-
-            /* Menentukan label status verifikasi. */
-            const labels = {
-                pending: "Menunggu Verifikasi",
-                valid: "Terverifikasi",
-                invalid: "Tidak Valid"
-            };
-
-            const label = labels[decision] || labels.pending;
-
-            statusPill.textContent = label;
-
-            statusPill.dataset.reportStatus = decision;
-
-            statusPill.setAttribute(
-                "aria-label",
-                label
-            );
-
-            row.dataset.verificationStatus = decision;
-        }
-
-        /* ====================================================
-           11. SINKRONISASI PRIORITAS DAN STATUS
-        ==================================================== */
-
-        function synchronizeVerification() {
-            const verificationData = getVerificationData();
-
-            if (verificationData === null) {
-                console.error("[SIPFAS] Sinkronisasi dibatalkan.");
-                return;
-            }
-
-            reportRows.forEach(row => {
-                const reportCode = getReportCode(row);
-
-                if (!reportCode) return;
-
-                /* Mengambil hasil berdasarkan kode laporan. */
-                const savedData = verificationData[reportCode];
-
-                /* Mempertahankan kondisi awal jika belum diverifikasi. */
-                if (!savedData) {
-                    updateRowStatus(row, "pending");
-                    return;
-                }
-
-                /* Memperbarui prioritas C4.5. */
-                const latestPriority = normalizePriority(
-                    savedData.priority ||
-                    savedData.priorityLabel
-                );
-
-                if (latestPriority) {
-                    updatePriorityBadge(
-                        row,
-                        latestPriority
-                    );
-                }
-
-                /* Memperbarui status verifikasi. */
-                const rawDecision = normalizeText(
-                    savedData.decision || ""
-                );
-
-                const decision =
-                    rawDecision === "valid"
-                        ? "valid"
-                        : rawDecision === "invalid"
-                            ? "invalid"
-                            : "pending";
-
-                updateRowStatus(row, decision);
-            });
-
-            console.log(
-                "[SIPFAS] Seluruh prioritas dan status berhasil disinkronkan."
-            );
-        }
-
-        /* ====================================================
-           12. MENGGABUNGKAN TEKS LAPORAN
-        ==================================================== */
-
-        function getReportText(row) {
-            return normalizeText(
-                Array.from(row.cells)
-                    .map(cleanCell)
-                    .join(" ")
-            );
-        }
-
-        /* ====================================================
-           13. PENCARIAN LAPORAN
-        ==================================================== */
-
-        function matchesSearch(row, keyword) {
-            if (!keyword) return true;
-
-            const words = keyword
-                .split(/\s+/)
-                .filter(Boolean);
-
-            const content = getReportText(row);
-
-            return words.every(word =>
-                content.includes(word)
-            );
-        }
-
-        /* ====================================================
-           14. FILTER PRIORITAS
-        ==================================================== */
-
-        function matchesPriority(row, selectedPriority) {
-            if (
-                !selectedPriority ||
-                selectedPriority === "semua"
-            ) {
-                return true;
-            }
-
-            return getReportPriority(row) === selectedPriority;
-        }
-
-        /* ====================================================
-           15. MENJALANKAN PENCARIAN DAN FILTER
-        ==================================================== */
-
-        function filterReports() {
-            const keyword = normalizeText(searchInput.value);
-
-            const selectedPriority = normalizeText(
-                priorityFilter.value
-            );
-
-            let visibleCount = 0;
-
-            reportRows.forEach(row => {
-                const visible =
-                    matchesSearch(row, keyword) &&
-                    matchesPriority(row, selectedPriority);
-
-                row.hidden = !visible;
-
-                if (visible) {
-                    row.style.removeProperty("display");
-                    visibleCount++;
-                } else {
-                    row.style.setProperty(
-                        "display",
-                        "none",
-                        "important"
-                    );
-                }
-            });
-
-            /* Menampilkan pesan jika hasil pencarian kosong. */
-            if (emptyState) {
-                emptyState.hidden = visibleCount > 0;
-
-                emptyState.style.display =
-                    visibleCount > 0 ? "none" : "block";
-            }
-        }
-
-        /* ====================================================
-           16. EVENT PENCARIAN DAN FILTER
-        ==================================================== */
-
-        searchInput.addEventListener(
-            "input",
-            filterReports
+        /* --------------------------------------------
+                   PRIORITAS HASIL VERIFIKASI
+                -------------------------------------------- */
+
+        const latestPriority = normalizePriority(
+          savedData.priority || savedData.priorityLabel,
         );
 
-        searchInput.addEventListener(
-            "search",
-            filterReports
-        );
+        if (latestPriority && priorityCell) {
+          const labels = {
+            tinggi: "Tinggi",
 
-        priorityFilter.addEventListener(
-            "change",
-            filterReports
-        );
+            sedang: "Sedang",
 
-        /* ====================================================
-           17. MENGAMBIL IDENTITAS PELAPOR
-        ==================================================== */
+            rendah: "Rendah",
+          };
 
-        function getSelectedReport(row) {
+          const priorityElement =
+            priorityCell.querySelector(".pill, .priority");
 
-            /* Mengambil sel kolom pelapor. */
-            const reporterCell = row.cells[1];
+          if (priorityElement) {
+            priorityElement.textContent = labels[latestPriority];
+          }
 
-            /* Membaca teks asli tanpa menghilangkan baris. */
-            const reporterText = String(
-                reporterCell?.innerText ||
-                reporterCell?.textContent ||
-                ""
-            )
-                .replace(/\r/g, "")
-                .trim();
-
-            /* Memisahkan identitas berdasarkan baris. */
-            const reporterLines = reporterText
-                .split(/\n+/)
-                .map(line => line.trim())
-                .filter(Boolean);
-
-            /* Menyediakan tempat untuk bagian nama. */
-            const nameParts = [];
-
-            /* Menyediakan variabel khusus NIM. */
-            let reporterNim = "";
-
-            /* Memeriksa setiap baris identitas pelapor. */
-            reporterLines.forEach(line => {
-
-                /* Menghapus informasi program studi. */
-                const identityLine = line
-                    .replace(
-                        /\s*[—–-]?\s*Program\s+Studi\b.*$/i,
-                        ""
-                    )
-                    .trim();
-
-                /* Mengabaikan baris kosong. */
-                if (!identityLine) return;
-
-                /* Mencari NIM dengan atau tanpa label. */
-                const nimMatch = identityLine.match(
-                    /(?:NIM\s*[:：.-]?\s*)?(\d{6,20})/i
-                );
-
-                /* Memisahkan NIM dari nama. */
-                if (nimMatch) {
-
-                    /* Menyimpan nomor NIM saja. */
-                    reporterNim = nimMatch[1];
-
-                    /* Menghapus NIM dari teks nama. */
-                    const remainingName = identityLine
-                        .replace(nimMatch[0], "")
-                        .replace(/NIM\s*[:：.-]?/i, "")
-                        .replace(/[|•–—-]+$/g, "")
-                        .trim();
-
-                    /* Menyimpan nama jika berada pada baris yang sama. */
-                    if (remainingName) {
-                        nameParts.push(remainingName);
-                    }
-
-                    return;
-                }
-
-                /* Menghapus label nama atau pelapor. */
-                const cleanedName = identityLine
-                    .replace(/^(nama\s*[:：.-]?\s*)/i, "")
-                    .replace(/^(pelapor\s*[:：.-]?\s*)/i, "")
-                    .trim();
-
-                /* Menyimpan bagian nama yang ditemukan. */
-                if (cleanedName) {
-                    nameParts.push(cleanedName);
-                }
-            });
-
-            /* Menggabungkan semua bagian menjadi nama lengkap. */
-            const reporterName = nameParts
-                .join(" ")
-                .replace(/\s+/g, " ")
-                .trim();
-
-            /* Mengambil kode unik laporan. */
-            const reportCode = getReportCode(row);
-
-            /* Mengembalikan data laporan yang dipilih. */
-            return {
-                id: reportCode,
-
-                /* Menyimpan teks asli untuk kompatibilitas. */
-                reporter: reporterText,
-
-                /* Menyimpan nama lengkap pelapor. */
-                reporterName: reporterName,
-
-                /* Menyimpan NIM berupa angka saja. */
-                reporterNim: reporterNim,
-
-                /* Mengambil nama fasilitas. */
-                facility: cleanCell(row.cells[2]),
-
-                /* Mengambil lokasi fasilitas. */
-                location: cleanCell(row.cells[3]),
-
-                /* Mengambil tanggal laporan. */
-                date: cleanCell(row.cells[4]),
-
-                /* Mengambil prioritas C4.5. */
-                priority: getReportPriority(row),
-
-                /* Mencatat waktu pemilihan laporan. */
-                selectedAt: new Date().toISOString()
-            };
+          row.dataset.priority = latestPriority;
         }
+      });
 
-        /* ====================================================
-           18. TOMBOL PERIKSA
+      console.log("[SIPFAS] Sinkronisasi verifikasi berhasil.");
+    }
+
+    /* ====================================================
+           23. MEMBACA SELURUH INFORMASI LAPORAN
         ==================================================== */
 
-        tableBody.addEventListener("click", event => {
+    function getReportText(row) {
+      return normalizeText(
+        Array.from(row.cells)
 
-            /* Mengambil tombol Periksa yang diklik. */
-            const button = event.target.closest(".check-button");
+          .map((cell) => cleanCell(cell))
 
-            if (!button) return;
+          .join(" "),
+      );
+    }
 
-            /* Mengambil baris laporan yang dipilih. */
-            const row = button.closest("tr");
-
-            if (!row) return;
-
-            /* Mengambil seluruh identitas laporan. */
-            const report = getSelectedReport(row);
-
-            /* Memastikan kode laporan tersedia. */
-            if (!report.id) {
-                event.preventDefault();
-                alert("Kode laporan tidak ditemukan.");
-                return;
-            }
-
-            try {
-
-                /* Menyimpan identitas laporan ke Local Storage. */
-                localStorage.setItem(
-                    SELECTED_REPORT_KEY,
-                    JSON.stringify(report)
-                );
-
-                /* Memeriksa apakah tombol berada di dalam link. */
-                const anchor = button.matches("a[href]")
-                    ? button
-                    : button.closest("a[href]");
-
-                if (anchor) {
-
-                    /* Mempertahankan URL tujuan yang sudah tersedia. */
-                    const target = new URL(anchor.href);
-
-                    target.searchParams.set(
-                        "kode",
-                        report.id
-                    );
-
-                    anchor.href = target.toString();
-
-                } else {
-
-                    /* Mengarahkan ke halaman Detail Verifikasi. */
-                    event.preventDefault();
-
-                    const detailURL = new URL(
-                        "../Detail-Verifikasi-Laporan/Detail-Verifikasi-Laporan.html",
-                        window.location.href
-                    );
-
-                    detailURL.searchParams.set(
-                        "kode",
-                        report.id
-                    );
-
-                    window.location.href = detailURL.toString();
-                }
-
-                console.log(
-                    "[SIPFAS] Laporan terpilih:",
-                    report
-                );
-
-            } catch (error) {
-
-                event.preventDefault();
-
-                console.error(
-                    "[SIPFAS] Gagal membuka laporan:",
-                    error
-                );
-
-                alert("Gagal membuka detail laporan.");
-            }
-        });
-
-        /* ====================================================
-           19. SINKRONISASI ANTARHALAMAN
+    /* ====================================================
+           24. PENCARIAN LAPORAN
         ==================================================== */
 
-        /* Memperbarui data jika Local Storage berubah dari tab lain. */
-        window.addEventListener("storage", event => {
-            if (
-                event.key === STORAGE_KEY ||
-                event.key === null
-            ) {
-                synchronizeVerification();
-                filterReports();
-            }
-        });
+    function matchesSearch(row, keyword) {
+      if (!keyword) {
+        return true;
+      }
 
-        /* Memperbarui data setelah verifikasi disimpan. */
-        window.addEventListener(
-            "sipfas:verification-saved",
-            () => {
-                synchronizeVerification();
-                filterReports();
-            }
-        );
+      const reportText = getReportText(row);
 
-        /* Memperbarui data ketika pengguna kembali ke halaman. */
-        window.addEventListener("pageshow", () => {
-            synchronizeVerification();
-            filterReports();
-        });
+      const keywords = keyword.split(/\s+/).filter(Boolean);
 
-        /* Memperbarui data ketika halaman kembali aktif. */
-        document.addEventListener("visibilitychange", () => {
-            if (!document.hidden) {
-                synchronizeVerification();
-                filterReports();
-            }
-        });
+      return keywords.every((word) => reportText.includes(word));
+    }
 
-        /* ====================================================
-           20. SIDEBAR RESPONSIF
+    /* ====================================================
+           25. FILTER PRIORITAS
         ==================================================== */
 
-        function setSidebar(open) {
-            if (!sidebar) return;
+    function normalizePriorityFilter(value) {
+      const normalized = normalizeText(value);
 
-            sidebar.classList.toggle("open", open);
+      if (
+        !normalized ||
+        normalized === "semua" ||
+        normalized.includes("semua prioritas")
+      ) {
+        return "semua";
+      }
 
-            pageOverlay?.classList.toggle("show", open);
+      return normalizePriority(normalized);
+    }
 
-            menuToggle?.setAttribute(
-                "aria-expanded",
-                String(open)
-            );
+    function matchesPriority(row, selectedPriority) {
+      if (!selectedPriority || selectedPriority === "semua") {
+        return true;
+      }
+
+      return getReportPriority(row) === selectedPriority;
+    }
+
+    /* ====================================================
+           26. MENJALANKAN PENCARIAN DAN FILTER
+        ==================================================== */
+
+    function filterReports() {
+      const keyword = normalizeText(searchInput.value);
+
+      const selectedPriority = normalizePriorityFilter(priorityFilter.value);
+
+      let visibleCount = 0;
+
+      reportRows.forEach((row) => {
+        const searchMatch = matchesSearch(row, keyword);
+
+        const priorityMatch = matchesPriority(row, selectedPriority);
+
+        const visible = searchMatch && priorityMatch;
+
+        row.hidden = !visible;
+
+        if (visible) {
+          row.style.removeProperty("display");
+
+          visibleCount++;
+        } else {
+          row.style.setProperty("display", "none", "important");
         }
+      });
 
-        /* Mengaktifkan tombol buka dan tutup sidebar. */
-        menuToggle?.addEventListener("click", () => {
-            setSidebar(
-                !sidebar.classList.contains("open")
-            );
-        });
+      /* Pesan ketika data tidak ditemukan. */
 
-        /* Menutup sidebar ketika overlay diklik. */
-        pageOverlay?.addEventListener(
-            "click",
-            () => setSidebar(false)
-        );
+      if (emptyState) {
+        emptyState.hidden = visibleCount > 0;
 
-        /* Menutup sidebar setelah menu navigasi dipilih. */
-        document.querySelectorAll(".nav-link").forEach(link => {
-            link.addEventListener(
-                "click",
-                () => setSidebar(false)
-            );
-        });
+        emptyState.style.display = visibleCount > 0 ? "none" : "block";
+      }
 
-        /* Menutup sidebar menggunakan tombol Escape. */
-        document.addEventListener("keydown", event => {
-            if (event.key === "Escape") {
-                setSidebar(false);
-            }
-        });
+      console.log("[SIPFAS] Jumlah laporan ditemukan:", visibleCount);
+    }
 
-        /* ====================================================
-           21. KONFIRMASI KELUAR
+    /* ====================================================
+           27. EVENT PENCARIAN
         ==================================================== */
 
-        logoutLink?.addEventListener("click", event => {
+    searchInput.addEventListener("input", filterReports);
 
-            /* Mencegah navigasi sebelum konfirmasi. */
-            event.preventDefault();
+    searchInput.addEventListener("search", filterReports);
 
-            /* Meminta konfirmasi pengguna. */
-            const confirmation = window.confirm(
-                "Apakah Anda yakin ingin keluar dari sistem SIPFAS?"
-            );
-
-            if (!confirmation) return;
-
-            /* Membersihkan sesi login tanpa menghapus data laporan. */
-            sessionStorage.clear();
-
-            /* Mengarahkan pengguna ke halaman keluar. */
-            window.location.href = logoutLink.href;
-        });
-
-        /* ====================================================
-           22. INISIALISASI
+    /* ====================================================
+           28. EVENT FILTER
         ==================================================== */
 
-        /* Menyinkronkan prioritas dan status sebelum filter. */
-        synchronizeVerification();
+    priorityFilter.addEventListener("change", filterReports);
 
-        /* Menampilkan seluruh laporan sesuai filter awal. */
-        filterReports();
+    /* ====================================================
+           29. MEMBENTUK DATA LAPORAN TERPILIH
+        ==================================================== */
 
-        /* Menampilkan informasi keberhasilan inisialisasi. */
-        console.log(
-            `[SIPFAS] Halaman siap. Total laporan: ${reportRows.length}`
+    function buildSelectedReport(row) {
+      const reportCode = getReportCode(row);
+
+      if (!reportCode) {
+        return null;
+      }
+
+      let existingData = {};
+
+      try {
+        const raw = localStorage.getItem(SELECTED_REPORT_KEY);
+
+        existingData = raw ? JSON.parse(raw) || {} : {};
+      } catch (error) {
+        console.warn(
+          "[SIPFAS] Metadata laporan sebelumnya tidak dapat dibaca.",
+          error,
         );
 
+        existingData = {};
+      }
+
+      const activeOfficer = getActiveOfficerProfile();
+
+      const report = {
+        ...existingData,
+
+        id: reportCode,
+
+        reportCode: reportCode,
+
+        reporter: getReporterName(row),
+
+        reporterName: getReporterName(row),
+
+        reporterNim: getReporterNim(row),
+
+        facility: getFacility(row),
+
+        facilityName: getFacility(row),
+
+        location: getLocation(row),
+
+        facilityLocation: getLocation(row),
+
+        date: getReportDate(row),
+
+        priority: getReportPriority(row),
+
+        verifierName: activeOfficer?.name || existingData.verifierName || "",
+
+        verifierId: activeOfficer?.id || existingData.verifierId || "",
+
+        selectedAt: new Date().toISOString(),
+      };
+
+      if (!report.reporterName) {
+        console.warn("[SIPFAS] Nama pelapor tidak tersedia:", reportCode);
+      }
+
+      if (!report.location) {
+        console.warn("[SIPFAS] Lokasi laporan tidak tersedia:", reportCode);
+      }
+
+      return report;
+    }
+
+    /* ====================================================
+           30. TOMBOL PERIKSA
+        ==================================================== */
+
+    tableBody.addEventListener("click", function (event) {
+      const checkButton = event.target.closest(".check-button");
+
+      if (!checkButton) {
+        return;
+      }
+
+      const selectedRow = checkButton.closest("tr");
+
+      if (!selectedRow) {
+        event.preventDefault();
+
+        return;
+      }
+
+      const selectedReport = buildSelectedReport(selectedRow);
+
+      if (!selectedReport || !selectedReport.id) {
+        event.preventDefault();
+
+        alert("Kode laporan tidak ditemukan.");
+
+        return;
+      }
+
+      /* Menyimpan laporan terpilih. */
+
+      const saved = saveSelectedReport(selectedReport);
+
+      if (!saved) {
+        event.preventDefault();
+
+        alert("Laporan gagal disimpan. Periksa penyimpanan browser.");
+
+        return;
+      }
+
+      /* Memastikan tujuan navigasi benar. */
+
+      try {
+        const targetUrl = new URL(
+          checkButton.href || DETAIL_URL,
+          window.location.href,
+        );
+
+        targetUrl.searchParams.set("kode", selectedReport.reportCode);
+
+        checkButton.href = targetUrl.href;
+      } catch (error) {
+        console.error("[SIPFAS] Kesalahan navigasi:", error);
+
+        event.preventDefault();
+
+        return;
+      }
+
+      console.log("[SIPFAS] Laporan terpilih:", selectedReport);
     });
 
+    /* ====================================================
+           31. SINKRONISASI LOCAL STORAGE
+        ==================================================== */
+
+    window.addEventListener("storage", function (event) {
+      if (event.key === STORAGE_KEY || event.key === null) {
+        synchronizeVerification();
+
+        filterReports();
+
+        updateLatestVerificationDisplay();
+      }
+
+      if (
+        event.key === ACTIVE_USER_KEY ||
+        event.key === USERS_KEY ||
+        (event.key && event.key.startsWith(PHOTO_PREFIX)) ||
+        event.key === null
+      ) {
+        synchronizeOfficerProfile();
+      }
+    });
+
+    /* ====================================================
+           32. SINKRONISASI EVENT VERIFIKASI & PROFIL
+        ==================================================== */
+
+    window.addEventListener("sipfas:verification-saved", function () {
+      synchronizeVerification();
+
+      filterReports();
+
+      updateLatestVerificationDisplay();
+    });
+
+    window.addEventListener(
+      "sipfas:profile-updated",
+      synchronizeOfficerProfile,
+    );
+
+    /* ====================================================
+           33. REFRESH SAAT HALAMAN KEMBALI AKTIF
+        ==================================================== */
+
+    window.addEventListener("pageshow", function () {
+      synchronizeOfficerProfile();
+
+      synchronizeVerification();
+
+      filterReports();
+
+      updateLatestVerificationDisplay();
+    });
+
+    window.addEventListener("focus", synchronizeOfficerProfile);
+
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) {
+        synchronizeOfficerProfile();
+
+        synchronizeVerification();
+
+        filterReports();
+
+        updateLatestVerificationDisplay();
+      }
+    });
+
+    /* ====================================================
+           34. SIDEBAR RESPONSIF
+        ==================================================== */
+
+    function setSidebar(isOpen) {
+      if (!sidebar) return;
+
+      sidebar.classList.toggle("open", isOpen);
+
+      if (pageOverlay) {
+        pageOverlay.classList.toggle("show", isOpen);
+      }
+
+      if (menuToggle) {
+        menuToggle.setAttribute("aria-expanded", String(isOpen));
+      }
+    }
+
+    /* Membuka sidebar. */
+
+    menuToggle?.addEventListener("click", function () {
+      const isOpen = sidebar?.classList.contains("open") || false;
+
+      setSidebar(!isOpen);
+    });
+
+    /* Menutup sidebar melalui overlay. */
+
+    pageOverlay?.addEventListener("click", function () {
+      setSidebar(false);
+    });
+
+    /* Menutup sidebar setelah memilih menu. */
+
+    document.querySelectorAll(".nav-link").forEach((link) => {
+      link.addEventListener("click", function () {
+        setSidebar(false);
+      });
+    });
+
+    /* Menutup sidebar menggunakan Escape. */
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        setSidebar(false);
+      }
+    });
+
+    /* ====================================================
+           35. KONFIRMASI KELUAR
+        ==================================================== */
+
+    logoutLink?.addEventListener("click", function (event) {
+      const confirmation = window.confirm(
+        "Apakah Anda yakin ingin keluar dari sistem SIPFAS?",
+      );
+
+      if (!confirmation) {
+        event.preventDefault();
+
+        return;
+      }
+
+      /*
+                    Membersihkan sesi login aktif.
+                    Data laporan tidak dihapus.
+                */
+      try {
+        localStorage.removeItem(ACTIVE_USER_KEY);
+        sessionStorage.removeItem(ACTIVE_USER_KEY);
+        sessionStorage.removeItem(PENDING_USER_KEY);
+      } catch (error) {
+        console.warn("[SIPFAS] Gagal membersihkan sesi aktif:", error);
+      }
+    });
+
+    /* ====================================================
+           36. INISIALISASI AKHIR
+        ==================================================== */
+
+    synchronizeOfficerProfile();
+
+    synchronizeVerification();
+
+    filterReports();
+
+    updateLatestVerificationDisplay();
+
+    console.log("==========================================");
+
+    console.log("[SIPFAS] VERIFIKASI LAPORAN AKTIF");
+
+    console.log("[SIPFAS] Total laporan:", reportRows.length);
+
+    console.log("[SIPFAS] Penyimpanan:", STORAGE_KEY);
+
+    console.log("[SIPFAS] Zona waktu:", TIME_ZONE);
+
+    console.log("[SIPFAS] Sinkronisasi waktu, profil & foto petugas aktif.");
+
+    console.log("==========================================");
+  }
 })();
