@@ -7,7 +7,7 @@
  * =========================================================
  *
  * Fungsi:
- * 1. Membuat OTP enam digit.
+ * 1. Membuat OTP delapan digit.
  * 2. Menyimpan OTP dalam database.
  * 3. Membatasi masa berlaku selama 2 menit.
  * 4. Membatasi percobaan maksimal 3 kali.
@@ -17,7 +17,6 @@
  *
  * =========================================================
  */
-
 
 class OtpService
 {
@@ -38,11 +37,10 @@ class OtpService
         string $purpose
     ): string {
 
-        // Memastikan tujuan OTP valid.
         self::validatePurpose($purpose);
 
-        // Membuat kode OTP enam digit.
-        $otp = (string) random_int(100000, 999999);
+        // Membuat OTP delapan digit.
+        $otp = (string) random_int(10000000, 99999999);
 
         // Mengamankan OTP menggunakan password_hash.
         $otpHash = password_hash(
@@ -50,15 +48,14 @@ class OtpService
             PASSWORD_DEFAULT
         );
 
-        // Menghitung waktu kedaluwarsa.
-        $expiredAt = date(
-            'Y-m-d H:i:s',
-            time() + self::OTP_EXPIRY
-        );
+        if ($otpHash === false) {
+            throw new RuntimeException(
+                'Gagal mengamankan kode OTP.'
+            );
+        }
 
         try {
 
-            // Memulai transaksi database.
             $pdo->beginTransaction();
 
             // Membatalkan OTP lama yang belum digunakan.
@@ -77,6 +74,8 @@ class OtpService
             ]);
 
             // Menyimpan OTP baru.
+            // Waktu kedaluwarsa menggunakan waktu MySQL
+            // agar konsisten dengan proses verifikasi.
             $insert = $pdo->prepare("
                 INSERT INTO otp_verifikasi (
                     id_pengguna,
@@ -89,7 +88,7 @@ class OtpService
                     :id_pengguna,
                     :tujuan,
                     :kode_hash,
-                    :berlaku_sampai,
+                    DATE_ADD(NOW(), INTERVAL 120 SECOND),
                     0
                 )
             ");
@@ -97,19 +96,16 @@ class OtpService
             $insert->execute([
                 ':id_pengguna' => $userId,
                 ':tujuan' => $purpose,
-                ':kode_hash' => $otpHash,
-                ':berlaku_sampai' => $expiredAt
+                ':kode_hash' => $otpHash
             ]);
 
-            // Menyimpan perubahan database.
             $pdo->commit();
 
-            // Mengembalikan kode OTP untuk dikirim melalui email.
+            // Mengembalikan OTP asli untuk dikirim melalui email.
             return $otp;
 
         } catch (Throwable $e) {
 
-            // Membatalkan transaksi jika terjadi kesalahan.
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
@@ -130,17 +126,15 @@ class OtpService
         string $otp
     ): bool {
 
-        // Memastikan tujuan OTP valid.
         self::validatePurpose($purpose);
 
-        // Memastikan format OTP terdiri dari enam angka.
-        if (!preg_match('/^[0-9]{6}$/', $otp)) {
+        // Memastikan OTP terdiri dari delapan angka.
+        if (!preg_match('/^[0-9]{8}$/D', $otp)) {
             return false;
         }
 
         try {
 
-            // Memulai transaksi database.
             $pdo->beginTransaction();
 
             // Mengambil OTP terbaru yang masih aktif.
@@ -166,7 +160,6 @@ class OtpService
 
             $record = $query->fetch(PDO::FETCH_ASSOC);
 
-            // Jika OTP tidak ditemukan atau sudah kedaluwarsa.
             if (!$record) {
                 $pdo->commit();
                 return false;
@@ -181,16 +174,12 @@ class OtpService
             // Jika OTP salah.
             if (!$isValid) {
 
-                // Menambah jumlah percobaan.
                 $attempts = (int) $record['jumlah_percobaan'] + 1;
 
-                // Jika sudah mencapai tiga kali,
-                // OTP otomatis dibatalkan.
                 $cancelledAt = (
                     $attempts >= self::MAX_ATTEMPTS
                 ) ? date('Y-m-d H:i:s') : null;
 
-                // Memperbarui jumlah percobaan.
                 $update = $pdo->prepare("
                     UPDATE otp_verifikasi
                     SET
@@ -210,25 +199,31 @@ class OtpService
                 return false;
             }
 
-            // Jika OTP benar, tandai sebagai sudah digunakan.
+            // Jika OTP benar, tandai sudah digunakan.
             $update = $pdo->prepare("
                 UPDATE otp_verifikasi
                 SET digunakan_pada = NOW()
                 WHERE id_otp = :id_otp
+                AND digunakan_pada IS NULL
+                AND dibatalkan_pada IS NULL
+                AND berlaku_sampai > NOW()
             ");
 
             $update->execute([
                 ':id_otp' => $record['id_otp']
             ]);
 
-            // Menyimpan perubahan.
+            if ($update->rowCount() !== 1) {
+                $pdo->rollBack();
+                return false;
+            }
+
             $pdo->commit();
 
             return true;
 
         } catch (Throwable $e) {
 
-            // Membatalkan transaksi jika terjadi kesalahan.
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
@@ -274,15 +269,14 @@ class OtpService
         string $purpose
     ): void {
 
-        // Daftar tujuan OTP yang diperbolehkan.
         $allowed = [
             'Login',
             'Pemulihan',
             'VerifikasiEmail'
         ];
 
-        // Menolak tujuan yang tidak dikenal.
         if (!in_array($purpose, $allowed, true)) {
+
             throw new InvalidArgumentException(
                 'Tujuan OTP tidak valid.'
             );

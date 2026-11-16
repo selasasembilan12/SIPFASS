@@ -1,1039 +1,643 @@
-/* ============================================================
-   SIPFAS - PROFIL.JS
-   Menghubungkan halaman profil dengan akun registrasi,
-   login, foto profil, dan seluruh halaman pengguna.
-============================================================ */
+/**
+ * ============================================================
+ * SIPFAS - PROFIL PELAPOR
+ * ============================================================
+ *
+ * Sumber data:
+ * DATABASE -> PHP SESSION -> API PROFIL
+ *
+ * Fitur:
+ * 1. Mengambil identitas pengguna.
+ * 2. Mengubah nama dan email.
+ * 3. Mengubah password.
+ * 4. Mengunggah foto profil.
+ * 5. Menampilkan foto profil.
+ * 6. Membatalkan perubahan.
+ * 7. Sinkronisasi ke Dashboard.
+ *
+ * ============================================================
+ */
 
-// 01. Menjalankan program setelah halaman selesai dimuat.
-document.addEventListener("DOMContentLoaded", function () {
-  mulaiProfil();
-});
+(function () {
+  "use strict";
 
-// 02. Konfigurasi penyimpanan akun SIPFAS.
-const KUNCI_PROFIL = "sipfasProfile";
-const KUNCI_USERS = "sipfasUsers";
-const KUNCI_ACTIVE = "sipfasActiveUser";
-const KUNCI_FOTO = "sipfasProfilePhoto";
+  // API dihitung dari halaman Profil: naik tiga tingkat ke folder SIPFASS.
+  const API_URL = new URL("../../../api/user/profil.php", window.location.href)
+    .href;
 
-// 03. Variabel foto profil dan notifikasi.
-let fotoProfilSementara = null;
-let fotoProfilAwal = null;
-let snapshotProfilForm = [];
-let notifikasiTimer = null;
+  let profilAwal = null;
+  let fotoSementara = null;
+  let objectUrlSementara = null;
+  let sedangMenyimpan = false;
 
-// ============================================================
-// 04. MENGAMBIL AKUN YANG SEDANG LOGIN
-// ============================================================
+  const $ = (id) => document.getElementById(id);
 
-function ambilAkunAktif() {
-  try {
-    const data = sessionStorage.getItem(KUNCI_ACTIVE);
-    return data ? JSON.parse(data) : null;
-  } catch (error) {
-    console.error("Gagal membaca sesi:", error);
-    return null;
-  }
-}
+  // =========================================================
+  // 1. MEMULAI HALAMAN PROFIL
+  // =========================================================
 
-// ============================================================
-// 05. MENGAMBIL SELURUH AKUN TERDAFTAR
-// ============================================================
+  document.addEventListener("DOMContentLoaded", initializeProfile);
 
-function ambilSemuaAkun() {
-  try {
-    const data = localStorage.getItem(KUNCI_USERS);
+  async function initializeProfile() {
+    const form = $("profileForm");
 
-    if (!data) return [];
-
-    const users = JSON.parse(data);
-
-    if (!Array.isArray(users)) {
-      throw new Error("Format akun tidak valid.");
+    if (!form) {
+      console.error("Form profil tidak ditemukan.");
+      return;
     }
 
-    return users;
-  } catch (error) {
-    console.error("Gagal membaca akun:", error);
-    return [];
-  }
-}
+    aturPasswordToggle();
+    aturUploadFoto();
+    aturTombolBatal();
 
-// ============================================================
-// 06. MEMBUAT KUNCI FOTO KHUSUS SETIAP PENGGUNA
-// ============================================================
+    form.addEventListener("submit", handleSubmit);
 
-function buatKunciFoto() {
-  const aktif = ambilAkunAktif();
-
-  if (!aktif) return KUNCI_FOTO;
-
-  const identitas =
-    aktif.id || aktif.username || aktif.email || aktif.nim || "pengguna";
-
-  return KUNCI_FOTO + "_" + String(identitas).toLowerCase();
-}
-
-// ============================================================
-// 07. MENCARI AKUN BERDASARKAN IDENTITAS LOGIN
-// ============================================================
-
-function cariAkunAktif() {
-  const aktif = ambilAkunAktif();
-  const users = ambilSemuaAkun();
-
-  if (!aktif) {
-    return {
-      aktif: null,
-      users: users,
-      index: -1,
-      akun: null,
-    };
-  }
-
-  let index = -1;
-
-  // Mencari berdasarkan ID akun.
-  if (aktif.id) {
-    index = users.findIndex(function (user) {
-      return String(user.id) === String(aktif.id);
+    window.addEventListener("sipfas:profile-loaded", function (event) {
+      if (!sedangMenyimpan) {
+        tampilkanProfil(event.detail.profile);
+      }
     });
+
+    document.addEventListener("sipfas:profile-error", function (event) {
+      console.error("Gagal memuat profil:", event.detail.message);
+    });
+
+    await loadProfile();
   }
 
-  // Alternatif berdasarkan username.
-  if (index === -1 && aktif.username) {
-    index = users.findIndex(function (user) {
-      return (
-        String(user.username || "").toLowerCase() ===
-        String(aktif.username).toLowerCase()
+  // =========================================================
+  // 2. MENGAMBIL DATA PROFIL DARI DATABASE
+  // =========================================================
+
+  async function loadProfile() {
+    try {
+      const response = await fetch(API_URL, {
+        method: "GET",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      const result = await response.json();
+
+      if (response.status === 401) {
+        window.location.replace(
+          new URL("../../../auth/Login.html", location.href).href,
+        );
+        return;
+      }
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Gagal mengambil profil.");
+      }
+
+      tampilkanProfil(result.data);
+      simpanSnapshot();
+
+      window.dispatchEvent(
+        new CustomEvent("sipfas:profile-loaded", {
+          detail: { profile: result.data },
+        }),
       );
+    } catch (error) {
+      console.error("SIPFAS PROFILE:", error);
+
+      tampilkanNotifikasi(error.message, "error", "Gagal Memuat Profil");
+    }
+  }
+
+  // =========================================================
+  // 3. MENAMPILKAN DATA PROFIL
+  // =========================================================
+
+  function tampilkanProfil(profile) {
+    if (!profile) return;
+
+    $("nama").value = profile.nama_lengkap || "";
+    $("nim").value = profile.nomor_identitas || "";
+    $("username").value = profile.username || "";
+    $("email").value = profile.email || "";
+
+    const identityName = document.querySelector(".identity-information h2");
+
+    if (identityName) {
+      identityName.textContent = profile.nama_lengkap || "Pengguna";
+    }
+
+    const identityNim = $("identityNim");
+
+    if (identityNim) {
+      identityNim.textContent = "NIM: " + (profile.nomor_identitas || "-");
+    }
+
+    document.querySelectorAll(".header-name").forEach((element) => {
+      element.textContent = profile.nama_lengkap || "Pengguna";
+    });
+
+    document.querySelectorAll(".role-badge").forEach((element) => {
+      element.textContent = profile.role || "Pelapor";
+    });
+
+    tampilkanFotoDatabase(profile.foto_profil);
+  }
+
+  // =========================================================
+  // 4. MENAMPILKAN FOTO DARI DATABASE
+  // =========================================================
+
+  function tampilkanFotoDatabase(path) {
+    const image = $("profilePhotoImage");
+    const headerImage = $("headerProfileImage");
+
+    const placeholder = $("photoPlaceholder");
+    const headerDefault = $("headerDefaultAvatar");
+
+    if (!path) {
+      tampilkanFotoDefault();
+      return;
+    }
+
+    const url = window.SIPFASProfile?.resolvePhoto
+      ? window.SIPFASProfile.resolvePhoto(path)
+      : new URL(
+          "../../../" + String(path).replace(/^\/+/, ""),
+          window.location.href,
+        ).href;
+
+    if (image) {
+      image.onload = function () {
+        image.hidden = false;
+        if (placeholder) placeholder.hidden = true;
+      };
+
+      image.onerror = function () {
+        image.hidden = true;
+        if (placeholder) placeholder.hidden = false;
+      };
+
+      image.src = url;
+    }
+
+    if (headerImage) {
+      headerImage.onload = function () {
+        headerImage.hidden = false;
+        if (headerDefault) headerDefault.hidden = true;
+      };
+
+      headerImage.onerror = function () {
+        headerImage.hidden = true;
+        if (headerDefault) headerDefault.hidden = false;
+      };
+
+      headerImage.src = url;
+    }
+
+    document.querySelectorAll(".sipfas-header-photo").forEach((img) => {
+      img.src = url;
     });
   }
 
-  // Alternatif berdasarkan email.
-  if (index === -1 && aktif.email) {
-    index = users.findIndex(function (user) {
-      return (
-        String(user.email || "").toLowerCase() ===
-        String(aktif.email).toLowerCase()
+  function tampilkanFotoPreview(url) {
+    const image = $("profilePhotoImage");
+    const headerImage = $("headerProfileImage");
+
+    if (image) {
+      image.src = url;
+      image.hidden = false;
+    }
+
+    if (headerImage) {
+      headerImage.src = url;
+      headerImage.hidden = false;
+    }
+
+    const placeholder = $("photoPlaceholder");
+    const headerDefault = $("headerDefaultAvatar");
+
+    if (placeholder) placeholder.hidden = true;
+    if (headerDefault) headerDefault.hidden = true;
+
+    document.querySelectorAll(".sipfas-header-photo").forEach((img) => {
+      img.src = url;
+    });
+  }
+
+  function tampilkanFotoDefault() {
+    const image = $("profilePhotoImage");
+    const headerImage = $("headerProfileImage");
+
+    if (image) {
+      image.removeAttribute("src");
+      image.hidden = true;
+    }
+
+    if (headerImage) {
+      headerImage.removeAttribute("src");
+      headerImage.hidden = true;
+    }
+
+    if ($("photoPlaceholder")) {
+      $("photoPlaceholder").hidden = false;
+    }
+
+    if ($("headerDefaultAvatar")) {
+      $("headerDefaultAvatar").hidden = false;
+    }
+
+    document.querySelectorAll(".sipfas-header-photo").forEach((img) => {
+      img.removeAttribute("src");
+      img.style.display = "none";
+    });
+  }
+
+  // =========================================================
+  // 5. UPLOAD FOTO PROFIL
+  // =========================================================
+
+  function aturUploadFoto() {
+    const button = $("editPhotoButton");
+    const input = $("photoUpload");
+
+    if (!button || !input) return;
+
+    button.addEventListener("click", function () {
+      input.click();
+    });
+
+    input.addEventListener("change", function () {
+      prosesFoto(input.files[0]);
+    });
+  }
+
+  function prosesFoto(file) {
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+    if (!allowedTypes.includes(file.type)) {
+      tampilkanNotifikasi(
+        "Gunakan foto JPG, PNG, atau WEBP.",
+        "error",
+        "Format Foto Tidak Valid",
       );
+
+      $("photoUpload").value = "";
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      tampilkanNotifikasi(
+        "Ukuran foto maksimal 5 MB.",
+        "error",
+        "Ukuran Foto Terlalu Besar",
+      );
+
+      $("photoUpload").value = "";
+      return;
+    }
+
+    if (objectUrlSementara) {
+      URL.revokeObjectURL(objectUrlSementara);
+    }
+
+    fotoSementara = file;
+    objectUrlSementara = URL.createObjectURL(file);
+
+    tampilkanFotoPreview(objectUrlSementara);
+
+    tampilkanNotifikasi(
+      "Foto berhasil dipilih. Klik Simpan Perubahan untuk menyimpan.",
+      "info",
+      "Foto Siap Disimpan",
+    );
+  }
+
+  // =========================================================
+  // 6. PASSWORD TOGGLE
+  // =========================================================
+
+  function aturPasswordToggle() {
+    document.querySelectorAll(".password-toggle").forEach((button) => {
+      button.addEventListener("click", function () {
+        const input = button.closest(".input-wrapper")?.querySelector("input");
+
+        if (!input) return;
+
+        const show = input.type === "password";
+
+        input.type = show ? "text" : "password";
+
+        button.setAttribute(
+          "aria-label",
+          show ? "Sembunyikan kata sandi" : "Tampilkan kata sandi",
+        );
+
+        button.setAttribute("aria-pressed", String(show));
+      });
     });
   }
 
-  return {
-    aktif: aktif,
-    users: users,
-    index: index,
-    akun: index >= 0 ? users[index] : null,
-  };
-}
+  // =========================================================
+  // 7. MENYIMPAN SNAPSHOT DATA AWAL
+  // =========================================================
 
-// ============================================================
-// 08. MENGAMBIL IDENTITAS AKUN YANG SEDANG AKTIF
-// ============================================================
-
-function ambilProfil() {
-  const konteks = cariAkunAktif();
-
-  if (konteks.akun) {
-    const akun = konteks.akun;
-
-    return {
-      id: akun.id || "",
-      name: akun.name || akun.fullName || akun.nama || "",
-      nim: akun.nim || "",
-      username: akun.username || "",
-      email: akun.email || "",
-      role: akun.role || "pelapor",
+  function simpanSnapshot() {
+    profilAwal = {
+      nama: $("nama").value,
+      nim: $("nim").value,
+      username: $("username").value,
+      email: $("email").value,
     };
   }
 
-  if (konteks.aktif) {
-    return {
-      id: konteks.aktif.id || "",
-      name: konteks.aktif.name || "",
-      nim: konteks.aktif.nim || "",
-      username: konteks.aktif.username || "",
-      email: konteks.aktif.email || "",
-      role: konteks.aktif.role || "pelapor",
-    };
+  // =========================================================
+  // 8. VALIDASI FORM
+  // =========================================================
+
+  function validasiForm() {
+    const nama = $("nama").value.trim();
+    const email = $("email").value.trim();
+
+    if (nama.length < 3 || nama.length > 150) {
+      throw new Error("Nama lengkap harus terdiri dari 3-150 karakter.");
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new Error("Format email tidak valid.");
+    }
+
+    const passwordLama = $("password-current").value;
+    const passwordBaru = $("password-new").value;
+    const passwordConfirm = $("password-confirm").value;
+
+    const inginGantiPassword = passwordLama || passwordBaru || passwordConfirm;
+
+    if (inginGantiPassword) {
+      if (!passwordLama || !passwordBaru || !passwordConfirm) {
+        throw new Error("Lengkapi seluruh kolom penggantian kata sandi.");
+      }
+
+      if (
+        passwordBaru.length < 8 ||
+        !/[A-Z]/.test(passwordBaru) ||
+        !/[a-z]/.test(passwordBaru) ||
+        !/[0-9]/.test(passwordBaru)
+      ) {
+        throw new Error(
+          "Password minimal 8 karakter dan harus mengandung huruf besar, huruf kecil, serta angka.",
+        );
+      }
+
+      if (passwordBaru !== passwordConfirm) {
+        throw new Error("Konfirmasi kata sandi baru tidak sesuai.");
+      }
+    }
+
+    return true;
   }
 
-  return {
-    id: "",
-    name: "",
-    nim: "",
-    username: "",
-    email: "",
-    role: "",
-  };
-}
+  // =========================================================
+  // 9. MENYIMPAN PERUBAHAN KE DATABASE
+  // =========================================================
 
-// ============================================================
-// 09. MEMVALIDASI FORMAT EMAIL
-// Email wajib menggunakan domain Gmail.
-// ============================================================
-
-function validasiFormatEmail(email) {
-  const polaEmail = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
-
-  if (!polaEmail.test(email)) {
-    return false;
-  }
-
-  const namaPengguna = email.split("@")[0];
-
-  if (!namaPengguna) {
-    return false;
-  }
-
-  if (namaPengguna.startsWith(".") || namaPengguna.endsWith(".")) {
-    return false;
-  }
-
-  if (namaPengguna.includes("..")) {
-    return false;
-  }
-
-  return true;
-}
-
-// ============================================================
-// 10. MEMVALIDASI KETENTUAN KATA SANDI
-// ============================================================
-
-function validasiPassword(password) {
-  const polaPassword = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,}$/;
-
-  return polaPassword.test(password);
-}
-
-// ============================================================
-// 11. MENGINISIALISASI HALAMAN PROFIL
-// ============================================================
-
-function mulaiProfil() {
-  const formulir = document.querySelector(".profile-form");
-
-  if (!formulir) {
-    console.error("Formulir profil tidak ditemukan.");
-    return;
-  }
-
-  const aktif = ambilAkunAktif();
-
-  // Memastikan pengguna sudah login.
-  if (!aktif) {
-    alert("Sesi pengguna tidak ditemukan. Silakan login kembali.");
-    window.location.href = "../../../auth/Login.html";
-    return;
-  }
-
-  // Menampilkan identitas akun.
-  const profilPengguna = ambilProfil();
-
-  tampilkanProfil(profilPengguna);
-
-  // Memuat foto terbaru.
-  muatFotoProfil();
-
-  // Mengaktifkan fitur upload foto.
-  aturUploadFoto();
-
-  // Menyimpan identitas awal agar dapat dibaca halaman lain.
-  if (profilPengguna.name) {
-    localStorage.setItem(KUNCI_PROFIL, JSON.stringify(profilPengguna));
-  }
-
-  // Mengaktifkan tombol password.
-  aturTombolPassword();
-
-  // Menyimpan kondisi awal seluruh komponen profil.
-  simpanSnapshotProfil();
-
-  // Mengaktifkan tombol Batal.
-  aturTombolBatal();
-
-  // Menyimpan perubahan profil setelah konfirmasi.
-  formulir.addEventListener("submit", function (event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+
+    if (sedangMenyimpan) return;
+
+    try {
+      validasiForm();
+    } catch (error) {
+      tampilkanNotifikasi(error.message, "error", "Periksa Kembali Data");
+      return;
+    }
 
     const yakin = window.confirm(
-      "Apakah Anda yakin ingin menyimpan perubahan profil?\n\n" +
-        "Klik OK untuk melanjutkan atau Batal untuk kembali.",
+      "Apakah Anda yakin ingin menyimpan perubahan profil?",
     );
 
-    if (!yakin) {
-      return;
+    if (!yakin) return;
+
+    const formData = new FormData();
+
+    formData.append("nama", $("nama").value.trim());
+    formData.append("email", $("email").value.trim().toLowerCase());
+
+    formData.append("password-current", $("password-current").value);
+
+    formData.append("password-new", $("password-new").value);
+
+    formData.append("password-confirm", $("password-confirm").value);
+
+    if (fotoSementara) {
+      formData.append("foto_profil", fotoSementara, fotoSementara.name);
     }
 
-    simpanPerubahanProfil();
-  });
+    const submitButton = document.querySelector(
+      '.profile-form button[type="submit"]',
+    );
 
-  // Memperbarui tampilan jika data berubah dari tab lain.
-  window.addEventListener("storage", function (event) {
-    let perluPerbaruiSnapshot = false;
+    const originalButtonText = submitButton?.textContent;
 
-    if (event.key === KUNCI_USERS || event.key === KUNCI_ACTIVE) {
-      tampilkanProfil(ambilProfil());
-      muatFotoProfil();
+    sedangMenyimpan = true;
 
-      perluPerbaruiSnapshot = true;
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = "Menyimpan...";
     }
 
-    if (event.key === KUNCI_PROFIL) {
-      tampilkanProfil(ambilProfil());
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        body: formData,
+      });
 
-      perluPerbaruiSnapshot = true;
-    }
+      const result = await response.json();
 
-    if (event.key === buatKunciFoto()) {
-      muatFotoProfil();
+      if (response.status === 401) {
+        window.location.replace(
+          new URL("../../../auth/Login.html", location.href).href,
+        );
+        return;
+      }
 
-      perluPerbaruiSnapshot = true;
-    }
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Gagal menyimpan perubahan profil.");
+      }
 
-    // Kondisi terbaru dari tab lain menjadi kondisi awal baru.
-    if (perluPerbaruiSnapshot) {
-      simpanSnapshotProfil();
-    }
-  });
-}
+      const profile = result.data;
 
-// ============================================================
-// 12. MENAMPILKAN IDENTITAS PENGGUNA
-// ============================================================
+      // Memperbarui data halaman profil.
+      tampilkanProfil(profile);
 
-function tampilkanProfil(profil) {
-  const nama = document.getElementById("nama");
-  const nim = document.getElementById("nim");
-  const username = document.getElementById("username");
-  const email = document.getElementById("email");
+      // Memperbarui profil di seluruh halaman.
+      window.dispatchEvent(
+        new CustomEvent("sipfas:profile-updated", {
+          detail: { profile },
+        }),
+      );
 
-  const namaIdentitas = document.querySelector(".identity-information h2");
+      // Mengosongkan seluruh kolom password.
+      $("password-current").value = "";
+      $("password-new").value = "";
+      $("password-confirm").value = "";
 
-  // Mengambil elemen NIM pada bagian identitas atas.
-  const nimIdentitas = document.getElementById("identityNim");
+      // Menghapus foto sementara.
+      fotoSementara = null;
 
-  const namaHeader = document.querySelectorAll(".header-name");
+      if (objectUrlSementara) {
+        URL.revokeObjectURL(objectUrlSementara);
+        objectUrlSementara = null;
+      }
 
-  if (nama) nama.value = profil.name || "";
-  if (nim) nim.value = profil.nim || "";
-  if (username) username.value = profil.username || "";
-  if (email) email.value = profil.email || "";
+      $("photoUpload").value = "";
 
-  if (namaIdentitas) {
-    namaIdentitas.textContent = profil.name || "Pengguna";
-  }
+      simpanSnapshot();
 
-  // Menyamakan NIM atas dengan NIM pada input bawah.
-  if (nimIdentitas) {
-    nimIdentitas.textContent = "NIM: " + (profil.nim || "-");
-  }
-
-  namaHeader.forEach(function (elemen) {
-    elemen.textContent = profil.name || "Pengguna";
-  });
-}
-
-// ============================================================
-// 12A. MENYIMPAN KONDISI AWAL SELURUH KOMPONEN PROFIL
-// ============================================================
-
-function simpanSnapshotProfil() {
-  const formulir = document.querySelector(".profile-form");
-
-  if (!formulir) return;
-
-  const seluruhInput = formulir.querySelectorAll("input, select, textarea");
-
-  snapshotProfilForm = Array.from(seluruhInput).map(function (elemen) {
-    return {
-      type: elemen.type || "",
-      value:
-        elemen.type === "password" || elemen.type === "file"
-          ? ""
-          : elemen.value,
-
-      checked: elemen.checked || false,
-    };
-  });
-
-  // Menyimpan foto profil terakhir yang sudah tersimpan.
-  try {
-    fotoProfilAwal = localStorage.getItem(buatKunciFoto()) || null;
-  } catch (error) {
-    console.error("Gagal mengambil snapshot foto:", error);
-    fotoProfilAwal = null;
-  }
-}
-
-// ============================================================
-// 12B. MENGAKTIFKAN TOMBOL BATAL
-// ============================================================
-
-function aturTombolBatal() {
-  // Mengambil tombol Batal yang sudah tersedia pada HTML.
-  const tombolBatal = document.querySelector(".profile-form .cancel-button");
-
-  if (!tombolBatal) {
-    console.error("Tombol Batal tidak ditemukan.");
-    return;
-  }
-
-  tombolBatal.addEventListener("click", function (event) {
-    // Mencegah browser berpindah ke Dashboard.
-    event.preventDefault();
-
-    // Mengembalikan seluruh perubahan.
-    batalkanPerubahanProfil();
-  });
-}
-
-// ============================================================
-// 12C. MEMBATALKAN SELURUH PERUBAHAN PROFIL
-// ============================================================
-
-function batalkanPerubahanProfil() {
-  const formulir = document.querySelector(".profile-form");
-
-  if (!formulir) return;
-
-  const seluruhInput = formulir.querySelectorAll("input, select, textarea");
-
-  // 1. Mengembalikan seluruh komponen ke kondisi awal.
-  seluruhInput.forEach(function (elemen, index) {
-    // Mengosongkan semua kolom password.
-    if (elemen.type === "password") {
-      elemen.value = "";
-      return;
-    }
-
-    // Mengosongkan input upload foto.
-    if (elemen.type === "file") {
-      elemen.value = "";
-      return;
-    }
-
-    const dataAwal = snapshotProfilForm[index];
-
-    if (!dataAwal) return;
-
-    // Mengembalikan checkbox dan radio.
-    if (elemen.type === "checkbox" || elemen.type === "radio") {
-      elemen.checked = dataAwal.checked;
-    } else {
-      // Mengembalikan nilai input lainnya.
-      elemen.value = dataAwal.value;
-    }
-  });
-
-  // 2. Mengembalikan nama dan identitas dari data tersimpan.
-  tampilkanProfil(ambilProfil());
-
-  // 3. Mengembalikan seluruh tombol password ke kondisi tersembunyi.
-  document.querySelectorAll(".password-toggle").forEach(function (tombol) {
-    const input = tombol.closest(".input-wrapper")?.querySelector("input");
-
-    if (input) {
-      input.type = "password";
-    }
-
-    tombol.setAttribute("aria-label", "Tampilkan kata sandi");
-
-    tombol.setAttribute("aria-pressed", "false");
-  });
-
-  // 4. Membatalkan foto baru yang belum disimpan.
-  fotoProfilSementara = null;
-
-  // 5. Membersihkan input upload foto.
-  const inputFoto = document.getElementById("photoUpload");
-
-  if (inputFoto) {
-    inputFoto.value = "";
-  }
-
-  // 6. Mengembalikan foto profil sebelumnya.
-  if (fotoProfilAwal) {
-    tampilkanFoto(fotoProfilAwal);
-  } else {
-    tampilkanFotoDefault();
-  }
-
-  // 7. Menampilkan notifikasi pembatalan.
-  tampilkanNotifikasi(
-    "Seluruh perubahan dibatalkan. Data profil telah dikembalikan seperti sebelumnya.",
-    "info",
-    "Perubahan Dibatalkan",
-  );
-
-  console.log("===== PEMBATALAN PERUBAHAN PROFIL =====");
-  console.log("Seluruh input dikembalikan.");
-  console.log("Foto profil dikembalikan.");
-  console.log("Data akun tidak mengalami perubahan.");
-  console.log("=======================================");
-}
-
-// ============================================================
-// 13. FITUR UPLOAD FOTO PROFIL
-// ============================================================
-
-// Mengaktifkan tombol upload foto.
-function aturUploadFoto() {
-  const tombolEdit = document.getElementById("editPhotoButton");
-  const inputFoto = document.getElementById("photoUpload");
-
-  if (!tombolEdit || !inputFoto) return;
-
-  // Membuka File Explorer melalui pemilih file bawaan browser.
-  tombolEdit.addEventListener("click", function () {
-    inputFoto.click();
-  });
-
-  inputFoto.addEventListener("change", function (event) {
-    prosesUploadFoto(event);
-  });
-}
-
-// Memproses gambar yang diunggah.
-function prosesUploadFoto(event) {
-  const file = event.target.files[0];
-
-  if (!file) return;
-
-  const formatDiizinkan = ["image/jpeg", "image/png", "image/webp"];
-
-  if (!formatDiizinkan.includes(file.type)) {
-    alert("Format foto harus JPG, PNG, atau WEBP.");
-    event.target.value = "";
-    return;
-  }
-
-  // Maksimal ukuran gambar 5 MB.
-  if (file.size > 5 * 1024 * 1024) {
-    alert("Ukuran foto maksimal 5 MB.");
-    event.target.value = "";
-    return;
-  }
-
-  const pembaca = new FileReader();
-
-  pembaca.onload = function (hasil) {
-    const gambar = new Image();
-
-    gambar.onload = function () {
-      fotoProfilSementara = hasil.target.result;
-
-      tampilkanFoto(fotoProfilSementara);
+      aturPasswordDefault();
 
       tampilkanNotifikasi(
-        "Foto berhasil dipilih. Klik Simpan Perubahan untuk menyimpan.",
-        "info",
+        result.message || "Perubahan profil berhasil disimpan.",
+        "success",
+        "Profil Berhasil Diperbarui",
       );
-    };
+    } catch (error) {
+      console.error("SIPFAS SAVE PROFILE:", error);
 
-    gambar.onerror = function () {
-      alert("Gambar tidak dapat dibaca. Silakan pilih gambar lain.");
-    };
+      tampilkanNotifikasi(error.message, "error", "Gagal Menyimpan Profil");
+    } finally {
+      sedangMenyimpan = false;
 
-    gambar.src = hasil.target.result;
-  };
-
-  pembaca.onerror = function () {
-    alert("Gagal membaca file gambar.");
-  };
-
-  pembaca.readAsDataURL(file);
-
-  event.target.value = "";
-}
-
-// Menampilkan foto pada halaman profil dan header.
-function tampilkanFoto(sumberFoto) {
-  const fotoProfil = document.getElementById("profilePhotoImage");
-  const placeholder = document.getElementById("photoPlaceholder");
-
-  const fotoHeader = document.getElementById("headerProfileImage");
-  const avatarDefault = document.getElementById("headerDefaultAvatar");
-
-  if (fotoProfil) {
-    fotoProfil.src = sumberFoto;
-    fotoProfil.hidden = false;
-  }
-
-  if (placeholder) {
-    placeholder.hidden = true;
-  }
-
-  if (fotoHeader) {
-    fotoHeader.src = sumberFoto;
-    fotoHeader.hidden = false;
-  }
-
-  if (avatarDefault) {
-    avatarDefault.hidden = true;
-  }
-}
-
-// Mengembalikan foto ke avatar default.
-function tampilkanFotoDefault() {
-  const fotoProfil = document.getElementById("profilePhotoImage");
-  const placeholder = document.getElementById("photoPlaceholder");
-
-  const fotoHeader = document.getElementById("headerProfileImage");
-  const avatarDefault = document.getElementById("headerDefaultAvatar");
-
-  if (fotoProfil) {
-    fotoProfil.removeAttribute("src");
-    fotoProfil.hidden = true;
-  }
-
-  if (placeholder) {
-    placeholder.hidden = false;
-  }
-
-  if (fotoHeader) {
-    fotoHeader.removeAttribute("src");
-    fotoHeader.hidden = true;
-  }
-
-  if (avatarDefault) {
-    avatarDefault.hidden = false;
-  }
-}
-
-// Memuat foto yang sudah disimpan sebelumnya.
-function muatFotoProfil() {
-  try {
-    const foto = localStorage.getItem(buatKunciFoto());
-
-    if (foto) {
-      fotoProfilSementara = null;
-      tampilkanFoto(foto);
-    } else {
-      fotoProfilSementara = null;
-      tampilkanFotoDefault();
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalButtonText || "Simpan Perubahan";
+      }
     }
-  } catch (error) {
-    console.error("Gagal memuat foto profil:", error);
-  }
-}
-
-// Menyimpan foto profil ke LocalStorage.
-function simpanFotoProfil() {
-  if (!fotoProfilSementara) {
-    return true;
   }
 
-  try {
-    localStorage.setItem(buatKunciFoto(), fotoProfilSementara);
+  // =========================================================
+  // 10. TOMBOL BATAL
+  // =========================================================
 
-    fotoProfilSementara = null;
+  function aturTombolBatal() {
+    const button = $("cancelProfileButton");
 
-    return true;
-  } catch (error) {
-    console.error("Gagal menyimpan foto:", error);
+    if (!button) return;
 
-    return false;
-  }
-}
+    button.addEventListener("click", function (event) {
+      event.preventDefault();
 
-// ============================================================
-// 14. TOMBOL TAMPIL / SEMBUNYIKAN PASSWORD
-// ============================================================
+      if (!profilAwal) return;
 
-function aturTombolPassword() {
-  document.querySelectorAll(".password-toggle").forEach(function (tombol) {
-    const input = tombol.closest(".input-wrapper")?.querySelector("input");
-
-    if (!input) return;
-
-    tombol.addEventListener("click", function () {
-      const tersembunyi = input.type === "password";
-
-      input.type = tersembunyi ? "text" : "password";
-
-      tombol.setAttribute(
-        "aria-label",
-        tersembunyi ? "Sembunyikan kata sandi" : "Tampilkan kata sandi",
+      const yakin = window.confirm(
+        "Batalkan seluruh perubahan profil yang belum disimpan?",
       );
 
-      tombol.setAttribute("aria-pressed", String(tersembunyi));
+      if (!yakin) return;
+
+      batalkanPerubahan();
     });
-  });
-}
-
-// ============================================================
-// 15. MENYIMPAN AKUN TERBARU
-// ============================================================
-
-function simpanAkunTerbaru(akunTerbaru, users, index) {
-  try {
-    users[index] = {
-      ...users[index],
-      ...akunTerbaru,
-    };
-
-    // Membuat identitas terbaru tanpa password.
-    const identitas = {
-      id: akunTerbaru.id || "",
-      name: akunTerbaru.name || "",
-      nim: akunTerbaru.nim || "",
-      username: akunTerbaru.username || "",
-      email: akunTerbaru.email || "",
-      role: akunTerbaru.role || "pelapor",
-    };
-
-    localStorage.setItem(KUNCI_USERS, JSON.stringify(users));
-
-    localStorage.setItem(KUNCI_PROFIL, JSON.stringify(identitas));
-
-    sessionStorage.setItem(KUNCI_ACTIVE, JSON.stringify(identitas));
-
-    return true;
-  } catch (error) {
-    console.error("Gagal menyimpan akun:", error);
-
-    return false;
-  }
-}
-
-// ============================================================
-// 16. MEMPROSES PERUBAHAN PROFIL
-// ============================================================
-
-function simpanPerubahanProfil() {
-  const nama = document.getElementById("nama");
-  const email = document.getElementById("email");
-
-  const passwordLama = document.getElementById("password-current");
-  const passwordBaru = document.getElementById("password-new");
-  const konfirmasiPassword = document.getElementById("password-confirm");
-
-  if (!nama || !email) return;
-
-  const namaBaru = nama.value.trim();
-  const emailBaru = email.value.trim().toLowerCase();
-
-  // Validasi nama.
-  if (!namaBaru || namaBaru.length < 3) {
-    alert("Nama lengkap minimal 3 karakter.");
-
-    nama.focus();
-
-    return;
   }
 
-  // Validasi email wajib Gmail.
-  if (!emailBaru) {
-    alert("Email wajib diisi.");
+  function batalkanPerubahan() {
+    $("nama").value = profilAwal.nama;
+    $("nim").value = profilAwal.nim;
+    $("username").value = profilAwal.username;
+    $("email").value = profilAwal.email;
 
-    email.focus();
+    $("password-current").value = "";
+    $("password-new").value = "";
+    $("password-confirm").value = "";
 
-    return;
-  }
+    $("photoUpload").value = "";
 
-  if (!validasiFormatEmail(emailBaru)) {
-    alert(
-      "Format email tidak valid!\n\n" +
-        "Email wajib menggunakan format @gmail.com.\n" +
-        "Contoh: nama@gmail.com",
-    );
+    fotoSementara = null;
 
-    email.focus();
-
-    return;
-  }
-
-  // Mengambil akun aktif.
-  const konteks = cariAkunAktif();
-
-  if (!konteks.aktif || !konteks.akun || konteks.index === -1) {
-    alert("Akun aktif tidak ditemukan. Silakan login kembali.");
-
-    return;
-  }
-
-  // Memeriksa duplikasi email.
-  const emailDipakai = konteks.users.some(function (user, index) {
-    return (
-      index !== konteks.index &&
-      String(user.email || "").toLowerCase() === emailBaru
-    );
-  });
-
-  if (emailDipakai) {
-    alert("Email tersebut sudah digunakan akun lain.");
-
-    email.focus();
-
-    return;
-  }
-
-  // Memeriksa permintaan penggantian password.
-  const inginGantiPassword =
-    (passwordLama?.value || "") !== "" ||
-    (passwordBaru?.value || "") !== "" ||
-    (konfirmasiPassword?.value || "") !== "";
-
-  let passwordTerbaru = konteks.akun.password;
-
-  if (inginGantiPassword) {
-    if (!passwordLama || !passwordBaru || !konfirmasiPassword) {
-      alert("Kolom penggantian kata sandi tidak lengkap.");
-
-      return;
+    if (objectUrlSementara) {
+      URL.revokeObjectURL(objectUrlSementara);
+      objectUrlSementara = null;
     }
 
-    // Memastikan password lama diisi.
-    if (!passwordLama.value) {
-      alert("Kata sandi saat ini wajib diisi.");
+    // Mengambil foto terakhir dari database.
+    loadProfile();
 
-      passwordLama.focus();
-
-      return;
-    }
-
-    // Memastikan password lama sesuai.
-    if (passwordLama.value !== String(konteks.akun.password || "")) {
-      alert("Kata sandi saat ini tidak sesuai.");
-
-      passwordLama.focus();
-
-      return;
-    }
-
-    // Memastikan password baru tidak kosong.
-    if (!passwordBaru.value) {
-      alert("Kata sandi baru wajib diisi.");
-
-      passwordBaru.focus();
-
-      return;
-    }
-
-    // Validasi password baru.
-    if (!validasiPassword(passwordBaru.value)) {
-      alert(
-        "Kata sandi minimal 8 karakter dan wajib mengandung:\n\n" +
-          "- Huruf besar (A-Z)\n" +
-          "- Huruf kecil (a-z)\n" +
-          "- Angka (0-9)",
-      );
-
-      passwordBaru.focus();
-
-      return;
-    }
-
-    // Memeriksa konfirmasi password.
-    if (!konfirmasiPassword.value) {
-      alert("Konfirmasi kata sandi wajib diisi.");
-
-      konfirmasiPassword.focus();
-
-      return;
-    }
-
-    if (passwordBaru.value !== konfirmasiPassword.value) {
-      alert("Konfirmasi kata sandi tidak sesuai.");
-
-      konfirmasiPassword.focus();
-
-      return;
-    }
-
-    // Tidak mengizinkan penggunaan password lama kembali.
-    if (passwordBaru.value === passwordLama.value) {
-      alert("Kata sandi baru harus berbeda dari kata sandi saat ini.");
-
-      passwordBaru.focus();
-
-      return;
-    }
-
-    passwordTerbaru = passwordBaru.value;
-  }
-
-  // Menyiapkan data akun terbaru.
-  const akunTerbaru = {
-    ...konteks.akun,
-
-    name: namaBaru,
-    email: emailBaru,
-    password: passwordTerbaru,
-  };
-
-  // Menjaga konsistensi apabila akun menggunakan fullName.
-  if ("fullName" in konteks.akun) {
-    akunTerbaru.fullName = namaBaru;
-  }
-
-  if ("nama" in konteks.akun) {
-    akunTerbaru.nama = namaBaru;
-  }
-
-  // Menyimpan perubahan akun.
-  const berhasil = simpanAkunTerbaru(akunTerbaru, konteks.users, konteks.index);
-
-  if (!berhasil) {
-    tampilkanNotifikasi(
-      "Perubahan profil gagal disimpan.",
-      "error",
-      "Gagal Menyimpan",
-    );
-
-    return;
-  }
-
-  // Menyimpan foto apabila ada foto baru.
-  const berhasilSimpanFoto = simpanFotoProfil();
-
-  if (!berhasilSimpanFoto) {
-    // Profil sudah tersimpan, tetapi foto gagal.
-    tampilkanProfil(ambilProfil());
-
-    muatFotoProfil();
-
-    simpanSnapshotProfil();
+    aturPasswordDefault();
 
     tampilkanNotifikasi(
-      "Data profil tersimpan, tetapi foto gagal disimpan. Coba unggah foto yang lebih kecil.",
-      "error",
-      "Sebagian Perubahan Gagal",
-    );
-
-    return;
-  }
-
-  // Memperbarui tampilan profil.
-  tampilkanProfil(ambilProfil());
-
-  // Memuat foto terbaru.
-  muatFotoProfil();
-
-  // Sinkronisasi foto dan identitas secara langsung.
-  window.dispatchEvent(
-    new CustomEvent("sipfas:profile-updated", {
-      detail: {
-        profile: ambilProfil(),
-
-        photo: localStorage.getItem(buatKunciFoto()),
-      },
-    }),
-  );
-
-  // Mengosongkan kolom password.
-  if (passwordLama) passwordLama.value = "";
-
-  if (passwordBaru) passwordBaru.value = "";
-
-  if (konfirmasiPassword) konfirmasiPassword.value = "";
-
-  // Memperbarui kondisi awal setelah berhasil menyimpan.
-  // Pembatalan berikutnya akan kembali ke data terbaru ini.
-  simpanSnapshotProfil();
-
-  // Notifikasi keberhasilan.
-  if (inginGantiPassword) {
-    tampilkanNotifikasi(
-      "Profil dan kata sandi berhasil diperbarui!",
-      "success",
-      "Kata Sandi Berhasil Diperbarui",
-    );
-  } else {
-    tampilkanNotifikasi(
-      "Nama dan informasi akun berhasil diperbarui!",
-      "success",
-      "Profil Berhasil Diubah",
+      "Perubahan yang belum disimpan berhasil dibatalkan.",
+      "info",
+      "Perubahan Dibatalkan",
     );
   }
 
-  console.log("===== PROFIL SIPFAS DIPERBARUI =====");
+  function aturPasswordDefault() {
+    document.querySelectorAll(".password-toggle").forEach((button) => {
+      const input = button.closest(".input-wrapper")?.querySelector("input");
 
-  console.log("Nama:", namaBaru);
+      if (input) {
+        input.type = "password";
+      }
 
-  console.log("Email:", emailBaru);
-
-  console.log("Sinkronisasi akun berhasil.");
-
-  console.log("====================================");
-}
-
-// ============================================================
-// 17. NOTIFIKASI PROFIL
-// ============================================================
-
-function tampilkanNotifikasi(pesan, jenis, judulKustom) {
-  const notifikasi = document.getElementById("profileToast");
-
-  if (!notifikasi) {
-    alert(pesan);
-
-    return;
+      button.setAttribute("aria-label", "Tampilkan kata sandi");
+      button.setAttribute("aria-pressed", "false");
+    });
   }
 
-  const judul = notifikasi.querySelector(".toast-content strong");
+  // =========================================================
+  // 11. NOTIFIKASI PROFIL
+  // =========================================================
 
-  const keterangan = notifikasi.querySelector(".toast-content p");
+  function tampilkanNotifikasi(pesan, jenis, judul) {
+    const toast = $("profileToast");
 
-  const ikon = notifikasi.querySelector(".toast-icon");
+    if (!toast) {
+      alert(pesan);
+      return;
+    }
 
-  if (!judul || !keterangan || !ikon) {
-    alert(pesan);
+    const title = toast.querySelector(".toast-content strong");
+    const message = toast.querySelector(".toast-content p");
+    const icon = toast.querySelector(".toast-icon");
 
-    return;
+    if (!title || !message || !icon) {
+      alert(pesan);
+      return;
+    }
+
+    clearTimeout(window.sipfasProfileToastTimer);
+
+    title.textContent = judul || "Informasi Profil";
+    message.textContent = pesan;
+
+    if (jenis === "error") {
+      icon.textContent = "!";
+      icon.style.background = "#fff0f0";
+      icon.style.color = "#dc3545";
+      toast.style.borderLeftColor = "#dc3545";
+    } else if (jenis === "info") {
+      icon.textContent = "i";
+      icon.style.background = "#edf2ff";
+      icon.style.color = "#2864f0";
+      toast.style.borderLeftColor = "#2864f0";
+    } else {
+      icon.textContent = "✓";
+      icon.style.background = "#e5f7ef";
+      icon.style.color = "#08a66a";
+      toast.style.borderLeftColor = "#08a66a";
+    }
+
+    toast.classList.remove("show");
+
+    requestAnimationFrame(() => {
+      toast.classList.add("show");
+    });
+
+    window.sipfasProfileToastTimer = setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3500);
   }
-
-  clearTimeout(notifikasiTimer);
-
-  if (jenis === "error") {
-    judul.textContent = judulKustom || "Terjadi Kesalahan";
-
-    ikon.style.background = "#fff0f0";
-
-    ikon.style.color = "#dc3545";
-
-    ikon.innerHTML = "!";
-
-    notifikasi.style.borderLeftColor = "#dc3545";
-  } else if (jenis === "info") {
-    judul.textContent = judulKustom || "Foto Berhasil Dipilih";
-
-    ikon.style.background = "#edf2ff";
-
-    ikon.style.color = "#2864f0";
-
-    ikon.innerHTML = "i";
-
-    notifikasi.style.borderLeftColor = "#2864f0";
-  } else {
-    judul.textContent = judulKustom || "Profil Berhasil Diubah";
-
-    ikon.style.background = "#e5f7ef";
-
-    ikon.style.color = "#08a66a";
-
-    ikon.innerHTML = `
-      <svg viewBox="0 0 24 24">
-        <path d="m5 12 5 5L20 7"></path>
-      </svg>
-    `;
-
-    notifikasi.style.borderLeftColor = "#08a66a";
-  }
-
-  keterangan.textContent = pesan;
-
-  // Memulai animasi notifikasi.
-  notifikasi.classList.remove("show");
-
-  requestAnimationFrame(function () {
-    notifikasi.classList.add("show");
-  });
-
-  // Menghilangkan notifikasi setelah 3,5 detik.
-  notifikasiTimer = setTimeout(function () {
-    notifikasi.classList.remove("show");
-  }, 3500);
-}
+})();

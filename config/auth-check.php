@@ -1,111 +1,236 @@
-
 <?php
+declare(strict_types=1);
+
+/**
+ * =========================================================
+ * SIPFAS - AUTHENTICATION CHECK
+ * =========================================================
+ *
+ * Fungsi:
+ * 1. Memeriksa session login resmi.
+ * 2. Mengambil identitas pengguna aktif.
+ * 3. Mengambil ID pengguna aktif.
+ * 4. Mengambil nama pengguna aktif.
+ * 5. Memeriksa role pengguna.
+ * 6. Menolak akses pengguna yang belum login.
+ *
+ * Standar session:
+ * $_SESSION['user']
+ * $_SESSION['login_terverifikasi']
+ *
+ * =========================================================
+ */
 
 // =========================================================
-// 1. MEMANGGIL KONFIGURASI UTAMA
+// 1. MEMUAT BOOTSTRAP
 // =========================================================
 
-// Memuat bootstrap.php agar session dan koneksi database
-// sudah diinisialisasi sebelum pemeriksaan autentikasi.
 require_once __DIR__ . '/bootstrap.php';
 
-// Memuat response.php untuk menangani respons JSON
-// ketika pengguna tidak memiliki akses.
-require_once __DIR__ . '/response.php';
-
-
 // =========================================================
-// 2. MEMERIKSA STATUS LOGIN PENGGUNA
+// 2. MEMERIKSA STATUS AUTENTIKASI
 // =========================================================
 
-function sipfas_is_authenticated(): bool
-{
-    // Memastikan session pengguna tersedia dalam bentuk array.
-    if (
-        !isset($_SESSION['user']) ||
-        !is_array($_SESSION['user'])
-    ) {
-        return false;
+if (!function_exists('sipfas_is_authenticated')) {
+
+    function sipfas_is_authenticated(): bool
+    {
+        // Login wajib sudah melewati verifikasi OTP.
+        if (
+            !isset($_SESSION['login_terverifikasi']) ||
+            $_SESSION['login_terverifikasi'] !== true
+        ) {
+            return false;
+        }
+
+        // Identitas utama harus berupa array.
+        if (
+            !isset($_SESSION['user']) ||
+            !is_array($_SESSION['user'])
+        ) {
+            return false;
+        }
+
+        $user = $_SESSION['user'];
+
+        // ID pengguna wajib valid.
+        $idPengguna = $user['id_pengguna'] ?? null;
+
+        if (
+            !is_scalar($idPengguna) ||
+            (int) $idPengguna <= 0
+        ) {
+            return false;
+        }
+
+        // ID session dan ID user harus sama.
+        if (
+            (int) ($_SESSION['id_pengguna'] ?? 0) !==
+            (int) $idPengguna
+        ) {
+            return false;
+        }
+
+        // Role harus tersedia.
+        if (
+            empty($user['nama_peran']) ||
+            empty($user['nama_lengkap'])
+        ) {
+            return false;
+        }
+
+        return true;
     }
-
-    // Memastikan ID pengguna tersedia dan valid.
-    $idPengguna = $_SESSION['user']['id_pengguna'] ?? null;
-
-    // Pengguna dianggap login jika memiliki ID yang valid.
-    return (
-        is_scalar($idPengguna) &&
-        (int) $idPengguna > 0
-    );
 }
 
-
 // =========================================================
-// 3. MENGAMBIL DATA PENGGUNA YANG SEDANG LOGIN
+// 3. MENGAMBIL DATA PENGGUNA AKTIF
 // =========================================================
 
-function sipfas_current_user(): ?array
-{
-    // Memeriksa apakah pengguna sudah login.
-    if (!sipfas_is_authenticated()) {
-        return null;
+if (!function_exists('sipfas_current_user')) {
+
+    function sipfas_current_user(): ?array
+    {
+        if (!sipfas_is_authenticated()) {
+            return null;
+        }
+
+        return $_SESSION['user'];
     }
-
-    // Mengembalikan informasi pengguna dari session.
-    return $_SESSION['user'];
 }
-
 
 // =========================================================
 // 4. MENGAMBIL ID PENGGUNA AKTIF
 // =========================================================
 
-function sipfas_current_user_id(): ?int
-{
-    // Mengambil data pengguna yang sedang login.
-    $user = sipfas_current_user();
+if (!function_exists('sipfas_current_user_id')) {
 
-    // Jika belum login, kembalikan null.
-    if ($user === null) {
-        return null;
-    }
+    function sipfas_current_user_id(): ?int
+    {
+        $user = sipfas_current_user();
 
-    // Mengembalikan ID pengguna.
-    return (int) $user['id_pengguna'];
-}
+        if ($user === null) {
+            return null;
+        }
 
-
-// =========================================================
-// 5. MEWAJIBKAN PENGGUNA SUDAH LOGIN
-// =========================================================
-
-function sipfas_require_auth(): void
-{
-    // Memeriksa status autentikasi pengguna.
-    if (!sipfas_is_authenticated()) {
-
-        // Mengirim respons JSON jika pengguna belum login.
-        response_error(
-            'Anda harus login terlebih dahulu.',
-            401
-        );
+        return (int) $user['id_pengguna'];
     }
 }
 
-
 // =========================================================
-// 6. MENGAMBIL NAMA PENGGUNA AKTIF
+// 5. MENGAMBIL NAMA PENGGUNA AKTIF
 // =========================================================
 
-function sipfas_current_user_name(): ?string
-{
-    // Mengambil data pengguna yang sedang login.
-    $user = sipfas_current_user();
+if (!function_exists('sipfas_current_user_name')) {
 
-    // Jika pengguna belum login, kembalikan null.
-    if ($user === null) {
-        return null;
+    function sipfas_current_user_name(): ?string
+    {
+        $user = sipfas_current_user();
+
+        if ($user === null) {
+            return null;
+        }
+
+        return (string) $user['nama_lengkap'];
     }
+}
 
-    // Mengembalikan nama lengkap pengguna.
-    return $user['nama_lengkap'] ?? null;
+// =========================================================
+// 6. MENGAMBIL ROLE PENGGUNA AKTIF
+// =========================================================
+
+if (!function_exists('sipfas_current_user_role')) {
+
+    function sipfas_current_user_role(): ?string
+    {
+        $user = sipfas_current_user();
+
+        if ($user === null) {
+            return null;
+        }
+
+        return (string) $user['nama_peran'];
+    }
+}
+
+// =========================================================
+// 7. RESPONS JSON AUTENTIKASI
+// =========================================================
+
+if (!function_exists('sipfas_auth_response')) {
+
+    function sipfas_auth_response(
+        int $status,
+        string $message
+    ): never {
+
+        http_response_code($status);
+
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store, no-cache, must-revalidate');
+
+        echo json_encode([
+            'success' => false,
+            'message' => $message,
+            'data' => []
+        ], JSON_UNESCAPED_UNICODE);
+
+        exit;
+    }
+}
+
+// =========================================================
+// 8. MEWAJIBKAN PENGGUNA SUDAH LOGIN
+// =========================================================
+
+if (!function_exists('sipfas_require_auth')) {
+
+    function sipfas_require_auth(): void
+    {
+        if (!sipfas_is_authenticated()) {
+
+            sipfas_auth_response(
+                401,
+                'Sesi login tidak ditemukan. Silakan login kembali.'
+            );
+        }
+    }
+}
+
+// =========================================================
+// 9. MEMBATASI AKSES BERDASARKAN ROLE
+// =========================================================
+
+if (!function_exists('sipfas_require_role')) {
+
+    function sipfas_require_role(array $allowedRoles): void
+    {
+        // Memastikan pengguna sudah login.
+        sipfas_require_auth();
+
+        $currentRole = sipfas_current_user_role();
+
+        // Memeriksa apakah role diizinkan.
+        if (
+            $currentRole === null ||
+            !in_array($currentRole, $allowedRoles, true)
+        ) {
+            sipfas_auth_response(
+                403,
+                'Anda tidak memiliki hak akses ke halaman ini.'
+            );
+        }
+    }
+}
+
+// =========================================================
+// 10. MENGAMBIL DATA SESSION SIPFAS
+// =========================================================
+
+if (!function_exists('sipfas_session_user')) {
+
+    function sipfas_session_user(): ?array
+    {
+        return sipfas_current_user();
+    }
 }

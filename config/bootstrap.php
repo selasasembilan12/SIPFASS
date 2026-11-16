@@ -1,77 +1,71 @@
-
 <?php
+declare(strict_types=1);
 
 /**
  * =========================================================
  * SIPFAS - APPLICATION BOOTSTRAP
  * =========================================================
- *
  * Fungsi:
- * 1. Menginisialisasi konfigurasi aplikasi.
- * 2. Mengatur zona waktu.
- * 3. Memuat koneksi database.
- * 4. Mengatur keamanan session.
- * 5. Memulai session pengguna.
- *
- * File ini menjadi fondasi seluruh backend SIPFAS.
- *
+ * 1. Mengatur zona waktu.
+ * 2. Mengatur keamanan session.
+ * 3. Memulai session sebelum koneksi database.
+ * 4. Memuat koneksi database.
+ * 5. Menjaga konsistensi session seluruh aplikasi.
  * =========================================================
  */
 
-
 // =========================================================
-// 1. MEMUAT KONEKSI DATABASE
-// =========================================================
-
-// Memanggil koneksi database utama SIPFAS.
-require_once __DIR__ . '/koneksi.php';
-
-
-// =========================================================
-// 2. PENGATURAN ZONA WAKTU
+// 1. ZONA WAKTU
 // =========================================================
 
-// Menggunakan zona waktu WITA.
 date_default_timezone_set('Asia/Makassar');
 
-
 // =========================================================
-// 3. KONFIGURASI KEAMANAN SESSION
-// =========================================================
-
-// Mengaktifkan strict mode untuk session.
-ini_set('session.use_strict_mode', '1');
-
-// Memastikan session hanya menggunakan cookie.
-ini_set('session.use_only_cookies', '1');
-
-// Memastikan session ID tidak dikirim melalui URL.
-ini_set('session.use_trans_sid', '0');
-
-// Memeriksa apakah aplikasi menggunakan HTTPS.
-$isHttps = (
-    isset($_SERVER['HTTPS']) &&
-    $_SERVER['HTTPS'] !== 'off'
-);
-
-// Mengatur nama session khusus SIPFAS.
-session_name('SIPFAS_SESSION');
-
-// Mengatur keamanan cookie session.
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path' => '/',
-    'secure' => $isHttps,
-    'httponly' => true,
-    'samesite' => 'Lax'
-]);
-
-
-// =========================================================
-// 4. MEMULAI SESSION
+// 2. KONFIGURASI SESSION
 // =========================================================
 
-// Memulai session jika belum aktif.
 if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+
+    ini_set('session.use_strict_mode', '1');
+    ini_set('session.use_only_cookies', '1');
+    ini_set('session.use_trans_sid', '0');
+
+    $isHttps = (
+        isset($_SERVER['HTTPS']) &&
+        $_SERVER['HTTPS'] !== '' &&
+        strtolower((string) $_SERVER['HTTPS']) !== 'off'
+    );
+
+    session_name('SIPFAS_SESSION');
+
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'domain' => '',
+        'secure' => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+
+    if (!session_start()) {
+        throw new RuntimeException(
+            'Session SIPFAS gagal dimulai.'
+        );
+    }
+}
+
+// =========================================================
+// 3. MEMUAT KONEKSI DATABASE
+// =========================================================
+
+require_once __DIR__ . '/koneksi.php';
+
+// =========================================================
+// 4. VALIDASI KONEKSI DATABASE
+// =========================================================
+
+if (!isset($pdo) || !($pdo instanceof PDO)) {
+    throw new RuntimeException(
+        'Koneksi database PDO SIPFAS tidak tersedia.'
+    );
 }

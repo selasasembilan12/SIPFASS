@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // 02. Menentukan nama penyimpanan data laporan dan profil.
 const STORAGE_KEY = "sipfasReports";
-const PROFILE_KEY = "sipfasProfile";
 const LOGIN_TOAST_KEY = "sipfasLoginToast";
 
 // 03. Menyediakan data laporan awal untuk simulasi.
@@ -66,24 +65,19 @@ function initializeDashboard() {
     return;
   }
 
-  // Memuat data laporan dan identitas pengguna.
+  // Memuat statistik dan laporan.
   refreshDashboard();
-  updateDashboardProfile();
 
-  // Membuat desain notifikasi login.
+  // Identitas pengguna diambil oleh profile-sync.js.
+  // Tidak membaca LocalStorage untuk nama pengguna.
+
   createLoginNotificationStyle();
-
-  // Menampilkan notifikasi setelah login berhasil.
   showLoginNotification();
 
-  // Memperbarui data apabila berubah dari tab lain.
+  // Memperbarui laporan apabila ada perubahan.
   window.addEventListener("storage", function (event) {
     if (event.key === STORAGE_KEY || event.key === null) {
       refreshDashboard();
-    }
-
-    if (event.key === PROFILE_KEY || event.key === null) {
-      updateDashboardProfile();
     }
   });
 

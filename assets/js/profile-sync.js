@@ -1,273 +1,305 @@
-/* ============================================================
-   SIPFAS - SINKRONISASI IDENTITAS DAN FOTO PROFIL USER
-
-   Fungsi:
-   1. Menampilkan nama pengguna pada seluruh halaman User.
-   2. Menampilkan foto profil pada seluruh halaman User.
-   3. Mengambil data dari akun yang sedang login.
-   4. Membaca perubahan profil terbaru dari LocalStorage.
-   5. Memperbarui identitas setelah profil berhasil diubah.
-============================================================ */
+/**
+ * ============================================================
+ * SIPFAS - SINKRONISASI PROFIL PELAPOR
+ * ============================================================
+ * Sumber data utama:
+ * DATABASE -> API PROFIL -> SELURUH ANTARMUKA PELAPOR
+ *
+ * File ini dipanggil pada setiap halaman Pelapor.
+ * Nama, NIM, username, email, role, dan foto diambil dari API.
+ * ============================================================
+ */
 
 (function () {
   "use strict";
 
-  // 01. KONFIGURASI PENYIMPANAN SIPFAS.
-  const KUNCI_ACTIVE = "sipfasActiveUser";
-  const KUNCI_USERS = "sipfasUsers";
-  const KUNCI_PROFIL = "sipfasProfile";
-  const KUNCI_FOTO = "sipfasProfilePhoto";
+  const script = document.currentScript;
 
-  // 02. MENGAMBIL AKUN YANG SEDANG LOGIN.
-  function ambilAkunAktif() {
-    try {
-      const data = sessionStorage.getItem(KUNCI_ACTIVE);
-      return data ? JSON.parse(data) : null;
-    } catch (error) {
-      console.error("Gagal membaca akun aktif:", error);
-      return null;
-    }
+  if (!script || !script.src) {
+    console.error("SIPFAS: Lokasi profile-sync.js tidak ditemukan.");
+    return;
   }
 
-  // 03. MENGAMBIL PROFIL TERBARU DARI LOCALSTORAGE.
-  function ambilDataProfil() {
-    try {
-      const data = localStorage.getItem(KUNCI_PROFIL);
-      return data ? JSON.parse(data) : null;
-    } catch (error) {
-      console.error("Gagal membaca profil:", error);
-      return null;
-    }
+  const API_URL = new URL("../../api/user/profil.php", script.src).href;
+  const LOGIN_URL = new URL("../../auth/Login.html", script.src).href;
+
+  let currentProfile = null;
+  let loadingPromise = null;
+
+  // ---------------------------------------------------------
+  // 1. MENYIAPKAN URL FOTO DARI PATH DATABASE
+  // ---------------------------------------------------------
+
+  function resolvePhoto(path) {
+    if (!path || typeof path !== "string") return null;
+
+    const value = path.trim();
+    if (!value) return null;
+
+    if (/^https?:\/\//i.test(value)) return value;
+    if (/^(data:|blob:)/i.test(value)) return value;
+
+    // Path database disimpan relatif dari folder utama SIPFASS.
+    return new URL("../../" + value.replace(/^\/+/, ""), script.src).href;
   }
 
-  // 04. MENGAMBIL SELURUH AKUN TERDAFTAR.
-  function ambilSemuaAkun() {
-    try {
-      const data = localStorage.getItem(KUNCI_USERS);
-      const users = data ? JSON.parse(data) : [];
+  // ---------------------------------------------------------
+  // 2. MEMPERBARUI NAMA DAN IDENTITAS PENGGUNA
+  // ---------------------------------------------------------
 
-      return Array.isArray(users) ? users : [];
-    } catch (error) {
-      console.error("Gagal membaca daftar akun:", error);
-      return [];
-    }
-  }
+  function updateIdentity(profile) {
+    const name = profile.nama_lengkap || profile.name || "Pengguna";
+    const nim = profile.nomor_identitas || profile.nim || "-";
+    const username = profile.username || "";
+    const email = profile.email || "";
+    const role = profile.role || "Pelapor";
 
-  // 05. MEMERIKSA KESESUAIAN IDENTITAS AKUN.
-  function identitasSama(data1, data2) {
-    if (!data1 || !data2) return false;
+    document
+      .querySelectorAll(".header-name, .header-profile-name")
+      .forEach((element) => {
+        element.textContent = name;
+      });
 
-    if (data1.id && data2.id) {
-      return String(data1.id) === String(data2.id);
-    }
-
-    const pasangan = ["username", "nim", "email"];
-
-    for (const kunci of pasangan) {
-      if (data1[kunci] && data2[kunci]) {
-        return (
-          String(data1[kunci]).toLowerCase() ===
-          String(data2[kunci]).toLowerCase()
-        );
-      }
-    }
-
-    return false;
-  }
-
-  // 06. MENCARI AKUN YANG SEDANG LOGIN.
-  function cariDataAkun() {
-    const aktif = ambilAkunAktif();
-    const users = ambilSemuaAkun();
-
-    if (!aktif) return null;
-
-    return (
-      users.find(function (user) {
-        return identitasSama(user, aktif);
-      }) || null
-    );
-  }
-
-  // 07. MENGGABUNGKAN IDENTITAS TERBARU.
-  function ambilIdentitasPengguna() {
-    const aktif = ambilAkunAktif();
-    const profil = ambilDataProfil();
-    const akun = cariDataAkun();
-
-    if (!aktif && !profil) {
-      return {
-        name: "Pengguna",
-        username: "",
-        nim: "",
-        email: "",
-      };
-    }
-
-    // Memastikan profil tersimpan milik akun yang login.
-    const profilSesuai = profil && (!aktif || identitasSama(profil, aktif));
-
-    const dataProfil = profilSesuai ? profil : {};
-
-    // Mengutamakan data profil yang paling baru.
-    const nama =
-      dataProfil.name ||
-      dataProfil.fullName ||
-      dataProfil.nama ||
-      akun?.name ||
-      akun?.fullName ||
-      akun?.nama ||
-      aktif?.name ||
-      aktif?.fullName ||
-      aktif?.nama ||
-      "Pengguna";
-
-    return {
-      id: dataProfil.id || akun?.id || aktif?.id || "",
-      name: nama,
-      nim: dataProfil.nim || akun?.nim || aktif?.nim || "",
-      username: dataProfil.username || akun?.username || aktif?.username || "",
-      email: dataProfil.email || akun?.email || aktif?.email || "",
-      role: dataProfil.role || akun?.role || aktif?.role || "pelapor",
-    };
-  }
-
-  // 08. MEMPERBARUI NAMA PENGGUNA PADA HEADER.
-  function perbaruiNamaHeader(profil) {
-    const nama = profil?.name || "Pengguna";
-
-    // Mendukung struktur header pada seluruh halaman User.
-    const daftarNama = document.querySelectorAll(
-      ".header-name, " +
-        ".header-profile-name, " +
-        '.header-profile > span[aria-live="polite"]',
-    );
-
-    daftarNama.forEach(function (elemen) {
-      elemen.textContent = nama;
+    document.querySelectorAll(".welcome-name").forEach((element) => {
+      element.textContent = "Selamat Datang, " + name;
     });
 
-    console.log("Nama profil berhasil disinkronkan:", nama);
-  }
+    document.querySelectorAll(".identity-information h2").forEach((element) => {
+      element.textContent = name;
+    });
 
-  // 09. MEMBUAT KUNCI FOTO KHUSUS SETIAP AKUN.
-  function buatKunciFoto() {
-    const akun = ambilAkunAktif();
+    const fields = {
+      nama: name,
+      nim: nim === "-" ? "" : nim,
+      username: username,
+      email: email,
+    };
 
-    if (!akun) return KUNCI_FOTO;
+    Object.entries(fields).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element && document.activeElement !== element) {
+        element.value = value;
+      }
+    });
 
-    const identitas =
-      akun.id || akun.username || akun.email || akun.nim || "pengguna";
+    document.querySelectorAll(".role-badge").forEach((element) => {
+      element.textContent = role;
+    });
 
-    return KUNCI_FOTO + "_" + String(identitas).toLowerCase();
-  }
-
-  // 10. MENGAMBIL FOTO PROFIL.
-  function ambilFotoProfil() {
-    try {
-      return localStorage.getItem(buatKunciFoto());
-    } catch (error) {
-      console.error("Gagal mengambil foto:", error);
-      return null;
+    const identityNim = document.getElementById("identityNim");
+    if (identityNim) {
+      identityNim.textContent = "NIM: " + nim;
     }
   }
 
-  // 11. MEMPERBARUI FOTO PROFIL PADA HEADER.
-  function perbaruiAvatarHeader() {
-    const foto = ambilFotoProfil();
+  // ---------------------------------------------------------
+  // 3. MENYIAPKAN AVATAR HEADER DI SEMUA HALAMAN
+  // ---------------------------------------------------------
 
-    const daftarAvatar = document.querySelectorAll(
-      ".header-avatar, .profile-avatar",
+  function getHeaderImages() {
+    const images = new Set();
+
+    document.querySelectorAll(".header-avatar").forEach((avatar) => {
+      avatar.style.position = "relative";
+      avatar.style.width = "33px";
+      avatar.style.height = "33px";
+      avatar.style.minWidth = "33px";
+      avatar.style.minHeight = "33px";
+      avatar.style.flex = "0 0 33px";
+      avatar.style.overflow = "hidden";
+      avatar.style.borderRadius = "50%";
+
+      let image =
+        avatar.querySelector("#headerProfileImage") ||
+        avatar.querySelector(".sipfas-header-photo");
+
+      if (!image) {
+        image = document.createElement("img");
+        image.className = "sipfas-header-photo";
+        image.alt = "Foto Profil";
+        image.hidden = true;
+        avatar.appendChild(image);
+      }
+
+      image.style.position = "absolute";
+      image.style.inset = "0";
+      image.style.width = "100%";
+      image.style.height = "100%";
+      image.style.maxWidth = "100%";
+      image.style.maxHeight = "100%";
+      image.style.objectFit = "cover";
+      image.style.borderRadius = "50%";
+      image.style.zIndex = "2";
+
+      images.add(image);
+    });
+
+    const profileImage = document.getElementById("profilePhotoImage");
+    if (profileImage) images.add(profileImage);
+
+    return Array.from(images);
+  }
+
+  // ---------------------------------------------------------
+  // 4. MEMPERBARUI FOTO PROFIL DAN AVATAR HEADER
+  // ---------------------------------------------------------
+
+  function updatePhoto(profile) {
+    const photoUrl = resolvePhoto(profile.foto_profil || profile.photo || "");
+
+    const images = getHeaderImages();
+
+    images.forEach((image) => {
+      const isProfilePhoto = image.id === "profilePhotoImage";
+      const container = isProfilePhoto
+        ? document.getElementById("profilePhotoContainer")
+        : image.closest(".header-avatar");
+
+      const placeholder = isProfilePhoto
+        ? document.getElementById("photoPlaceholder")
+        : container?.querySelector("svg");
+
+      if (!photoUrl) {
+        image.hidden = true;
+        image.removeAttribute("src");
+        if (placeholder) placeholder.hidden = false;
+        return;
+      }
+
+      image.onload = function () {
+        image.hidden = false;
+        image.style.display = "block";
+        if (placeholder) placeholder.hidden = true;
+      };
+
+      image.onerror = function () {
+        image.hidden = true;
+        image.removeAttribute("src");
+        if (placeholder) placeholder.hidden = false;
+        console.error("SIPFAS: Foto profil gagal dimuat:", photoUrl);
+      };
+
+      // Parameter versi menghindari cache ketika foto diperbarui.
+      const separator = photoUrl.includes("?") ? "&" : "?";
+      image.src = photoUrl + separator + "v=" + Date.now();
+    });
+  }
+
+  // ---------------------------------------------------------
+  // 5. MEMPERBARUI SELURUH TAMPILAN PROFIL
+  // ---------------------------------------------------------
+
+  function renderProfile(profile) {
+    if (!profile || !profile.id_pengguna) {
+      throw new Error("Data profil dari server tidak lengkap.");
+    }
+
+    currentProfile = profile;
+
+    updateIdentity(profile);
+    updatePhoto(profile);
+
+    window.dispatchEvent(
+      new CustomEvent("sipfas:profile-loaded", {
+        detail: { profile: profile },
+      }),
     );
+  }
 
-    daftarAvatar.forEach(function (avatar) {
-      let gambar = avatar.querySelector(".sipfas-header-photo");
+  // ---------------------------------------------------------
+  // 6. MENGAMBIL DATA PROFIL TERBARU DARI DATABASE
+  // ---------------------------------------------------------
 
-      if (foto) {
-        // Membuat elemen foto jika belum tersedia.
-        if (!gambar) {
-          gambar = document.createElement("img");
-          gambar.className = "sipfas-header-photo";
-          gambar.alt = "Foto Profil";
-          avatar.appendChild(gambar);
-        }
+  async function loadProfile() {
+    if (loadingPromise) return loadingPromise;
 
-        gambar.src = foto;
-
-        Object.assign(gambar.style, {
-          display: "block",
-          width: "100%",
-          height: "100%",
-          position: "absolute",
-          inset: "0",
-          objectFit: "cover",
-          borderRadius: "50%",
-          zIndex: "2",
+    loadingPromise = (async function () {
+      try {
+        const response = await fetch(API_URL, {
+          method: "GET",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: {
+            Accept: "application/json",
+          },
         });
 
-        // Menyembunyikan ikon avatar bawaan.
-        const ikon = avatar.querySelector("svg");
-
-        if (ikon) {
-          ikon.style.display = "none";
+        let result;
+        try {
+          result = await response.json();
+        } catch {
+          throw new Error("Respons API profil bukan JSON yang valid.");
         }
 
-        avatar.style.position = "relative";
-        avatar.style.overflow = "hidden";
-      } else {
-        // Mengembalikan ikon bawaan jika belum ada foto.
-        if (gambar) {
-          gambar.remove();
+        if (response.status === 401) {
+          window.location.replace(LOGIN_URL);
+          return null;
         }
 
-        const ikon = avatar.querySelector("svg");
-
-        if (ikon) {
-          ikon.style.display = "";
+        if (!response.ok || result.success !== true) {
+          throw new Error(
+            result.message || "Tidak dapat mengambil data profil.",
+          );
         }
+
+        renderProfile(result.data);
+        return result.data;
+      } catch (error) {
+        console.error("SIPFAS PROFILE SYNC:", error);
+
+        document.dispatchEvent(
+          new CustomEvent("sipfas:profile-error", {
+            detail: { message: error.message },
+          }),
+        );
+
+        return null;
+      } finally {
+        loadingPromise = null;
       }
-    });
+    })();
+
+    return loadingPromise;
   }
 
-  // 12. MEMPERBARUI SELURUH IDENTITAS PENGGUNA.
-  function sinkronisasiProfil() {
-    const profil = ambilIdentitasPengguna();
+  // ---------------------------------------------------------
+  // 7. MEMUAT ULANG PROFIL SETELAH DATA DIPERBARUI
+  // ---------------------------------------------------------
 
-    perbaruiNamaHeader(profil);
-    perbaruiAvatarHeader();
-  }
-
-  // 13. MENANGANI PERUBAHAN PROFIL DARI TAB LAIN.
-  window.addEventListener("storage", function (event) {
-    if (
-      event.key === KUNCI_PROFIL ||
-      event.key === KUNCI_USERS ||
-      event.key === KUNCI_ACTIVE ||
-      event.key === buatKunciFoto()
-    ) {
-      sinkronisasiProfil();
-    }
-  });
-
-  // 14. MENANGANI PERUBAHAN PROFIL DARI HALAMAN YANG SAMA.
   window.addEventListener("sipfas:profile-updated", function (event) {
-    if (event.detail?.profile) {
-      perbaruiNamaHeader(event.detail.profile);
+    if (event.detail && event.detail.profile) {
+      renderProfile(event.detail.profile);
     } else {
-      perbaruiNamaHeader(ambilIdentitasPengguna());
+      loadProfile();
     }
-
-    perbaruiAvatarHeader();
   });
 
-  // 15. MENJALANKAN SINKRONISASI SAAT HALAMAN DIBUKA.
-  function mulaiSinkronisasi() {
-    sinkronisasiProfil();
+  // ---------------------------------------------------------
+  // 8. MENJALANKAN SINKRONISASI SAAT HALAMAN SIAP
+  // ---------------------------------------------------------
+
+  function start() {
+    loadProfile();
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", mulaiSinkronisasi);
+    document.addEventListener("DOMContentLoaded", start, { once: true });
   } else {
-    mulaiSinkronisasi();
+    start();
   }
+
+  // ---------------------------------------------------------
+  // 9. MENYEDIAKAN FUNGSI UNTUK MODUL PROFIL
+  // ---------------------------------------------------------
+
+  window.SIPFASProfile = {
+    get: function () {
+      return currentProfile;
+    },
+    refresh: loadProfile,
+    resolvePhoto: resolvePhoto,
+    getApiUrl: function () {
+      return API_URL;
+    },
+  };
 })();

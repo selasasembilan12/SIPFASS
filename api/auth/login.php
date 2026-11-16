@@ -2,34 +2,52 @@
 <?php
 
 /**
- * SIPFAS - LOGIN
- * Database: sipfas
- * Koneksi: PDO
- * PHP: 8.4.27
+ * =========================================================
+ * SIPFAS - LOGIN DENGAN VERIFIKASI OTP
+ * =========================================================
+ *
+ * Fungsi:
+ * 1. Memeriksa username/email dan password.
+ * 2. Memeriksa status akun dan role pengguna.
+ * 3. Membuat OTP delapan digit.
+ * 4. Menyimpan OTP ke database.
+ * 5. Mengirim OTP melalui Gmail SMTP.
+ * 6. Menyimpan identitas dan ID OTP ke session sementara.
+ *
+ * =========================================================
  */
 
-// Mengatur session sebelum menghasilkan output.
-if (session_status() === PHP_SESSION_NONE) {
-    ini_set('session.use_strict_mode', '1');
 
-    session_set_cookie_params([
-        'lifetime' => 0,
-        'path' => '/',
-        'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-        'httponly' => true,
-        'samesite' => 'Lax'
-    ]);
+// =========================================================
+// 1. MEMANGGIL KONFIGURASI DAN SERVICE
+// =========================================================
 
-    session_start();
-}
+require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
+require_once dirname(__DIR__, 2) . '/config/response.php';
+require_once dirname(__DIR__, 2) . '/services/OtpService.php';
+require_once dirname(__DIR__, 2) . '/services/MailService.php';
 
-// Mengatur format respons API dan mencegah caching.
+
+// =========================================================
+// 2. KONFIGURASI RESPONS JSON
+// =========================================================
+
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');
 
-// Menyeragamkan respons JSON dari server.
-function jsonResponse(bool $success, string $message, array $data = [], int $status = 200): never {
+
+// =========================================================
+// 3. FUNGSI RESPONS API
+// =========================================================
+
+function jsonResponse(
+    bool $success,
+    string $message,
+    array $data = [],
+    int $status = 200
+): never {
+
     http_response_code($status);
 
     echo json_encode([
@@ -41,69 +59,138 @@ function jsonResponse(bool $success, string $message, array $data = [], int $sta
     exit;
 }
 
-// Memastikan login hanya menggunakan metode POST.
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+
+// =========================================================
+// 4. MEMERIKSA METODE REQUEST
+// =========================================================
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+
     header('Allow: POST');
-    jsonResponse(false, 'Metode permintaan tidak diizinkan.', [], 405);
+
+    jsonResponse(
+        false,
+        'Metode permintaan tidak diizinkan.',
+        [],
+        405
+    );
 }
 
-// Membaca data JSON atau form-data dari frontend.
+
+// =========================================================
+// 5. MEMBACA INPUT PENGGUNA
+// =========================================================
+
 $rawInput = file_get_contents('php://input');
+
 $input = json_decode($rawInput, true);
 
 if (!is_array($input)) {
     $input = $_POST;
 }
 
-// Mengambil username/email, password, dan jenis pengguna.
-$identifier = strtolower(trim((string)($input['identifier'] ?? $input['email'] ?? $input['username'] ?? '')));
-$passwordInput = (string)($input['password'] ?? '');
-$roleInput = strtolower(trim((string)($input['role'] ?? $input['jenisPengguna'] ?? '')));
+$identifier = strtolower(trim(
+    (string) (
+        $input['identifier']
+        ?? $input['email']
+        ?? $input['username']
+        ?? ''
+    )
+));
 
-// Memastikan seluruh input wajib sudah diisi.
-if ($identifier === '' || $passwordInput === '' || $roleInput === '') {
-    jsonResponse(false, 'Username/email, password, dan jenis pengguna wajib diisi.', [], 422);
+$passwordInput = (string) ($input['password'] ?? '');
+
+$roleInput = strtolower(trim(
+    (string) (
+        $input['role']
+        ?? $input['jenisPengguna']
+        ?? ''
+    )
+));
+
+
+// =========================================================
+// 6. VALIDASI INPUT
+// =========================================================
+
+if (
+    $identifier === '' ||
+    $passwordInput === '' ||
+    $roleInput === ''
+) {
+
+    jsonResponse(
+        false,
+        'Username/email, password, dan jenis pengguna wajib diisi.',
+        [],
+        422
+    );
 }
 
-// Membatasi panjang username/email.
 if (strlen($identifier) > 150) {
-    jsonResponse(false, 'Username atau email terlalu panjang.', [], 422);
+
+    jsonResponse(
+        false,
+        'Username atau email terlalu panjang.',
+        [],
+        422
+    );
 }
 
-// Membatasi ukuran password yang diterima server.
 if (strlen($passwordInput) > 4096) {
-    jsonResponse(false, 'Password tidak valid.', [], 422);
+
+    jsonResponse(
+        false,
+        'Password tidak valid.',
+        [],
+        422
+    );
 }
 
-// Menyesuaikan nama role frontend dengan nama role database.
+
+// =========================================================
+// 7. MENYESUAIKAN ROLE PENGGUNA
+// =========================================================
+
 $roleMap = [
+
     'admin' => 'Administrator',
     'administrator' => 'Administrator',
+
     'petugas' => 'Petugas Sarpras',
     'petugas sarpras' => 'Petugas Sarpras',
+
     'pelapor' => 'Pelapor',
     'user' => 'Pelapor'
+
 ];
 
-// Memastikan jenis pengguna termasuk role yang diizinkan.
 if (!isset($roleMap[$roleInput])) {
-    jsonResponse(false, 'Jenis pengguna tidak valid.', [], 422);
+
+    jsonResponse(
+        false,
+        'Jenis pengguna tidak valid.',
+        [],
+        422
+    );
 }
 
 $role = $roleMap[$roleInput];
 
-// Memanggil koneksi database PDO SIPFAS.
-require_once __DIR__ . '/../../koneksi.php';
 
-// Memastikan objek PDO tersedia.
-if (!isset($pdo) || !($pdo instanceof PDO)) {
-    error_log('[SIPFAS LOGIN] Koneksi PDO tidak tersedia.');
-    jsonResponse(false, 'Koneksi database tidak tersedia.', [], 500);
-}
+// =========================================================
+// 8. MEMPROSES LOGIN DAN PENGIRIMAN OTP
+// =========================================================
 
 try {
-    // Mencari akun berdasarkan username/email dan jenis pengguna.
+
+
+    // -----------------------------------------------------
+    // A. MENCARI AKUN PENGGUNA
+    // -----------------------------------------------------
+
     $sql = "
+
         SELECT
             u.id_pengguna,
             u.id_peran,
@@ -114,90 +201,307 @@ try {
             u.status_akun,
             u.email_terverifikasi_pada,
             p.nama_peran
+
         FROM pengguna u
-        INNER JOIN peran p ON p.id_peran = u.id_peran
+
+        INNER JOIN peran p
+            ON p.id_peran = u.id_peran
+
         WHERE (
             u.email = :identifier_email
             OR u.nama_pengguna = :identifier_username
         )
+
         AND p.nama_peran = :role
+
         LIMIT 1
+
     ";
 
-    // Menyiapkan dan menjalankan query menggunakan prepared statement.
     $stmt = $pdo->prepare($sql);
+
     $stmt->execute([
+
         ':identifier_email' => $identifier,
         ':identifier_username' => $identifier,
         ':role' => $role
+
     ]);
 
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Memverifikasi password menggunakan hash yang tersimpan di database.
-    if (!$user || !password_verify($passwordInput, (string)$user['kata_sandi'])) {
-        jsonResponse(false, 'Username/email, password, atau jenis pengguna salah.', [], 401);
+
+    // -----------------------------------------------------
+    // B. MEMERIKSA PASSWORD
+    // -----------------------------------------------------
+
+    if (
+        !$user ||
+        !password_verify(
+            $passwordInput,
+            (string) $user['kata_sandi']
+        )
+    ) {
+
+        jsonResponse(
+            false,
+            'Username/email, password, atau jenis pengguna salah.',
+            [],
+            401
+        );
     }
 
-    // Memastikan akun pengguna berstatus Aktif.
-    if (strcasecmp(trim((string)$user['status_akun']), 'Aktif') !== 0) {
-        jsonResponse(false, 'Akun Anda tidak aktif. Hubungi Administrator.', [], 403);
+
+    // -----------------------------------------------------
+    // C. MEMERIKSA STATUS AKUN
+    // -----------------------------------------------------
+
+    if (
+        strcasecmp(
+            trim((string) $user['status_akun']),
+            'Aktif'
+        ) !== 0
+    ) {
+
+        jsonResponse(
+            false,
+            'Akun Anda tidak aktif. Hubungi Administrator.',
+            [],
+            403
+        );
     }
 
-    // Menghapus data autentikasi sebelumnya sebelum membuat session baru.
+
+    // -----------------------------------------------------
+    // D. MEMERIKSA EMAIL PENGGUNA
+    // -----------------------------------------------------
+
+    if (
+        empty($user['email']) ||
+        !filter_var($user['email'], FILTER_VALIDATE_EMAIL)
+    ) {
+
+        jsonResponse(
+            false,
+            'Alamat email akun tidak valid.',
+            [],
+            422
+        );
+    }
+
+
+    // -----------------------------------------------------
+    // E. MEMBERSIHKAN SESSION LOGIN SEBELUMNYA
+    // -----------------------------------------------------
+
     unset(
+        $_SESSION['user'],
         $_SESSION['id_pengguna'],
         $_SESSION['id_peran'],
         $_SESSION['nama_peran'],
         $_SESSION['nama_lengkap'],
         $_SESSION['sipfas_user'],
+        $_SESSION['login_terverifikasi'],
         $_SESSION['pending_login'],
-        $_SESSION['pending_login_expires']
+        $_SESSION['pending_login_expires'],
+        $_SESSION['login_id_otp']
     );
 
-    // Mengganti ID session untuk mencegah session fixation.
-    session_regenerate_id(true);
 
-    // Menyimpan identitas pengguna sementara untuk proses verifikasi OTP.
+    if (!session_regenerate_id(true)) {
+
+        jsonResponse(
+            false,
+            'Gagal membuat sesi login.',
+            [],
+            500
+        );
+    }
+
+
+    // -----------------------------------------------------
+    // F. MEMBUAT OTP BARU
+    // -----------------------------------------------------
+
+    $otp = OtpService::create(
+        $pdo,
+        (int) $user['id_pengguna'],
+        'Login'
+    );
+
+
+    // -----------------------------------------------------
+    // G. MENGAMBIL ID OTP DARI DATABASE
+    // -----------------------------------------------------
+
+    $otpQuery = $pdo->prepare("
+
+        SELECT
+            id_otp,
+            UNIX_TIMESTAMP(berlaku_sampai) AS expires_at
+
+        FROM otp_verifikasi
+
+        WHERE id_pengguna = :id_pengguna
+        AND tujuan = :tujuan
+        AND digunakan_pada IS NULL
+        AND dibatalkan_pada IS NULL
+
+        ORDER BY id_otp DESC
+        LIMIT 1
+
+    ");
+
+    $otpQuery->execute([
+
+        ':id_pengguna' => (int) $user['id_pengguna'],
+        ':tujuan' => 'Login'
+
+    ]);
+
+    $otpRecord = $otpQuery->fetch(PDO::FETCH_ASSOC);
+
+
+    if (!$otpRecord) {
+
+        OtpService::cancel(
+            $pdo,
+            (int) $user['id_pengguna'],
+            'Login'
+        );
+
+        jsonResponse(
+            false,
+            'Gagal menyiapkan kode verifikasi.',
+            [],
+            500
+        );
+    }
+
+
+    // -----------------------------------------------------
+    // H. MENGIRIM OTP MELALUI EMAIL
+    // -----------------------------------------------------
+
+    $emailSent = MailService::sendOtp(
+        (string) $user['email'],
+        $otp,
+        'Login'
+    );
+
+
+    // -----------------------------------------------------
+    // I. MEMBATALKAN OTP JIKA EMAIL GAGAL DIKIRIM
+    // -----------------------------------------------------
+
+    if (!$emailSent) {
+
+        OtpService::cancel(
+            $pdo,
+            (int) $user['id_pengguna'],
+            'Login'
+        );
+
+        jsonResponse(
+            false,
+            'Gagal mengirim kode OTP. Silakan coba kembali.',
+            [],
+            500
+        );
+    }
+
+
+    // -----------------------------------------------------
+    // J. MENYIMPAN IDENTITAS PENGGUNA SEMENTARA
+    // -----------------------------------------------------
+
     $_SESSION['pending_login'] = [
-        'id_pengguna' => (int)$user['id_pengguna'],
-        'id_peran' => (int)$user['id_peran'],
+
+        'id_pengguna' => (int) $user['id_pengguna'],
+
+        'id_peran' => (int) $user['id_peran'],
+
         'nama_lengkap' => $user['nama_lengkap'],
+
         'nama_pengguna' => $user['nama_pengguna'],
+
         'email' => $user['email'],
+
         'nama_peran' => $user['nama_peran']
+
     ];
 
-    // Menentukan masa berlaku session OTP selama 5 menit.
-    $_SESSION['pending_login_expires'] = time() + 300;
 
-    // Menyamarkan alamat email untuk melindungi privasi pengguna.
-    $emailParts = explode('@', (string)$user['email'], 2);
+    // Mengikat OTP dengan session login.
+    $_SESSION['login_id_otp'] = (string) $otpRecord['id_otp'];
+
+
+    // Session sementara berlaku 15 menit.
+    // OTP tetap hanya berlaku 2 menit.
+    $_SESSION['pending_login_expires'] = time() + 900;
+
+
+    // -----------------------------------------------------
+    // K. MENYAMARKAN EMAIL PENGGUNA
+    // -----------------------------------------------------
+
+    $emailParts = explode(
+        '@',
+        (string) $user['email'],
+        2
+    );
+
     $emailPrefix = $emailParts[0];
+
     $emailDomain = $emailParts[1] ?? '';
 
-    $maskedEmail = substr($emailPrefix, 0, 2)
-        . str_repeat('*', max(1, strlen($emailPrefix) - 2))
-        . '@'
-        . $emailDomain;
+    $maskedEmail =
+        substr($emailPrefix, 0, 2) .
+        str_repeat(
+            '*',
+            max(1, strlen($emailPrefix) - 2)
+        ) .
+        '@' .
+        $emailDomain;
 
-    // Mengirimkan respons keberhasilan dan instruksi menuju halaman OTP.
-    jsonResponse(true, 'Kredensial berhasil diverifikasi. Silakan lanjutkan verifikasi OTP.', [
-        'requires_otp' => true,
-        'email' => $maskedEmail,
-        'role' => $user['nama_peran'],
-        'redirect' => 'verifikasi-otp.html'
-    ], 200);
 
-} catch (PDOException $e) {
-    // Mencatat kesalahan database ke log server.
-    error_log('[SIPFAS LOGIN PDO ERROR] ' . $e->getMessage());
+    // -----------------------------------------------------
+    // L. MENGIRIM RESPONS KEBERHASILAN
+    // -----------------------------------------------------
 
-    jsonResponse(false, 'Terjadi kesalahan database saat memproses login.', [], 500);
+    jsonResponse(
+
+        true,
+
+        'Kode OTP berhasil dikirim ke email Anda.',
+
+        [
+
+            'requires_otp' => true,
+
+            'email' => $maskedEmail,
+
+            'role' => $user['nama_peran'],
+
+            'redirect' => 'verifikasi.html'
+
+        ],
+
+        200
+
+    );
+
 
 } catch (Throwable $e) {
-    // Menangani kesalahan umum selama proses autentikasi.
-    error_log('[SIPFAS LOGIN ERROR] ' . $e->getMessage());
 
-    jsonResponse(false, 'Terjadi kesalahan pada server.', [], 500);
+    error_log(
+        '[SIPFAS LOGIN ERROR] ' . $e->getMessage()
+    );
+
+    jsonResponse(
+        false,
+        'Terjadi kesalahan saat memproses login.',
+        [],
+        500
+    );
 }

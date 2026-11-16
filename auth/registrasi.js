@@ -1,58 +1,49 @@
-// =====================================================
-// SIPFAS - JAVASCRIPT REGISTRASI AKUN
-// =====================================================
+/**
+ * =========================================================
+ * SIPFAS - JAVASCRIPT REGISTRASI AKUN
+ * =========================================================
+ *
+ * Fungsi:
+ * 1. Validasi formulir registrasi.
+ * 2. Validasi nama, NIM, username, email, dan password.
+ * 3. Mengirim data ke API PHP.
+ * 4. Menampilkan respons dari server.
+ * 5. Menyiapkan data untuk verifikasi OTP.
+ *
+ * Penyimpanan akun dilakukan melalui MySQL,
+ * bukan LocalStorage.
+ *
+ * =========================================================
+ */
 
-// 01. Menjalankan JavaScript setelah halaman selesai dimuat.
+// =========================================================
+// 01. INISIALISASI HALAMAN
+// =========================================================
+
 document.addEventListener("DOMContentLoaded", function () {
   initializeRegistration();
 });
 
-// 02. Menentukan nama penyimpanan akun pengguna.
-const USER_STORAGE_KEY = "sipfasUsers";
+// =========================================================
+// 02. POLA VALIDASI
+// =========================================================
 
-// 03. Pola validasi email.
-const EMAIL_PATTERN =
-  /^[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+$/i;
+// Validasi email.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// 04. Pola validasi kata sandi.
 // Minimal 8 karakter, huruf besar, huruf kecil, dan angka.
 const PASSWORD_PATTERN = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,}$/;
 
-// 05. Mengambil seluruh data akun yang tersimpan.
-function getRegisteredUsers() {
-  try {
-    const savedUsers = localStorage.getItem(USER_STORAGE_KEY);
+// Validasi username 3-30 karakter.
+const USERNAME_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]{2,29}$/;
 
-    if (!savedUsers) {
-      return [];
-    }
+// Validasi NIM 5-20 digit.
+const NIM_PATTERN = /^[0-9]{5,20}$/;
 
-    const users = JSON.parse(savedUsers);
+// =========================================================
+// 03. INISIALISASI REGISTRASI
+// =========================================================
 
-    if (!Array.isArray(users)) {
-      throw new Error("Format data pengguna tidak valid.");
-    }
-
-    return users;
-  } catch (error) {
-    console.error("Gagal mengambil data pengguna:", error);
-    return [];
-  }
-}
-
-// 06. Menyimpan data akun pengguna.
-function saveRegisteredUsers(users) {
-  try {
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(users));
-
-    return true;
-  } catch (error) {
-    console.error("Gagal menyimpan akun:", error);
-    return false;
-  }
-}
-
-// 07. Menginisialisasi halaman registrasi.
 function initializeRegistration() {
   const registerForm = document.getElementById("registerForm");
 
@@ -61,22 +52,26 @@ function initializeRegistration() {
     return;
   }
 
-  // Mengaktifkan fitur tampil dan sembunyikan password.
+  // Mengaktifkan fitur password.
   initializePasswordToggle();
 
-  // Mengaktifkan penghapusan pesan error.
+  // Mengaktifkan validasi input.
   initializeInputValidation();
 
-  // Menjalankan proses ketika tombol daftar diklik.
+  // Memproses pengiriman formulir.
   registerForm.addEventListener("submit", function (event) {
     event.preventDefault();
+
     processRegistration();
   });
 
   console.log("Registrasi SIPFAS siap digunakan.");
 }
 
-// 08. Menghapus pesan error ketika input diperbaiki.
+// =========================================================
+// 04. VALIDASI INPUT SAAT DIKETIK
+// =========================================================
+
 function initializeInputValidation() {
   const fields = [
     ["fullName", "fullNameError"],
@@ -95,6 +90,7 @@ function initializeInputValidation() {
 
     input.addEventListener("input", function () {
       error.textContent = "";
+
       input.removeAttribute("aria-invalid");
 
       showFormMessage("", "");
@@ -102,7 +98,10 @@ function initializeInputValidation() {
   });
 }
 
-// 09. Menampilkan pesan kesalahan pada masing-masing input.
+// =========================================================
+// 05. MENAMPILKAN ERROR INPUT
+// =========================================================
+
 function showFieldError(inputId, errorId, message) {
   const input = document.getElementById(inputId);
   const error = document.getElementById(errorId);
@@ -110,10 +109,14 @@ function showFieldError(inputId, errorId, message) {
   if (!input || !error) return;
 
   error.textContent = message;
+
   input.setAttribute("aria-invalid", "true");
 }
 
-// 10. Menghapus seluruh pesan kesalahan.
+// =========================================================
+// 06. MENGHAPUS SELURUH ERROR
+// =========================================================
+
 function clearAllErrors() {
   const errorIds = [
     "fullNameError",
@@ -137,7 +140,10 @@ function clearAllErrors() {
   });
 }
 
-// 11. Menampilkan pesan informasi pada formulir.
+// =========================================================
+// 07. MENAMPILKAN PESAN FORMULIR
+// =========================================================
+
 function showFormMessage(message, type) {
   const element = document.getElementById("formMessage");
 
@@ -154,7 +160,10 @@ function showFormMessage(message, type) {
   }
 }
 
-// 12. Mengaktifkan tombol tampil dan sembunyikan password.
+// =========================================================
+// 08. FITUR TAMPIL DAN SEMBUNYIKAN PASSWORD
+// =========================================================
+
 function initializePasswordToggle() {
   const buttons = document.querySelectorAll(".eye-button");
 
@@ -184,73 +193,11 @@ function initializePasswordToggle() {
   });
 }
 
-// 13. Memeriksa data akun yang sudah terdaftar.
-function checkDuplicateAccount(nim, username, email) {
-  const users = getRegisteredUsers();
+// =========================================================
+// 09. VALIDASI SELURUH FORMULIR
+// =========================================================
 
-  return {
-    nimExists: users.some(function (user) {
-      return String(user.nim || "").trim() === nim;
-    }),
-
-    usernameExists: users.some(function (user) {
-      return (
-        String(user.username || "")
-          .trim()
-          .toLowerCase() === username
-      );
-    }),
-
-    emailExists: users.some(function (user) {
-      return (
-        String(user.email || "")
-          .trim()
-          .toLowerCase() === email
-      );
-    }),
-  };
-}
-
-// 14. Memproses seluruh pendaftaran akun.
-function processRegistration() {
-  clearAllErrors();
-  showFormMessage("", "");
-
-  // Mengambil seluruh elemen input.
-  const fullNameInput = document.getElementById("fullName");
-  const nimInput = document.getElementById("nim");
-  const usernameInput = document.getElementById("username");
-  const emailInput = document.getElementById("email");
-  const passwordInput = document.getElementById("password");
-  const confirmPasswordInput = document.getElementById("confirmPassword");
-
-  // Memastikan seluruh elemen tersedia.
-  if (
-    !fullNameInput ||
-    !nimInput ||
-    !usernameInput ||
-    !emailInput ||
-    !passwordInput ||
-    !confirmPasswordInput
-  ) {
-    console.error("Elemen formulir registrasi tidak lengkap.");
-
-    showFormMessage(
-      "Formulir tidak dapat diproses. Periksa kembali halaman registrasi.",
-      "error",
-    );
-
-    return;
-  }
-
-  // Mengambil nilai input.
-  const fullName = fullNameInput.value.trim();
-  const nim = nimInput.value.trim();
-  const username = usernameInput.value.trim().toLowerCase();
-  const email = emailInput.value.trim().toLowerCase();
-  const password = passwordInput.value;
-  const confirmPassword = confirmPasswordInput.value;
-
+function validateRegistration(data) {
   let firstInvalidInput = null;
 
   function setInvalid(input) {
@@ -259,201 +206,215 @@ function processRegistration() {
     }
   }
 
-  // 15. Validasi nama lengkap.
-  if (!fullName) {
-    showFieldError("fullName", "fullNameError", "Nama lengkap wajib diisi.");
-
-    setInvalid(fullNameInput);
-  } else if (fullName.length < 3) {
+  // Validasi nama lengkap.
+  if (data.fullName.length < 3 || data.fullName.length > 150) {
     showFieldError(
       "fullName",
       "fullNameError",
-      "Nama lengkap minimal 3 karakter.",
+      "Nama lengkap harus terdiri dari 3 sampai 150 karakter.",
     );
 
-    setInvalid(fullNameInput);
+    setInvalid(document.getElementById("fullName"));
   }
 
-  // 16. Validasi NIM.
-  if (!nim) {
-    showFieldError("nim", "nimError", "NIM wajib diisi.");
-
-    setInvalid(nimInput);
-  } else if (!/^[0-9]{5,20}$/.test(nim)) {
+  // Validasi NIM.
+  if (!NIM_PATTERN.test(data.nim)) {
     showFieldError(
       "nim",
       "nimError",
-      "NIM harus berupa angka dengan panjang 5–20 digit.",
+      "NIM harus berupa angka dengan panjang 5 sampai 20 digit.",
     );
 
-    setInvalid(nimInput);
+    setInvalid(document.getElementById("nim"));
   }
 
-  // 17. Validasi username.
-  const usernamePattern = /^[a-zA-Z0-9][a-zA-Z0-9._-]{2,29}$/;
-
-  if (!username) {
-    showFieldError("username", "usernameError", "Username wajib diisi.");
-
-    setInvalid(usernameInput);
-  } else if (!usernamePattern.test(username)) {
+  // Validasi username.
+  if (!USERNAME_PATTERN.test(data.username)) {
     showFieldError(
       "username",
       "usernameError",
-      "Username harus terdiri dari 3–30 karakter.",
+      "Username harus terdiri dari 3 sampai 30 karakter.",
     );
 
-    setInvalid(usernameInput);
+    setInvalid(document.getElementById("username"));
   }
 
-  // 18. Validasi format email.
-  if (!email) {
-    showFieldError("email", "emailError", "Email wajib diisi.");
+  // Validasi email.
+  const emailInput = document.getElementById("email");
 
-    setInvalid(emailInput);
-  } else if (!EMAIL_PATTERN.test(email) || !emailInput.checkValidity()) {
-    showFieldError(
-      "email",
-      "emailError",
-      "Format email tidak valid. Contoh: nama@gmail.com.",
-    );
+  if (
+    !EMAIL_PATTERN.test(data.email) ||
+    !emailInput.checkValidity() ||
+    data.email.length > 150
+  ) {
+    showFieldError("email", "emailError", "Format alamat email tidak valid.");
 
     setInvalid(emailInput);
   }
 
-  // 19. Validasi kata sandi.
-  if (!password) {
-    showFieldError("password", "passwordError", "Kata sandi wajib diisi.");
-
-    setInvalid(passwordInput);
-  } else if (!PASSWORD_PATTERN.test(password)) {
+  // Validasi password.
+  if (
+    data.password.length < 8 ||
+    data.password.length > 72 ||
+    !PASSWORD_PATTERN.test(data.password)
+  ) {
     showFieldError(
       "password",
       "passwordError",
-      "Kata sandi minimal 8 karakter dan wajib mengandung huruf besar, huruf kecil, serta angka.",
+      "Password minimal 8 karakter dan wajib mengandung huruf besar, huruf kecil, serta angka.",
     );
 
-    setInvalid(passwordInput);
+    setInvalid(document.getElementById("password"));
   }
 
-  // 20. Validasi konfirmasi kata sandi.
-  if (!confirmPassword) {
+  // Validasi konfirmasi password.
+  if (!data.confirmPassword || data.password !== data.confirmPassword) {
     showFieldError(
       "confirmPassword",
       "confirmPasswordError",
-      "Konfirmasi kata sandi wajib diisi.",
+      "Konfirmasi password tidak sesuai.",
     );
 
-    setInvalid(confirmPasswordInput);
-  } else if (password !== confirmPassword) {
-    showFieldError(
-      "confirmPassword",
-      "confirmPasswordError",
-      "Konfirmasi kata sandi tidak sesuai.",
-    );
-
-    setInvalid(confirmPasswordInput);
+    setInvalid(document.getElementById("confirmPassword"));
   }
 
-  // 21. Menghentikan proses apabila input tidak valid.
   if (firstInvalidInput) {
     showFormMessage("Periksa kembali data yang kamu masukkan.", "error");
 
     firstInvalidInput.focus();
-    return;
+
+    return false;
   }
 
-  // 22. Memeriksa apakah NIM, username, atau email sudah digunakan.
-  const duplicate = checkDuplicateAccount(nim, username, email);
+  return true;
+}
 
-  if (duplicate.nimExists) {
-    showFieldError("nim", "nimError", "NIM tersebut sudah terdaftar.");
+// =========================================================
+// 10. PROSES REGISTRASI
+// =========================================================
 
-    setInvalid(nimInput);
-  }
+async function processRegistration() {
+  clearAllErrors();
 
-  if (duplicate.usernameExists) {
-    showFieldError("username", "usernameError", "Username sudah digunakan.");
+  showFormMessage("", "");
 
-    setInvalid(usernameInput);
-  }
+  // Mengambil nilai formulir.
+  const data = {
+    fullName: document.getElementById("fullName").value.trim(),
 
-  if (duplicate.emailExists) {
-    showFieldError("email", "emailError", "Email sudah terdaftar.");
+    nim: document.getElementById("nim").value.trim(),
 
-    setInvalid(emailInput);
-  }
+    username: document.getElementById("username").value.trim().toLowerCase(),
 
-  // Menghentikan proses apabila terdapat data duplikat.
-  if (firstInvalidInput) {
-    showFormMessage("Data akun sudah digunakan. Periksa kembali.", "error");
+    email: document.getElementById("email").value.trim().toLowerCase(),
 
-    firstInvalidInput.focus();
-    return;
-  }
+    password: document.getElementById("password").value,
 
-  // 23. Membuat identitas akun baru.
-  const newUser = {
-    id: "USR-" + Date.now(),
-
-    name: fullName,
-
-    nim: nim,
-
-    username: username,
-
-    email: email,
-
-    // Password hanya untuk simulasi frontend.
-    // Untuk aplikasi produksi gunakan backend dan password hashing.
-    password: password,
-
-    role: "pelapor",
-
-    createdAt: new Date().toISOString(),
+    confirmPassword: document.getElementById("confirmPassword").value,
   };
 
-  // 24. Menambahkan akun baru ke daftar pengguna.
-  const users = getRegisteredUsers();
-
-  users.push(newUser);
-
-  // 25. Menyimpan akun ke LocalStorage.
-  const saved = saveRegisteredUsers(users);
-
-  if (!saved) {
-    showFormMessage("Pendaftaran gagal. Silakan coba kembali.", "error");
-
+  // Memvalidasi formulir sebelum dikirim.
+  if (!validateRegistration(data)) {
     return;
   }
 
-  // 26. Menampilkan informasi hasil registrasi.
-  console.log("===== REGISTRASI SIPFAS =====");
-  console.log("ID:", newUser.id);
-  console.log("Nama:", newUser.name);
-  console.log("NIM:", newUser.nim);
-  console.log("Username:", newUser.username);
-  console.log("Email:", newUser.email);
-  console.log("Role:", newUser.role);
-  console.log("=============================");
-
-  // 27. Memberikan informasi keberhasilan.
-  showFormMessage(
-    "Registrasi berhasil! Mengarahkan ke halaman login...",
-    "success",
-  );
-
-  // Menonaktifkan tombol untuk mencegah pengiriman berulang.
+  // Mengambil tombol daftar.
   const submitButton = document.querySelector(".register-button");
 
+  const originalText = submitButton ? submitButton.textContent : "";
+
+  // Mencegah pengiriman berulang.
   if (submitButton) {
     submitButton.disabled = true;
+
+    submitButton.textContent = "Memproses...";
+
     submitButton.style.opacity = "0.7";
+
     submitButton.style.cursor = "not-allowed";
   }
 
-  // 28. Mengarahkan pengguna ke halaman login.
-  setTimeout(function () {
-    window.location.href = "login.html";
-  }, 1500);
+  try {
+    // Mengirim data ke API registrasi.
+    const response = await fetch("../api/auth/registrasi.php", {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+
+      credentials: "same-origin",
+
+      body: JSON.stringify(data),
+    });
+
+    // Membaca respons JSON.
+    const result = await response.json();
+
+    // Memeriksa hasil registrasi.
+    if (!response.ok || !result.success) {
+      showFormMessage(result.message || "Registrasi gagal.", "error");
+
+      return;
+    }
+
+    // Menyimpan informasi sementara untuk halaman OTP.
+    if (result.data.id_pengguna) {
+      sessionStorage.setItem(
+        "sipfas_verification_id",
+        String(result.data.id_pengguna),
+      );
+    }
+
+    if (result.data.email) {
+      sessionStorage.setItem("sipfas_verification_email", result.data.email);
+    }
+
+    // Menampilkan hasil pengiriman email.
+    if (result.data.email_sent === false) {
+      showFormMessage(
+        "Akun berhasil dibuat, tetapi OTP gagal dikirim. Silakan hubungi administrator.",
+        "error",
+      );
+
+      return;
+    }
+
+    showFormMessage(
+      result.message || "Registrasi berhasil. OTP telah dikirim ke email.",
+      "success",
+    );
+
+    // Halaman verifikasi sedang dibuat.
+    // Pengalihan akan disambungkan setelah halaman temanmu selesai.
+
+    console.log("===== REGISTRASI SIPFAS =====");
+
+    console.log("ID Pengguna:", result.data.id_pengguna);
+
+    console.log("Email:", result.data.email);
+
+    console.log("OTP berhasil dikirim:", result.data.email_sent);
+
+    console.log("=============================");
+  } catch (error) {
+    console.error("Kesalahan registrasi:", error);
+
+    showFormMessage(
+      "Tidak dapat menghubungi server. Pastikan Apache dan MySQL XAMPP aktif.",
+      "error",
+    );
+  } finally {
+    // Mengaktifkan tombol kembali.
+    if (submitButton) {
+      submitButton.disabled = false;
+
+      submitButton.textContent = originalText;
+
+      submitButton.style.opacity = "1";
+
+      submitButton.style.cursor = "pointer";
+    }
+  }
 }

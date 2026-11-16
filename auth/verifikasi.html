@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Verifikasi Dua Langkah | SIPFAS</title>
 
-    <!-- FONT UTAMA: menggunakan Inter agar konsisten dengan halaman Login, Admin, dan Petugas. -->
+    <!-- FONT UTAMA: menggunakan Inter agar konsisten dengan halaman SIPFAS. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -17,11 +17,11 @@
     <link rel="stylesheet" href="Verifikasi.css" />
   </head>
   <body>
-    <!-- PEMBUNGKUS HALAMAN: memusatkan kartu verifikasi dan pemberitahuan. -->
+    <!-- PEMBUNGKUS HALAMAN: memusatkan kartu verifikasi. -->
     <main class="verification-page">
-      <!-- AREA UTAMA: kartu putih berisi identitas SIPFAS dan form OTP. -->
+      <!-- KARTU VERIFIKASI: menampung identitas SIPFAS dan form OTP. -->
       <section class="verification-card">
-        <!-- IDENTITAS SIPFAS: menggunakan logo resmi dari folder assets. -->
+        <!-- IDENTITAS SIPFAS: menampilkan logo dan nama institusi. -->
         <div class="brand">
           <img
             src="../assets/images/logo-sipfas.png"
@@ -34,7 +34,7 @@
           </div>
         </div>
 
-        <!-- JUDUL DAN PETUNJUK VERIFIKASI. -->
+        <!-- JUDUL DAN PETUNJUK: menjelaskan proses verifikasi dua langkah. -->
         <div class="verification-heading">
           <h1>Verifikasi Dua Langkah</h1>
           <p>
@@ -44,7 +44,7 @@
             terdaftar Anda
           </p>
 
-          <!-- EMAIL TUJUAN: ditampilkan dalam bentuk tersamarkan. -->
+          <!-- EMAIL TUJUAN: menampilkan alamat email yang disamarkan oleh server. -->
           <div class="email-badge">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x="3" y="5" width="18" height="14" rx="1.5"></rect>
@@ -54,7 +54,7 @@
           </div>
         </div>
 
-        <!-- FORM OTP: delapan kotak input untuk kode verifikasi. -->
+        <!-- FORM OTP: menyediakan delapan kotak untuk memasukkan kode verifikasi. -->
         <form class="verification-form" id="verificationForm">
           <div class="otp-inputs" aria-label="Masukkan kode OTP 8 digit">
             <input
@@ -124,11 +124,11 @@
             />
           </div>
 
-          <!-- TOMBOL VERIFIKASI: memeriksa apakah seluruh 8 digit sudah diisi. -->
+          <!-- TOMBOL VERIFIKASI: mengirim delapan digit OTP ke server. -->
           <button type="submit" class="verification-button">Verifikasi</button>
         </form>
 
-        <!-- PETUNJUK: mengingatkan pengguna kode dikirim ke email terdaftar. -->
+        <!-- PETUNJUK TAMBAHAN: mengingatkan tujuan pengiriman kode OTP. -->
         <p class="verification-description">
           Masukkan 8 digit kode verifikasi yang dikirim ke email terdaftar Anda
         </p>
@@ -142,13 +142,13 @@
         </a>
       </section>
 
-      <!-- PEMBERITAHUAN MASA BERLAKU OTP DI LUAR KARTU. -->
+      <!-- PEMBERITAHUAN: menjelaskan batas waktu penggunaan OTP. -->
       <p class="otp-notice">
         Pemberitahuan: Kode OTP hanya berlaku selama 2 menit.
       </p>
     </main>
 
-    <!-- Sistem OTP SIPFAS -->
+    <!-- JAVASCRIPT: mengaktifkan proses pengiriman dan verifikasi OTP. -->
     <script src="verifikasi.js"></script>
   </body>
 </html>
