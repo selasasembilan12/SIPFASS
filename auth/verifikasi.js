@@ -1,173 +1,164 @@
-/* ============================================================
-   SIPFAS - VERIFIKASI.JS
-   VERIFIKASI OTP LOGIN DUA LANGKAH
+"use strict";
 
-   Fitur:
-   1. OTP acak 8 digit.
-   2. Masa berlaku 2 menit.
-   3. Maksimal 3 kali percobaan.
-   4. Timer hitung mundur.
-   5. Pindah kotak OTP otomatis.
-   6. Mendukung paste 8 digit sekaligus.
-   7. Notifikasi verifikasi.
-   8. Pengiriman ulang OTP.
-   9. Sinkronisasi identitas akun.
-   10. Notifikasi Login Berhasil di Dashboard.
-============================================================ */
-
-// 01. Menjalankan sistem setelah HTML selesai dimuat.
-document.addEventListener("DOMContentLoaded", initializeVerification);
-
-// 02. Konfigurasi penyimpanan OTP.
-const VERIFY_CONFIG = {
-  pending: "sipfasPendingLogin",
-  email: "sipfasLoginEmail",
-  otp: "sipfasLoginOtp",
-  expiry: "sipfasLoginOtpExpiresAt",
-  attempts: "sipfasLoginAttempts",
-  verified: "sipfasLoginVerified",
-  active: "sipfasActiveUser",
-  toast: "sipfasLoginToast",
-
-  duration: 2 * 60 * 1000,
-  maxAttempts: 3,
+// SIPFAS - Verifikasi OTP Login melalui PHP.
+// Kontrak pengiriman: POST verifikasi.php {tujuan, action: "ensure"|"resend"}.
+// Respons sukses: {success:true, expires_at: <Unix detik>, masked_email: "...", remaining_attempts: 3}.
+// Server harus memvalidasi sesi, mengirim OTP, dan tidak mengembalikan kode OTP.
+const API = {
+  send: "../api/auth/verifikasi.php",
+  verify: "../api/auth/verifikasi.php",
+  purpose: "Login"
 };
+let inputs, form, submit, resend, timer, notice, emailLabel;
+let expiry = 0, remaining = 3, busy = false, done = false, interval;
 
-// 03. Tujuan Dashboard berdasarkan role.
-const DASHBOARD_ROUTES = {
-  pelapor: "../User/Dashboard/Dashboard/dashboard.html",
-  petugas: "../Petugas/Dashboard/Dashboard.html",
-  administrator: "../Admin/Dashboard/Dashboard.html",
-};
+document.addEventListener("DOMContentLoaded", initialize);
+window.addEventListener("pagehide", () => clearInterval(interval));
 
-// 04. Variabel pengatur OTP.
-let otpTimerInterval = null;
-let otpLocked = false;
-let otpExpired = false;
-
-// 05. Menyeragamkan role pengguna.
-function normalizeVerifyRole(role) {
-  const value = String(role || "")
-    .trim()
-    .toLowerCase();
-
-  if (["admin", "administrator"].includes(value)) {
-    return "administrator";
-  }
-
-  if (value === "petugas") {
-    return "petugas";
-  }
-
-  if (["pelapor", "user"].includes(value)) {
-    return "pelapor";
-  }
-
-  return "";
-}
-
-// ============================================================
-// 06. INISIALISASI VERIFIKASI
-// ============================================================
-
-function initializeVerification() {
-  const form = document.getElementById("verificationForm");
-  const inputs = [...document.querySelectorAll(".otp-input")];
-
-  if (!form || inputs.length !== 8) {
-    console.error("Form verifikasi OTP tidak lengkap.");
-    return;
-  }
-
-  let user;
-
-  try {
-    user = JSON.parse(sessionStorage.getItem(VERIFY_CONFIG.pending) || "null");
-  } catch (error) {
-    user = null;
-  }
-
-  if (!user || !user.email) {
-    createVerificationComponents(form);
-
-    showMessage(
-      "Sesi login tidak ditemukan. Silakan kembali ke halaman login.",
-      "error",
-    );
-
-    inputs.forEach((input) => (input.disabled = true));
-
-    const button = form.querySelector("button[type='submit']");
-
-    if (button) button.disabled = true;
-
-    return;
-  }
-
-  // Menampilkan email yang sudah disamarkan.
-  const emailElement = document.querySelector(".email-badge span");
-
-  if (emailElement) {
-    emailElement.textContent = maskEmail(user.email);
-  }
-
+function initialize() {
+  form = document.getElementById("verificationForm");
+  inputs = Array.from(document.querySelectorAll(".otp-input"));
+  if (!form || inputs.length !== 8) return;
   createVerificationComponents(form);
-  setupOTPInputs(inputs);
-
-  // Memeriksa OTP yang masih berlaku.
-  const savedOTP = sessionStorage.getItem(VERIFY_CONFIG.otp);
-  const expiry = Number(sessionStorage.getItem(VERIFY_CONFIG.expiry));
-
-  if (savedOTP && expiry > Date.now()) {
-    otpLocked =
-      Number(sessionStorage.getItem(VERIFY_CONFIG.attempts) || "0") >=
-      VERIFY_CONFIG.maxAttempts;
-
-    otpExpired = false;
-
-    showDemoOTP(savedOTP);
-    updateTimer(inputs, form);
-
-    if (otpLocked) {
-      inputs.forEach((input) => (input.disabled = true));
-
-      const button = form.querySelector("button[type='submit']");
-
-      if (button) button.disabled = true;
-
-      showMessage(
-        "Batas 3 percobaan telah tercapai. Tunggu hingga OTP kedaluwarsa untuk meminta kode baru.",
-        "error",
-      );
-    }
-  } else {
-    generateOTP(inputs, form);
-  }
-
-  // Menangani pengiriman formulir OTP.
-  form.addEventListener("submit", function (event) {
-    event.preventDefault();
-    verifyOTP(inputs, user, form);
-  });
-
-  // Menangani tombol kirim ulang.
-  const resendButton = document.getElementById("resendButton");
-
-  if (resendButton) {
-    resendButton.addEventListener("click", function () {
-      resendOTP(inputs, form);
-    });
-  }
-
-  inputs[0].focus();
-
-  console.log("Sistem verifikasi OTP SIPFAS aktif.");
+  submit = form.querySelector("button[type='submit']");
+  resend = document.getElementById("resendButton");
+  timer = document.getElementById("timer");
+  notice = document.getElementById("demoOtpNotice");
+  emailLabel = document.querySelector(".email-badge span");
+  if (!submit || !resend || !timer || !notice) return;
+  notice.textContent = "Kode OTP dikirim melalui email terdaftar.";
+  if (emailLabel) emailLabel.textContent = "Email terdaftar";
+  // Hapus kode simulasi lama; jangan gunakan browser untuk autentikasi.
+  sessionStorage.removeItem("sipfasLoginOtp");
+  sessionStorage.removeItem("sipfasLoginVerified");
+  setupInputs();
+  form.addEventListener("submit", event => { event.preventDefault(); verify(); });
+  resend.addEventListener("click", () => requestOTP("resend"));
+  interval = setInterval(render, 250);
+  requestOTP("ensure");
 }
 
-// ============================================================
-// 07. MEMBUAT KOMPONEN TIMER DAN KIRIM ULANG
-// ============================================================
+// 01. Mengelola input, fokus, dan paste delapan digit.
+function setupInputs() {
+  const fill = (value, start = 0) => {
+    const digits = String(value).replace(/\D/g, "").slice(0, 8);
+    const offset = digits.length === 8 ? 0 : start;
+    [...digits].forEach((digit, i) => {
+      if (inputs[offset + i]) inputs[offset + i].value = digit;
+    });
+    inputs[Math.min(offset + digits.length, 7)].focus();
+  };
+  inputs.forEach((input, index) => {
+    input.addEventListener("input", () => {
+      const digits = input.value.replace(/\D/g, "");
+      if (digits.length > 1) { fill(digits, index); return; }
+      input.value = digits.slice(0, 1);
+      if (input.value && index < 7) inputs[index + 1].focus();
+    });
+    input.addEventListener("keydown", event => {
+      if ((event.key === "ArrowLeft" || (event.key === "Backspace" && !input.value)) && index > 0) inputs[index - 1].focus();
+      if (event.key === "ArrowRight" && index < 7) inputs[index + 1].focus();
+    });
+    input.addEventListener("paste", event => {
+      event.preventDefault();
+      fill(event.clipboardData.getData("text"), index);
+    });
+  });
+}
 
+// 02. Timer hanya untuk tampilan; keputusan akhir tetap pada server.
+function render() {
+  const seconds = Math.max(0, Math.ceil((expiry - Date.now()) / 1000));
+  timer.textContent = String(Math.floor(seconds / 60)).padStart(2, "0") + ":" + String(seconds % 60).padStart(2, "0");
+  timer.classList.toggle("expired", seconds === 0);
+  timer.style.color = seconds <= 30 ? "#dc4545" : "#1558d6";
+  const disabled = busy || done || seconds === 0 || remaining === 0;
+  inputs.forEach(input => { input.disabled = disabled; });
+  submit.disabled = disabled;
+  resend.disabled = busy || done || seconds > 0;
+  resend.style.opacity = resend.disabled ? "0.5" : "1";
+  resend.style.cursor = resend.disabled ? "not-allowed" : "pointer";
+}
+
+// 03. Semua permintaan menggunakan cookie sesi PHP.
+async function post(url, payload) {
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(payload)
+  });
+  let result;
+  try { result = await response.json(); }
+  catch { throw new Error("Respons server tidak valid. Periksa konfigurasi API PHP."); }
+  return { response, result };
+}
+
+function message(text, type = "error") {
+  showMessage(text, type);
+}
+
+// 04. Meminta OTP server atau mengirim ulang setelah kedaluwarsa.
+async function requestOTP(action) {
+  if (busy || done || (action === "resend" && expiry > Date.now())) return;
+  busy = true;
+  render();
+  try {
+    const { response, result } = await post(API.send, { tujuan: API.purpose, action });
+    if (!response.ok || result.success !== true) throw new Error(result.message || "OTP gagal dikirim.");
+    const data = result.data || result;
+    const deadline = Number(data.expires_at) * 1000;
+    if (!Number.isFinite(deadline) || deadline <= Date.now()) throw new Error("Masa berlaku OTP dari server tidak valid.");
+    expiry = deadline;
+    remaining = Number.isInteger(data.remaining_attempts) ? Math.max(0, Math.min(3, data.remaining_attempts)) : 3;
+    if (emailLabel && typeof data.masked_email === "string") emailLabel.textContent = data.masked_email;
+    inputs.forEach(input => { input.value = ""; });
+    message("Masukkan kode OTP yang dikirim ke email Anda.", "info");
+  } catch (error) {
+    message(error.message || "Tidak dapat terhubung ke server.");
+  } finally {
+    busy = false;
+    render();
+    if (!inputs[0].disabled) inputs[0].focus();
+  }
+}
+
+// 05. Verifikasi langsung ke database melalui endpoint PHP.
+async function verify() {
+  if (busy || done || expiry <= Date.now() || remaining === 0) return;
+  const otp = inputs.map(input => input.value).join("");
+  if (!/^\d{8}$/.test(otp)) {
+    message("Masukkan seluruh 8 digit kode OTP.");
+    return;
+  }
+  busy = true;
+  render();
+  try {
+    const { response, result } = await post(API.verify, { action: "verify", otp });
+    if (!response.ok || result.success !== true) {
+      if (Number.isInteger(result.remaining_attempts)) remaining = Math.max(0, Math.min(3, result.remaining_attempts));
+      if (response.status === 410 || response.status === 401 || response.status === 409) expiry = 0;
+      if (response.status === 429) remaining = 0;
+      inputs.forEach(input => { input.value = ""; });
+      message(result.message || "Verifikasi gagal.");
+      return;
+    }
+    const allowed = ["../Admin/Dashboard/Dashboard.html", "../Petugas/Dashboard/Dashboard.html", "../User/Dashboard/Dashboard/dashboard.html"];
+    if (!allowed.includes(result.redirect)) throw new Error("Tujuan halaman dari server tidak valid.");
+    done = true;
+    clearInterval(interval);
+    message(result.message || "Verifikasi berhasil!", "success");
+    window.location.assign(result.redirect);
+  } catch (error) {
+    message(error.message || "Tidak dapat terhubung ke server.");
+  } finally {
+    busy = false;
+    render();
+    if (!inputs[0].disabled) inputs[0].focus();
+  }
+}
+
+// 06. Komponen tampilan asli dari halaman SIPFAS.
 function createVerificationComponents(form) {
   let notice = document.getElementById("demoOtpNotice");
 
@@ -277,448 +268,6 @@ function createVerificationComponents(form) {
     resendRow.insertAdjacentElement("afterend", message);
   }
 }
-
-// ============================================================
-// 08. MENAMPILKAN EMAIL YANG DISAMARKAN
-// ============================================================
-
-function maskEmail(email) {
-  if (!email || !email.includes("@")) {
-    return "Email tidak tersedia";
-  }
-
-  const [nama, domain] = email.split("@");
-
-  const namaMask =
-    nama.length <= 2 ? nama[0] + "***" : nama.slice(0, 2) + "***";
-
-  return namaMask + "@" + domain;
-}
-
-// ============================================================
-// 09. MEMBUAT OTP ACAK 8 DIGIT
-// ============================================================
-
-function generateOTP(inputs, form) {
-  const random = new Uint32Array(1);
-
-  let code;
-
-  if (window.crypto?.getRandomValues) {
-    window.crypto.getRandomValues(random);
-    code = String(random[0] % 100000000).padStart(8, "0");
-  } else {
-    code = String(Math.floor(Math.random() * 100000000)).padStart(8, "0");
-  }
-
-  sessionStorage.setItem(VERIFY_CONFIG.otp, code);
-
-  sessionStorage.setItem(
-    VERIFY_CONFIG.expiry,
-    String(Date.now() + VERIFY_CONFIG.duration),
-  );
-
-  sessionStorage.setItem(VERIFY_CONFIG.attempts, "0");
-
-  otpLocked = false;
-  otpExpired = false;
-
-  inputs.forEach(function (input) {
-    input.value = "";
-    input.disabled = false;
-  });
-
-  const button = form.querySelector("button[type='submit']");
-
-  if (button) {
-    button.disabled = false;
-    button.textContent = "Verifikasi";
-  }
-
-  showDemoOTP(code);
-
-  showMessage(
-    "Kode OTP berhasil dibuat. Masukkan 8 digit kode untuk melanjutkan.",
-    "info",
-  );
-
-  updateTimer(inputs, form);
-  inputs[0].focus();
-
-  console.info("[SIPFAS] OTP SIMULASI:", code);
-}
-
-// ============================================================
-// 10. MENAMPILKAN KODE OTP SIMULASI
-// ============================================================
-
-function showDemoOTP(code) {
-  const notice = document.getElementById("demoOtpNotice");
-
-  if (!notice) return;
-
-  notice.textContent =
-    "Kode OTP simulasi: " + code + " | Berlaku selama 2 menit.";
-}
-
-// ============================================================
-// 11. INTERAKSI KOTAK OTP
-// ============================================================
-
-function setupOTPInputs(inputs) {
-  inputs.forEach(function (input, index) {
-    input.addEventListener("input", function () {
-      if (otpLocked || otpExpired) return;
-
-      const notification = document.getElementById("verificationMessage");
-
-      if (notification) {
-        notification.style.display = "none";
-      }
-
-      input.value = input.value.replace(/\D/g, "").slice(-1);
-
-      if (input.value && index < inputs.length - 1) {
-        inputs[index + 1].focus();
-      }
-    });
-
-    input.addEventListener("keydown", function (event) {
-      if (event.key === "Backspace" && !input.value && index > 0) {
-        inputs[index - 1].focus();
-      }
-
-      if (event.key === "ArrowLeft" && index > 0) {
-        inputs[index - 1].focus();
-      }
-
-      if (event.key === "ArrowRight" && index < inputs.length - 1) {
-        inputs[index + 1].focus();
-      }
-    });
-
-    input.addEventListener("paste", function (event) {
-      event.preventDefault();
-
-      if (otpLocked || otpExpired) return;
-
-      const code = event.clipboardData
-        .getData("text")
-        .replace(/\D/g, "")
-        .slice(0, 8);
-
-      code.split("").forEach(function (digit, i) {
-        inputs[i].value = digit;
-      });
-
-      const notification = document.getElementById("verificationMessage");
-
-      if (notification) {
-        notification.style.display = "none";
-      }
-
-      inputs[Math.min(code.length, 7)].focus();
-    });
-  });
-}
-
-// ============================================================
-// 12. TIMER HITUNG MUNDUR 2 MENIT
-// ============================================================
-
-function updateTimer(inputs, form) {
-  if (otpTimerInterval) {
-    clearInterval(otpTimerInterval);
-  }
-
-  const timerElement = document.getElementById("timer");
-  const resendButton = document.getElementById("resendButton");
-
-  const expiry = Number(sessionStorage.getItem(VERIFY_CONFIG.expiry));
-
-  function hitungMundur() {
-    const sisa = expiry - Date.now();
-
-    if (sisa <= 0) {
-      clearInterval(otpTimerInterval);
-
-      otpExpired = true;
-      otpLocked = true;
-
-      if (timerElement) {
-        timerElement.textContent = "00:00";
-        timerElement.style.color = "#dc4545";
-      }
-
-      inputs.forEach((input) => (input.disabled = true));
-
-      const button = form.querySelector("button[type='submit']");
-
-      if (button) button.disabled = true;
-
-      if (resendButton) {
-        resendButton.disabled = false;
-        resendButton.style.opacity = "1";
-        resendButton.style.cursor = "pointer";
-      }
-
-      showMessage(
-        "Masa berlaku kode OTP telah habis. Silakan klik Kirim Ulang Kode untuk mendapatkan kode baru.",
-        "warning",
-      );
-
-      return;
-    }
-
-    const menit = Math.floor(sisa / 60000);
-    const detik = Math.floor((sisa % 60000) / 1000);
-
-    if (timerElement) {
-      timerElement.textContent =
-        String(menit).padStart(2, "0") + ":" + String(detik).padStart(2, "0");
-
-      timerElement.style.color = sisa <= 30000 ? "#dc4545" : "#1558d6";
-    }
-
-    if (resendButton) {
-      resendButton.disabled = true;
-      resendButton.style.opacity = "0.5";
-      resendButton.style.cursor = "not-allowed";
-    }
-  }
-
-  hitungMundur();
-
-  otpTimerInterval = setInterval(hitungMundur, 1000);
-}
-
-// ============================================================
-// 13. MEMVERIFIKASI OTP
-// ============================================================
-
-function verifyOTP(inputs, user, form) {
-  if (otpExpired) {
-    showMessage(
-      "OTP sudah kedaluwarsa. Silakan kirim ulang kode untuk melanjutkan.",
-      "warning",
-    );
-    return;
-  }
-
-  if (otpLocked) {
-    showMessage(
-      "Batas percobaan telah tercapai. Tunggu hingga OTP kedaluwarsa.",
-      "error",
-    );
-    return;
-  }
-
-  const entered = inputs.map((input) => input.value).join("");
-
-  if (!/^\d{8}$/.test(entered)) {
-    showMessage(
-      "Masih ada angka yang belum diisi. Pastikan seluruh 8 kotak OTP terisi.",
-      "warning",
-    );
-
-    inputs.find((input) => !input.value)?.focus();
-    return;
-  }
-
-  const saved = sessionStorage.getItem(VERIFY_CONFIG.otp);
-
-  const expiry = Number(sessionStorage.getItem(VERIFY_CONFIG.expiry));
-
-  let attempts = Number(sessionStorage.getItem(VERIFY_CONFIG.attempts) || "0");
-
-  if (!saved || !expiry) {
-    showMessage("OTP tidak tersedia. Silakan login kembali.", "error");
-    return;
-  }
-
-  if (Date.now() >= expiry) {
-    updateTimer(inputs, form);
-    return;
-  }
-
-  if (attempts >= VERIFY_CONFIG.maxAttempts) {
-    lockVerification(inputs, form);
-    return;
-  }
-
-  if (entered !== saved) {
-    attempts++;
-
-    sessionStorage.setItem(VERIFY_CONFIG.attempts, String(attempts));
-
-    inputs.forEach((input) => (input.value = ""));
-
-    if (attempts >= VERIFY_CONFIG.maxAttempts) {
-      lockVerification(inputs, form);
-      return;
-    }
-
-    inputs[0].focus();
-
-    showMessage(
-      "Kode OTP tidak sesuai. Percobaan ke-" +
-        attempts +
-        " dari 3. Kamu masih memiliki " +
-        (3 - attempts) +
-        " kesempatan.",
-      "error",
-      "Kode OTP tidak sesuai",
-    );
-
-    return;
-  }
-
-  // OTP benar, lanjutkan proses login.
-  finishLogin(user);
-}
-
-// ============================================================
-// 14. MENGUNCI OTP SETELAH 3 KALI KESALAHAN
-// ============================================================
-
-function lockVerification(inputs, form) {
-  otpLocked = true;
-
-  inputs.forEach((input) => (input.disabled = true));
-
-  const button = form.querySelector("button[type='submit']");
-
-  if (button) button.disabled = true;
-
-  showMessage(
-    "Kamu telah menggunakan seluruh 3 kesempatan. Tunggu hingga waktu OTP habis untuk meminta kode baru.",
-    "error",
-    "Batas percobaan tercapai",
-  );
-}
-
-// ============================================================
-// 15. MENGIRIM ULANG OTP
-// ============================================================
-
-function resendOTP(inputs, form) {
-  if (!otpExpired) {
-    showMessage(
-      "Kode baru belum dapat diminta. Silakan tunggu hingga waktu OTP habis.",
-      "warning",
-    );
-    return;
-  }
-
-  generateOTP(inputs, form);
-
-  console.log("OTP baru berhasil dibuat.");
-}
-
-// ============================================================
-// 16. MENYELESAIKAN LOGIN
-// ============================================================
-
-function finishLogin(user) {
-  const role = normalizeVerifyRole(user.role);
-  const destination = DASHBOARD_ROUTES[role];
-
-  if (!destination) {
-    showMessage("Role pengguna tidak dikenali.", "error");
-    return;
-  }
-
-  try {
-    const users = JSON.parse(localStorage.getItem("sipfasUsers") || "[]");
-
-    // Mencari akun berdasarkan ID atau username.
-    const akun = users.find(function (item) {
-      return (
-        (user.id && String(item.id) === String(user.id)) ||
-        (user.username &&
-          String(item.username || "").toLowerCase() ===
-            String(user.username).toLowerCase())
-      );
-    });
-
-    if (!akun) {
-      showMessage("Akun tidak ditemukan. Silakan login kembali.", "error");
-      return;
-    }
-
-    // Menyiapkan identitas pengguna.
-    const identitas = {
-      id: akun.id || "",
-      name: akun.name || akun.fullName || akun.nama || "",
-      nim: akun.nim || "",
-      username: akun.username || "",
-      email: akun.email || "",
-      role: normalizeVerifyRole(akun.role),
-    };
-
-    if (!identitas.name || identitas.role !== role) {
-      showMessage("Identitas akun tidak valid.", "error");
-      return;
-    }
-
-    // Menyimpan profil akun.
-    localStorage.setItem("sipfasProfile", JSON.stringify(identitas));
-
-    // Menyimpan sesi pengguna aktif.
-    sessionStorage.setItem(VERIFY_CONFIG.active, JSON.stringify(identitas));
-
-    // Menyimpan status verifikasi.
-    sessionStorage.setItem(VERIFY_CONFIG.verified, "true");
-    sessionStorage.setItem(VERIFY_CONFIG.email, identitas.email);
-
-    // Menyiapkan notifikasi untuk Dashboard.
-    sessionStorage.setItem(
-      "sipfasLoginNotification",
-      JSON.stringify({
-        title: "Login Berhasil",
-        message:
-          "Selamat datang, " +
-          identitas.name +
-          "! Kamu berhasil masuk ke SIPFAS.",
-      }),
-    );
-
-    // Menghapus data OTP.
-    sessionStorage.removeItem(VERIFY_CONFIG.pending);
-    sessionStorage.removeItem(VERIFY_CONFIG.otp);
-    sessionStorage.removeItem(VERIFY_CONFIG.expiry);
-    sessionStorage.removeItem(VERIFY_CONFIG.attempts);
-
-    // Menghentikan timer OTP.
-    if (otpTimerInterval) {
-      clearInterval(otpTimerInterval);
-    }
-
-    console.log("Login SIPFAS berhasil:", identitas);
-
-    // Mengarahkan pengguna ke Dashboard.
-    const button = document.querySelector(".verification-button");
-
-    if (button) {
-      button.disabled = true;
-      button.textContent = "Berhasil...";
-    }
-
-    window.location.assign(destination);
-  } catch (error) {
-    console.error("Gagal menyelesaikan login:", error);
-
-    showMessage(
-      "Terjadi kesalahan ketika menghubungkan akun. Silakan coba kembali.",
-      "error",
-    );
-  }
-}
-
-// ============================================================
-// 17. MENAMPILKAN PESAN INFORMASI DAN NOTIFIKASI OTP
-// ============================================================
-
 function showMessage(message, type = "error", customTitle = "") {
   const element = document.getElementById("verificationMessage");
 
