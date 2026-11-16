@@ -1,27 +1,9 @@
-/* ============================================================
-   SIPFAS - PROFIL PETUGAS
-   PROGRAM FINAL + SINKRONISASI LINTAS HALAMAN
-
-   FITUR:
-   1. Memuat identitas petugas yang sedang login.
-   2. Menampilkan foto profil.
-   3. Mengubah foto profil melalui ikon pensil.
-   4. Mengambil foto dari galeri perangkat.
-   5. Preview foto sebelum disimpan.
-   6. Menyimpan foto profil ke LocalStorage & SessionStorage.
-   7. Memperbarui nama, username, dan email.
-   8. Mengubah kata sandi.
-   9. Validasi kata sandi lama dan baru.
-   10. Tombol Batal.
-   11. Notifikasi keberhasilan dan kegagalan.
-   12. Sinkronisasi data akun & foto ke seluruh halaman SIPFAS.
-
-   TIDAK MENGUBAH HTML DAN CSS.
-============================================================ */
+//PROFIL.JS
 
 (function () {
   "use strict";
 
+  // 01. KONFIGURASI & STATE
   const CONFIG = {
     usersKey: "sipfasUsers",
     activeUserKey: "sipfasActiveUser",
@@ -38,16 +20,11 @@
 
   function initializeProfile() {
     const form = document.getElementById("profileForm");
-
     if (!form) {
       console.error("[SIPFAS] Form profil tidak ditemukan.");
       return;
     }
-
-    if (form.dataset.profileInitialized === "true") {
-      return;
-    }
-
+    if (form.dataset.profileInitialized === "true") return;
     form.dataset.profileInitialized = "true";
 
     const fields = {
@@ -61,12 +38,10 @@
 
     const avatar = document.querySelector(".large-avatar");
     const identityName = document.querySelector(".profile-identity h2");
-
     const saveButton =
       document.getElementById("saveButton") ||
       form.querySelector(".save-button") ||
       form.querySelector('button[type="submit"]');
-
     const cancelButton =
       document.getElementById("cancelChanges") ||
       form.querySelector(".cancel-button");
@@ -76,12 +51,8 @@
       return;
     }
 
-    /* ====================================================
-           01. NOTIFIKASI
-        ==================================================== */
-
+    // 02. NOTIFIKASI FORMULIR
     let feedback = document.getElementById("formFeedback");
-
     if (!feedback) {
       feedback = document.createElement("p");
       feedback.id = "formFeedback";
@@ -93,7 +64,6 @@
 
     function showNotification(message, type = "info") {
       clearTimeout(notificationTimer);
-
       feedback.textContent = message;
       feedback.className = "form-feedback " + type;
       feedback.setAttribute("role", "status");
@@ -107,28 +77,17 @@
       }
     }
 
-    /* ====================================================
-           02. MEMBACA & MENULIS DATA AKUN
-        ==================================================== */
-
+    // 03. MANAJEMEN DATA AKUN & SESI
     function normalize(value) {
-      return String(value || "")
-        .trim()
-        .toLowerCase();
+      return String(value || "").trim().toLowerCase();
     }
 
     function readUsers() {
       try {
         const saved = localStorage.getItem(CONFIG.usersKey);
-
         if (!saved) return [];
-
         const users = JSON.parse(saved);
-
-        if (!Array.isArray(users)) {
-          throw new Error("Format akun tidak valid.");
-        }
-
+        if (!Array.isArray(users)) throw new Error("Format akun tidak valid.");
         return users;
       } catch (error) {
         console.error("[SIPFAS] Gagal membaca akun:", error);
@@ -148,26 +107,21 @@
         if (!raw) continue;
         try {
           const parsed = JSON.parse(raw);
-          if (parsed && typeof parsed === "object") {
-            return parsed;
-          }
+          if (parsed && typeof parsed === "object") return parsed;
         } catch (error) {
           // Lanjut ke kandidat berikutnya
         }
       }
-
       return null;
     }
 
     function syncActiveSessionStorage(updatedActiveUser) {
       const serialized = JSON.stringify(updatedActiveUser);
-
       try {
         sessionStorage.setItem(CONFIG.activeUserKey, serialized);
       } catch (error) {
         console.warn("[SIPFAS] Gagal menulis sessionStorage:", error);
       }
-
       try {
         localStorage.setItem(CONFIG.activeUserKey, serialized);
       } catch (error) {
@@ -175,27 +129,17 @@
       }
     }
 
-    /* ====================================================
-           03. MENCARI AKUN YANG SEDANG LOGIN
-        ==================================================== */
-
     function getCurrentAccount() {
       const users = readUsers();
       const activeUser = readActiveUser();
-
       if (!activeUser) {
         throw new Error("Sesi login tidak ditemukan. Silakan login kembali.");
       }
 
       const index = users.findIndex(function (user) {
-        if (
-          activeUser.id &&
-          user.id &&
-          String(activeUser.id) === String(user.id)
-        ) {
+        if (activeUser.id && user.id && String(activeUser.id) === String(user.id)) {
           return true;
         }
-
         return (
           (normalize(activeUser.username) &&
             normalize(activeUser.username) === normalize(user.username)) ||
@@ -204,22 +148,11 @@
         );
       });
 
-      if (index === -1) {
-        throw new Error("Akun pengguna tidak ditemukan.");
-      }
-
-      return {
-        users: users,
-        activeUser: activeUser,
-        index: index,
-        user: users[index],
-      };
+      if (index === -1) throw new Error("Akun pengguna tidak ditemukan.");
+      return { users, activeUser, index, user: users[index] };
     }
 
-    /* ====================================================
-           04. IDENTITAS PROFIL & KUNCI FOTO
-        ==================================================== */
-
+    // 04. IDENTITAS PROFIL & UTILITAS
     function getProfileData() {
       return {
         name: fields.name.value.trim(),
@@ -230,30 +163,18 @@
 
     function formatRoleLabel(role) {
       const value = normalize(role);
-      if (value === "administrator" || value === "admin") {
-        return "Administrator";
-      }
-      if (value === "petugas") {
-        return "Petugas";
-      }
-      if (value === "pelapor" || value === "user") {
-        return "Pelapor";
-      }
+      if (value === "administrator" || value === "admin") return "Administrator";
+      if (value === "petugas") return "Petugas";
+      if (value === "pelapor" || value === "user") return "Pelapor";
       return "Petugas";
     }
 
     function getInitials(name) {
-      const words = String(name || "")
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean);
-
+      const words = String(name || "").trim().split(/\s+/).filter(Boolean);
       return (
         words
           .slice(0, 2)
-          .map(function (word) {
-            return word.charAt(0);
-          })
+          .map((word) => word.charAt(0))
           .join("")
           .toUpperCase() || "PT"
       );
@@ -265,32 +186,22 @@
 
     function resolveStoredPhoto(user) {
       if (!user) return null;
-
-      const byUsername = user.username
-        ? localStorage.getItem(getPhotoKey(user.username))
-        : null;
-
+      const byUsername = user.username ? localStorage.getItem(getPhotoKey(user.username)) : null;
       return byUsername || user.avatar || user.photo || user.foto || null;
     }
 
-    /* ====================================================
-           05. FITUR FOTO PROFIL
-        ==================================================== */
-
+    // 05. FITUR & TAMPILAN AVATAR PROFIL
     let photoInput = document.getElementById("profilePhotoInput");
-
     if (!photoInput) {
       photoInput = document.createElement("input");
       photoInput.type = "file";
       photoInput.id = "profilePhotoInput";
       photoInput.accept = "image/jpeg,image/png,image/webp";
       photoInput.hidden = true;
-
       document.body.appendChild(photoInput);
     }
 
     let photoButton = document.getElementById("chooseProfilePhoto");
-
     if (!photoButton && avatar) {
       photoButton = document.createElement("button");
       photoButton.id = "chooseProfilePhoto";
@@ -298,22 +209,15 @@
     }
 
     if (avatar && photoButton) {
-      if (photoButton.parentElement !== avatar) {
-        avatar.appendChild(photoButton);
-      }
+      if (photoButton.parentElement !== avatar) avatar.appendChild(photoButton);
 
       photoButton.type = "button";
-
       photoButton.innerHTML = `
-                <svg
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                >
-                    <path d="m14 5 5 5"/>
-                    <path d="M4 20l4.5-1 11-11a2.1 2.1 0 0 0-3-3l-11 11L4 20z"/>
-                </svg>
-            `;
-
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m14 5 5 5"/>
+          <path d="M4 20l4.5-1 11-11a2.1 2.1 0 0 0-3-3l-11 11L4 20z"/>
+        </svg>
+      `;
       photoButton.title = "Ubah foto profil";
       photoButton.setAttribute("aria-label", "Ubah foto profil");
 
@@ -338,7 +242,6 @@
       avatar.style.position = "relative";
 
       const pencilIcon = photoButton.querySelector("svg");
-
       if (pencilIcon) {
         Object.assign(pencilIcon.style, {
           width: "14px",
@@ -352,10 +255,7 @@
       }
 
       const verifiedMark = avatar.querySelector(".verified-mark");
-
-      if (verifiedMark) {
-        verifiedMark.style.display = "none";
-      }
+      if (verifiedMark) verifiedMark.style.display = "none";
 
       photoButton.addEventListener("click", function () {
         if (isSaving) return;
@@ -363,25 +263,18 @@
       });
     }
 
-    /* ====================================================
-           06. MEMPERBARUI AVATAR PROFIL BESAR
-        ==================================================== */
-
     function updateAvatar(name, photo = null) {
       if (!avatar) return;
 
       let initials = avatar.querySelector(".avatar-initials");
-
       if (!initials) {
         initials = document.createElement("span");
         initials.className = "avatar-initials";
         avatar.prepend(initials);
       }
-
       initials.textContent = getInitials(name);
 
       let image = avatar.querySelector(".profile-photo");
-
       if (photo) {
         if (!image) {
           image = document.createElement("img");
@@ -389,9 +282,7 @@
           image.alt = "Foto profil petugas";
           avatar.prepend(image);
         }
-
         image.src = photo;
-
         Object.assign(image.style, {
           position: "absolute",
           inset: "0",
@@ -401,24 +292,14 @@
           borderRadius: "50%",
           zIndex: "1",
         });
-
         initials.hidden = true;
       } else {
-        if (image) {
-          image.remove();
-        }
-
+        if (image) image.remove();
         initials.hidden = false;
       }
 
-      if (photoButton) {
-        avatar.appendChild(photoButton);
-      }
+      if (photoButton) avatar.appendChild(photoButton);
     }
-
-    /* ====================================================
-           07. MEMUAT FOTO PROFIL
-        ==================================================== */
 
     function loadPhoto(user) {
       const photo = resolveStoredPhoto(user);
@@ -426,17 +307,11 @@
       updateAvatar(fields.name.value, photo);
     }
 
-    /* ====================================================
-           08. MEMILIH FOTO DARI GALERI
-        ==================================================== */
-
     photoInput.addEventListener("change", function (event) {
       const file = event.target.files?.[0];
-
       if (!file) return;
 
       const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-
       if (!allowedTypes.includes(file.type)) {
         showNotification("Format foto harus JPG, PNG, atau WEBP.", "error");
         photoInput.value = "";
@@ -450,118 +325,77 @@
       }
 
       const reader = new FileReader();
-
       reader.onload = function () {
         if (typeof reader.result !== "string") {
           showNotification("Foto gagal dibaca.", "error");
           return;
         }
-
         selectedPhoto = reader.result;
-
         updateAvatar(fields.name.value, selectedPhoto);
         updateHeaderAvatar(fields.name.value, selectedPhoto);
-
-        showNotification(
-          "Foto berhasil dipilih. Klik Simpan Perubahan untuk menyimpan.",
-          "info",
-        );
+        showNotification("Foto berhasil dipilih. Klik Simpan Perubahan untuk menyimpan.", "info");
       };
-
       reader.onerror = function () {
         showNotification("Terjadi kesalahan saat membaca foto.", "error");
       };
-
       reader.readAsDataURL(file);
     });
 
-    /* ====================================================
-           09. VALIDASI PROFIL
-        ==================================================== */
-
+    // 06. VALIDASI PROFIL & KATA SANDI
     function validateProfile() {
       const data = getProfileData();
-
       if (data.name.length < 3) {
         fields.name.focus();
         showNotification("Nama lengkap minimal 3 karakter.", "error");
         return false;
       }
-
       if (!/^[a-zA-Z0-9._-]{3,30}$/.test(data.username)) {
         fields.username.focus();
         showNotification("Username harus terdiri dari 3-30 karakter.", "error");
         return false;
       }
-
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
         fields.email.focus();
         showNotification("Format email tidak valid.", "error");
         return false;
       }
-
       return true;
     }
-
-    /* ====================================================
-           10. VALIDASI PASSWORD
-        ==================================================== */
 
     function validatePassword() {
       const current = fields.currentPassword?.value || "";
       const newPassword = fields.newPassword?.value || "";
       const confirmation = fields.confirmPassword?.value || "";
-
       const requested = Boolean(current || newPassword || confirmation);
 
-      if (!requested) {
-        return { valid: true, requested: false };
-      }
+      if (!requested) return { valid: true, requested: false };
 
       if (!current || !newPassword || !confirmation) {
-        showNotification(
-          "Lengkapi seluruh kolom perubahan kata sandi.",
-          "error",
-        );
+        showNotification("Lengkapi seluruh kolom perubahan kata sandi.", "error");
         return { valid: false, requested: true };
       }
-
       if (newPassword.length < 8) {
         fields.newPassword.focus();
         showNotification("Kata sandi baru minimal 8 karakter.", "error");
         return { valid: false, requested: true };
       }
-
       if (!/[A-Za-z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
         fields.newPassword.focus();
-        showNotification(
-          "Kata sandi harus mengandung huruf dan angka.",
-          "error",
-        );
+        showNotification("Kata sandi harus mengandung huruf dan angka.", "error");
         return { valid: false, requested: true };
       }
-
       if (current === newPassword) {
         fields.newPassword.focus();
-        showNotification(
-          "Kata sandi baru harus berbeda dari kata sandi lama.",
-          "error",
-        );
+        showNotification("Kata sandi baru harus berbeda dari kata sandi lama.", "error");
         return { valid: false, requested: true };
       }
-
       if (newPassword !== confirmation) {
         fields.confirmPassword.focus();
         showNotification("Konfirmasi kata sandi tidak cocok.", "error");
         return { valid: false, requested: true };
       }
-
       return { valid: true, requested: true };
     }
-
-    /* ====================================================
-           11. MEMBERSIHKAN INPUT PASSWORD
-        ==================================================== */
 
     function clearPasswordFields() {
       if (fields.currentPassword) fields.currentPassword.value = "";
@@ -569,18 +403,12 @@
       if (fields.confirmPassword) fields.confirmPassword.value = "";
     }
 
-    /* ====================================================
-           12. MENYIMPAN PERUBAHAN PROFIL & FOTO
-        ==================================================== */
-
+    // 07. PENYIMPANAN PROFIL, FOTO & KATA SANDI
     function saveProfileAndPhoto(data, newPhotoDataUrl) {
       const account = getCurrentAccount();
 
       const duplicate = account.users.some(function (user, index) {
-        if (index === account.index) {
-          return false;
-        }
-
+        if (index === account.index) return false;
         return (
           normalize(user.username) === normalize(data.username) ||
           normalize(user.email) === normalize(data.email)
@@ -592,31 +420,21 @@
       }
 
       const oldUsername = account.user.username || "";
-      const effectivePhoto =
-        newPhotoDataUrl || resolveStoredPhoto(account.user) || "";
+      const effectivePhoto = newPhotoDataUrl || resolveStoredPhoto(account.user) || "";
 
-      // Simpan foto ke kunci dedicated per username
       if (effectivePhoto) {
         const newPhotoKey = getPhotoKey(data.username);
-
         try {
           localStorage.setItem(newPhotoKey, effectivePhoto);
         } catch (storageError) {
-          throw new Error(
-            "Penyimpanan browser penuh. Gunakan foto dengan ukuran lebih kecil.",
-          );
+          throw new Error("Penyimpanan browser penuh. Gunakan foto dengan ukuran lebih kecil.");
         }
 
-        // Jika username berubah, hapus kunci foto lama
-        if (
-          oldUsername &&
-          normalize(oldUsername) !== normalize(data.username)
-        ) {
+        if (oldUsername && normalize(oldUsername) !== normalize(data.username)) {
           localStorage.removeItem(getPhotoKey(oldUsername));
         }
       }
 
-      // Perbarui record di daftar sipfasUsers
       const updatedUser = {
         ...account.user,
         name: data.name,
@@ -629,10 +447,8 @@
       };
 
       account.users[account.index] = updatedUser;
-
       localStorage.setItem(CONFIG.usersKey, JSON.stringify(account.users));
 
-      // Sinkronkan ke sipfasActiveUser (localStorage & sessionStorage)
       const updatedActiveUser = {
         ...account.activeUser,
         id: updatedUser.id,
@@ -647,9 +463,7 @@
 
       syncActiveSessionStorage(updatedActiveUser);
 
-      // Verifikasi penyimpanan
       const verification = readUsers()[account.index];
-
       if (
         verification.name !== data.name ||
         verification.username !== data.username ||
@@ -661,13 +475,8 @@
       return updatedActiveUser;
     }
 
-    /* ====================================================
-           13. MENGUBAH PASSWORD
-        ==================================================== */
-
     function updatePassword() {
       const account = getCurrentAccount();
-
       const current = fields.currentPassword.value;
       const newPassword = fields.newPassword.value;
 
@@ -684,31 +493,21 @@
       localStorage.setItem(CONFIG.usersKey, JSON.stringify(account.users));
 
       const verification = readUsers()[account.index];
-
       if (verification.password !== newPassword) {
         throw new Error("Pembaruan kata sandi gagal diverifikasi.");
       }
-
       return true;
     }
 
-    /* ====================================================
-           14. MEMPERBARUI FOTO & IDENTITAS DI HEADER
-        ==================================================== */
-
+    // 08. PEMBARUAN TAMPILAN HEADER & FORM
     function updateHeaderAvatar(name, photo = null, roleLabel = "") {
       const headerAvatar = document.querySelector(
         ".profile-area .profile-avatar, .header-profile .profile-avatar, .user-profile .profile-avatar, .profile-avatar",
       );
-
       if (!headerAvatar) return;
 
       let headerImage = headerAvatar.querySelector(".profile-header-photo");
-
-      let headerInitials = headerAvatar.querySelector(
-        ".profile-header-initials",
-      );
-
+      let headerInitials = headerAvatar.querySelector(".profile-header-initials");
       const defaultIcon = headerAvatar.querySelector("svg");
 
       if (photo) {
@@ -723,7 +522,6 @@
         }
 
         headerImage.src = photo;
-
         Object.assign(headerImage.style, {
           width: "100%",
           height: "100%",
@@ -742,7 +540,6 @@
         }
 
         headerInitials.textContent = getInitials(name);
-
         Object.assign(headerInitials.style, {
           display: "flex",
           width: "100%",
@@ -758,58 +555,32 @@
       headerAvatar.style.overflow = "hidden";
       headerAvatar.setAttribute(
         "aria-label",
-        photo
-          ? "Foto profil " + (name || "akun aktif")
-          : "Profil " + (name || "akun aktif"),
+        photo ? "Foto profil " + (name || "akun aktif") : "Profil " + (name || "akun aktif"),
       );
 
       if (roleLabel) {
         const roleEl = document.querySelector(
           ".profile-area .profile-role, .profile-role, .officer-role",
         );
-        if (roleEl) {
-          roleEl.textContent = roleLabel;
-        }
+        if (roleEl) roleEl.textContent = roleLabel;
       }
     }
 
-    /* ====================================================
-           15. MEMPERBARUI TAMPILAN PROFIL
-        ==================================================== */
-
     function updateProfileDisplay(data, role = "") {
-      if (identityName) {
-        identityName.textContent = data.name;
-      }
+      if (identityName) identityName.textContent = data.name;
 
-      const identityRole = document.querySelector(
-        ".profile-identity p, .profile-identity span",
-      );
-      if (identityRole && role) {
-        identityRole.textContent = formatRoleLabel(role);
-      }
+      const identityRole = document.querySelector(".profile-identity p, .profile-identity span");
+      if (identityRole && role) identityRole.textContent = formatRoleLabel(role);
 
       const headerName = document.querySelector(
         ".profile-area .profile-name, .profile-name, .officer-name",
       );
-
-      if (headerName) {
-        headerName.textContent = data.name;
-      }
+      if (headerName) headerName.textContent = data.name;
 
       const activePhoto = selectedPhoto || originalPhoto;
-
       updateAvatar(data.name, activePhoto);
-      updateHeaderAvatar(
-        data.name,
-        activePhoto,
-        role ? formatRoleLabel(role) : "",
-      );
+      updateHeaderAvatar(data.name, activePhoto, role ? formatRoleLabel(role) : "");
     }
-
-    /* ====================================================
-           16. MEMUAT IDENTITAS AKUN AKTIF
-        ==================================================== */
 
     function loadProfile() {
       const account = getCurrentAccount();
@@ -832,31 +603,22 @@
       updateProfileDisplay(data, user.role);
     }
 
-    /* ====================================================
-           17. TOMBOL SIMPAN PERUBAHAN
-        ==================================================== */
-
+    // 09. EVENT SUBMIT, BATAL, PASSWORD & SINKRONISASI
     const originalSaveHTML = saveButton.innerHTML;
 
     form.addEventListener("submit", function (event) {
       event.preventDefault();
-
-      if (isSaving) return;
-
-      if (!validateProfile()) return;
+      if (isSaving || !validateProfile()) return;
 
       const passwordValidation = validatePassword();
-
       if (!passwordValidation.valid) return;
 
       const data = getProfileData();
-
       const profileChanged =
         !originalProfile ||
         data.name !== originalProfile.name ||
         data.username !== originalProfile.username ||
         data.email !== originalProfile.email;
-
       const photoChanged = Boolean(selectedPhoto);
       const passwordChanged = passwordValidation.requested;
 
@@ -867,38 +629,26 @@
 
       try {
         isSaving = true;
-
         saveButton.disabled = true;
         saveButton.textContent = "Menyimpan...";
-
         if (cancelButton) cancelButton.disabled = true;
         if (photoButton) photoButton.disabled = true;
 
-        if (passwordChanged) {
-          updatePassword();
-        }
+        if (passwordChanged) updatePassword();
 
         let savedActiveUser = null;
-
         if (profileChanged || photoChanged) {
           savedActiveUser = saveProfileAndPhoto(data, selectedPhoto);
         }
-
-        if (photoChanged) {
-          originalPhoto = selectedPhoto;
-        }
+        if (photoChanged) originalPhoto = selectedPhoto;
 
         selectedPhoto = null;
         photoInput.value = "";
-
         updateProfileDisplay(data, savedActiveUser?.role || "");
-
         originalProfile = { ...data };
-
         clearPasswordFields();
 
         let message;
-
         if (passwordChanged && photoChanged && profileChanged) {
           message = "Profil, foto, dan kata sandi berhasil diperbarui.";
         } else if (passwordChanged && (photoChanged || profileChanged)) {
@@ -917,95 +667,55 @@
 
         window.dispatchEvent(
           new CustomEvent("sipfas:profile-updated", {
-            detail: {
-              profile: data,
-              photo: originalPhoto,
-            },
+            detail: { profile: data, photo: originalPhoto },
           }),
         );
-
-        console.log(
-          "[SIPFAS] Perubahan profil & foto tersinkronisasi ke seluruh halaman.",
-        );
+        console.log("[SIPFAS] Perubahan profil & foto tersinkronisasi ke seluruh halaman.");
       } catch (error) {
         console.error("[SIPFAS] Gagal menyimpan perubahan:", error);
-
-        showNotification(
-          error.message || "Terjadi kesalahan saat menyimpan perubahan.",
-          "error",
-        );
+        showNotification(error.message || "Terjadi kesalahan saat menyimpan perubahan.", "error");
       } finally {
         isSaving = false;
-
         saveButton.disabled = false;
         saveButton.innerHTML = originalSaveHTML;
-
         if (cancelButton) cancelButton.disabled = false;
         if (photoButton) photoButton.disabled = false;
       }
     });
 
-    /* ====================================================
-           18. TOMBOL BATAL
-        ==================================================== */
-
     if (cancelButton) {
       cancelButton.addEventListener("click", function () {
         if (isSaving) return;
-
-        const confirmation = confirm(
-          "Batalkan seluruh perubahan yang belum disimpan?",
-        );
-
-        if (!confirmation) return;
+        if (!confirm("Batalkan seluruh perubahan yang belum disimpan?")) return;
 
         fields.name.value = originalProfile?.name || "";
         fields.username.value = originalProfile?.username || "";
         fields.email.value = originalProfile?.email || "";
-
         clearPasswordFields();
 
         selectedPhoto = null;
         photoInput.value = "";
-
         updateAvatar(originalProfile?.name || "", originalPhoto);
-
         updateHeaderAvatar(originalProfile?.name || "", originalPhoto);
-
-        showNotification(
-          "Perubahan yang belum disimpan telah dibatalkan.",
-          "info",
-        );
+        showNotification("Perubahan yang belum disimpan telah dibatalkan.", "info");
       });
     }
 
-    /* ====================================================
-           19. TOGGLE PASSWORD
-        ==================================================== */
-
     document.querySelectorAll(".toggle-password").forEach(function (button) {
-      if (button.dataset.profilePasswordInitialized === "true") {
-        return;
-      }
-
+      if (button.dataset.profilePasswordInitialized === "true") return;
       button.dataset.profilePasswordInitialized = "true";
       button.type = "button";
 
       const targetId = button.dataset.target;
-
       const input = targetId
         ? document.getElementById(targetId)
         : button.parentElement?.querySelector("input");
-
       if (!input) return;
 
       button.addEventListener("click", function () {
         const visible = input.type === "password";
-
         input.type = visible ? "text" : "password";
-
         button.setAttribute("aria-pressed", String(visible));
-
         button.setAttribute(
           "aria-label",
           visible ? "Sembunyikan kata sandi" : "Tampilkan kata sandi",
@@ -1013,24 +723,15 @@
       });
     });
 
-    /* ====================================================
-           20. INPUT PROFIL
-        ==================================================== */
-
     [fields.name, fields.username, fields.email].forEach(function (input) {
       input.addEventListener("input", function () {
         feedback.textContent = "";
         feedback.className = "form-feedback";
-
         if (input === fields.name) {
           updateAvatar(input.value, selectedPhoto || originalPhoto);
         }
       });
     });
-
-    /* ====================================================
-           21. SINKRONISASI ANTARTAB
-        ==================================================== */
 
     window.addEventListener("storage", function (event) {
       if (
@@ -1046,29 +747,18 @@
       }
     });
 
-    /* ====================================================
-           22. INISIALISASI AKHIR
-        ==================================================== */
-
+    // 10. INISIALISASI AKHIR
     try {
       loadProfile();
-
       console.log("[SIPFAS] Profil Petugas berhasil diinisialisasi.");
     } catch (error) {
       console.error("[SIPFAS] Gagal memuat profil:", error);
-
       showNotification(error.message, "error");
     }
   }
 
-  /* ========================================================
-       23. MENJALANKAN PROGRAM
-    ======================================================== */
-
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initializeProfile, {
-      once: true,
-    });
+    document.addEventListener("DOMContentLoaded", initializeProfile, { once: true });
   } else {
     initializeProfile();
   }
