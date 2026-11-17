@@ -1,329 +1,531 @@
+
 "use strict";
 
-/* ============================================================
-   SIPFAS - LOGIN.JS
-   Sistem autentikasi berbasis PHP PDO, MariaDB, dan OTP
-============================================================ */
+/**
+ * SIPFAS - LOGIN.JS
+ * Backend: PHP PDO + MariaDB
+ * Autentikasi: Password + OTP
+ */
+
+// ============================================================
+// 1. KONFIGURASI LOGIN
+// ============================================================
 
 const LOGIN_CONFIG = {
-  apiUrl: "../api/auth/login.php",
-  otpPage: "verifikasi.html",
+    apiUrl: "../api/auth/login.php",
+    otpPage: "verifikasi.html"
 };
 
 let loginSubmitting = false;
 let loginMessageTimer = null;
 
-/* ============================================================
-   01. NORMALISASI ROLE
-============================================================ */
+
+// ============================================================
+// 2. NORMALISASI ROLE
+// ============================================================
 
 function normalizeRole(role) {
-  const value = String(role || "")
-    .trim()
-    .toLowerCase();
 
-  const roleMap = {
-    admin: "administrator",
-    administrator: "administrator",
-    petugas: "petugas",
-    "petugas sarpras": "petugas",
-    pelapor: "pelapor",
-    user: "pelapor",
-  };
+    const value = String(role || "")
+        .trim()
+        .toLowerCase();
 
-  return roleMap[value] || "";
+    const roleMap = {
+        admin: "administrator",
+        administrator: "administrator",
+
+        petugas: "petugas",
+        "petugas sarpras": "petugas",
+
+        pelapor: "pelapor",
+        user: "pelapor"
+    };
+
+    return roleMap[value] || "";
 }
 
-/* ============================================================
-   02. INISIALISASI
-============================================================ */
 
-document.addEventListener("DOMContentLoaded", initializeLogin);
+// ============================================================
+// 3. INISIALISASI HALAMAN LOGIN
+// ============================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    initializeLogin
+);
 
 function initializeLogin() {
-  const form = document.getElementById("loginForm");
-  const username = document.getElementById("username");
-  const password = document.getElementById("password");
-  const toggle = document.getElementById("togglePassword");
 
-  if (!form || !username || !password) {
-    console.error("[SIPFAS] Elemen formulir login tidak ditemukan.");
-    return;
-  }
+    const form = document.getElementById("loginForm");
+    const username = document.getElementById("username");
+    const password = document.getElementById("password");
+    const toggle = document.getElementById("togglePassword");
 
-  setupLoginFieldValidation();
+    // Memastikan elemen form tersedia.
+    if (!form || !username || !password) {
 
-  if (toggle) {
-    toggle.addEventListener("click", function () {
-      const visible = password.type === "password";
+        console.error(
+            "[SIPFAS] Elemen formulir login tidak ditemukan."
+        );
 
-      password.type = visible ? "text" : "password";
+        return;
+    }
 
-      toggle.setAttribute(
-        "aria-label",
-        visible ? "Sembunyikan kata sandi" : "Tampilkan kata sandi",
-      );
+    // Mengaktifkan validasi input.
+    setupLoginFieldValidation();
 
-      toggle.setAttribute("aria-pressed", String(visible));
+    // Mengatur fitur tampil/sembunyikan password.
+    if (toggle) {
 
-      password.focus();
-    });
-  }
+        toggle.addEventListener("click", function () {
 
-  form.addEventListener("submit", handleLogin);
+            const visible = password.type === "password";
 
-  console.log("[SIPFAS] Login berhasil diinisialisasi.");
+            password.type = visible ? "text" : "password";
+
+            toggle.setAttribute(
+                "aria-label",
+                visible
+                    ? "Sembunyikan kata sandi"
+                    : "Tampilkan kata sandi"
+            );
+
+            toggle.setAttribute(
+                "aria-pressed",
+                String(visible)
+            );
+
+            password.focus();
+        });
+    }
+
+    // Menghubungkan form dengan proses login.
+    form.addEventListener("submit", handleLogin);
+
+    console.log(
+        "[SIPFAS] Login berhasil diinisialisasi."
+    );
 }
 
-/* ============================================================
-   03. NOTIFIKASI
-============================================================ */
+
+// ============================================================
+// 4. MENAMPILKAN NOTIFIKASI
+// ============================================================
 
 function showLoginMessage(message, type = "error") {
-  clearLoginMessage();
 
-  const element = document.createElement("div");
-
-  element.id = "loginMessage";
-  element.className = "login-message " + type;
-
-  element.setAttribute("role", type === "error" ? "alert" : "status");
-
-  element.setAttribute("aria-live", "polite");
-
-  const icon = document.createElement("span");
-
-  icon.className = "login-message-icon";
-  icon.setAttribute("aria-hidden", "true");
-
-  const icons = {
-    error: "!",
-    success: "✓",
-    info: "i",
-  };
-
-  icon.textContent = icons[type] || "i";
-
-  const text = document.createElement("span");
-
-  text.className = "login-message-text";
-  text.textContent = message;
-
-  element.append(icon, text);
-
-  document.body.appendChild(element);
-
-  loginMessageTimer = setTimeout(function () {
     clearLoginMessage();
-  }, 5000);
+
+    const element = document.createElement("div");
+
+    element.id = "loginMessage";
+    element.className = "login-message " + type;
+
+    element.setAttribute(
+        "role",
+        type === "error" ? "alert" : "status"
+    );
+
+    element.setAttribute("aria-live", "polite");
+
+    const icon = document.createElement("span");
+
+    icon.className = "login-message-icon";
+    icon.setAttribute("aria-hidden", "true");
+
+    const icons = {
+        error: "!",
+        success: "✓",
+        info: "i"
+    };
+
+    icon.textContent = icons[type] || "i";
+
+    const text = document.createElement("span");
+
+    text.className = "login-message-text";
+    text.textContent = message;
+
+    element.append(icon, text);
+
+    document.body.appendChild(element);
+
+    loginMessageTimer = setTimeout(
+        clearLoginMessage,
+        5000
+    );
 }
 
-/* ============================================================
-   04. HAPUS NOTIFIKASI
-============================================================ */
+
+// ============================================================
+// 5. MENGHAPUS NOTIFIKASI
+// ============================================================
 
 function clearLoginMessage() {
-  if (loginMessageTimer !== null) {
-    clearTimeout(loginMessageTimer);
-    loginMessageTimer = null;
-  }
 
-  const message = document.getElementById("loginMessage");
+    if (loginMessageTimer !== null) {
 
-  if (message) {
-    message.remove();
-  }
+        clearTimeout(loginMessageTimer);
+
+        loginMessageTimer = null;
+    }
+
+    const message = document.getElementById("loginMessage");
+
+    if (message) {
+        message.remove();
+    }
 }
 
-/* ============================================================
-   05. VALIDASI INPUT
-============================================================ */
+
+// ============================================================
+// 6. VALIDASI PERUBAHAN INPUT
+// ============================================================
 
 function setupLoginFieldValidation() {
-  const username = document.getElementById("username");
-  const password = document.getElementById("password");
-  const role = document.getElementById("jenisPengguna");
 
-  [username, password, role].forEach(function (element) {
-    if (!element) return;
+    const username = document.getElementById("username");
+    const password = document.getElementById("password");
+    const role = document.getElementById("jenisPengguna");
 
-    element.addEventListener("input", function () {
-      clearPasswordError();
-      clearLoginMessage();
+    [username, password, role].forEach(function (element) {
+
+        if (!element) return;
+
+        element.addEventListener("input", function () {
+
+            clearPasswordError();
+            clearLoginMessage();
+        });
+
+        element.addEventListener("change", function () {
+
+            clearPasswordError();
+            clearLoginMessage();
+        });
     });
-
-    element.addEventListener("change", function () {
-      clearPasswordError();
-      clearLoginMessage();
-    });
-  });
 }
 
-/* ============================================================
-   06. INDIKATOR PASSWORD
-============================================================ */
+
+// ============================================================
+// 7. INDIKATOR PASSWORD SALAH
+// ============================================================
 
 function setPasswordError() {
-  const password = document.getElementById("password");
 
-  const wrapper = password ? password.closest(".input-wrapper") : null;
+    const password = document.getElementById("password");
 
-  if (wrapper) {
-    wrapper.classList.add("input-error");
-  }
+    const wrapper = password
+        ? password.closest(".input-wrapper")
+        : null;
+
+    if (wrapper) {
+        wrapper.classList.add("input-error");
+    }
 }
 
 function clearPasswordError() {
-  const password = document.getElementById("password");
 
-  const wrapper = password ? password.closest(".input-wrapper") : null;
+    const password = document.getElementById("password");
 
-  if (wrapper) {
-    wrapper.classList.remove("input-error");
-  }
+    const wrapper = password
+        ? password.closest(".input-wrapper")
+        : null;
+
+    if (wrapper) {
+        wrapper.classList.remove("input-error");
+    }
 }
 
-/* ============================================================
-   07. STATUS TOMBOL
-============================================================ */
+
+// ============================================================
+// 8. MENGATUR STATUS TOMBOL LOGIN
+// ============================================================
 
 function setLoginButtonLoading(loading) {
-  const button = document.querySelector(".login-button");
 
-  if (!button) return;
+    const button = document.querySelector(".login-button");
 
-  const label = button.querySelector("span");
+    if (!button) return;
 
-  button.disabled = loading;
+    const label = button.querySelector("span");
 
-  if (label) {
-    label.textContent = loading ? "Memproses..." : "Masuk";
-  }
+    button.disabled = loading;
 
-  button.setAttribute("aria-busy", String(loading));
+    if (label) {
+
+        label.textContent = loading
+            ? "Memproses..."
+            : "Masuk";
+    }
+
+    button.setAttribute(
+        "aria-busy",
+        String(loading)
+    );
 }
 
-/* ============================================================
-   08. REQUEST LOGIN
-============================================================ */
+
+// ============================================================
+// 9. MEMBACA RESPONS DARI PHP
+// ============================================================
+
+async function readApiResponse(response) {
+
+    // Membaca respons sebagai teks terlebih dahulu.
+    const raw = await response.text();
+
+    // Memeriksa respons kosong.
+    if (!raw.trim()) {
+
+        console.error(
+            "[SIPFAS] Respons PHP kosong.",
+            "HTTP:",
+            response.status,
+            "URL:",
+            response.url
+        );
+
+        throw new Error(
+            "PHP mengirim respons kosong. Periksa Apache error.log dan PHP error.log."
+        );
+    }
+
+    // Mengubah respons menjadi JSON.
+    try {
+
+        return JSON.parse(raw);
+
+    } catch (error) {
+
+        console.error(
+            "[SIPFAS] Respons bukan JSON:",
+            raw.substring(0, 1000)
+        );
+
+        throw new Error(
+            "PHP menghasilkan respons bukan JSON. Periksa konfigurasi API dan error log."
+        );
+    }
+}
+
+
+// ============================================================
+// 10. PROSES LOGIN
+// ============================================================
 
 async function handleLogin(event) {
-  event.preventDefault();
 
-  if (loginSubmitting) return;
+    event.preventDefault();
 
-  const usernameInput = document.getElementById("username");
-  const passwordInput = document.getElementById("password");
-  const roleInput = document.getElementById("jenisPengguna");
+    // Mencegah permintaan login ganda.
+    if (loginSubmitting) return;
 
-  if (!usernameInput || !passwordInput || !roleInput) {
-    showLoginMessage("Komponen formulir login tidak lengkap.", "error");
-    return;
-  }
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+    const roleInput = document.getElementById("jenisPengguna");
 
-  const identifier = usernameInput.value.trim();
-  const password = passwordInput.value;
-  const selectedRole = normalizeRole(roleInput.value);
+    // Memastikan elemen tersedia.
+    if (!usernameInput || !passwordInput || !roleInput) {
 
-  clearPasswordError();
-  clearLoginMessage();
+        showLoginMessage(
+            "Komponen formulir login tidak lengkap."
+        );
 
-  if (!identifier || !password || !selectedRole) {
-    showLoginMessage(
-      "Username/email, password, dan jenis pengguna wajib diisi.",
-      "error",
+        return;
+    }
+
+    // Mengambil nilai formulir.
+    const identifier = usernameInput.value.trim();
+
+    const password = passwordInput.value;
+
+    const selectedRole = normalizeRole(
+        roleInput.value
     );
-    return;
-  }
 
-  if (identifier.length > 150) {
-    showLoginMessage("Username atau email terlalu panjang.", "error");
-    return;
-  }
+    clearPasswordError();
+    clearLoginMessage();
 
-  if (password.length > 4096) {
-    showLoginMessage("Password melebihi batas yang diperbolehkan.", "error");
-    return;
-  }
 
-  loginSubmitting = true;
-  setLoginButtonLoading(true);
+    // ========================================================
+    // 10.1. VALIDASI INPUT
+    // ========================================================
 
-  try {
-    const response = await fetch(LOGIN_CONFIG.apiUrl, {
-      method: "POST",
+    if (!identifier || !password || !selectedRole) {
 
-      credentials: "same-origin",
+        showLoginMessage(
+            "Username/email, password, dan jenis pengguna wajib diisi."
+        );
 
-      cache: "no-store",
+        return;
+    }
 
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+    if (identifier.length > 150) {
 
-      body: JSON.stringify({
-        identifier: identifier,
-        password: password,
-        role: selectedRole,
-      }),
-    });
+        showLoginMessage(
+            "Username atau email terlalu panjang."
+        );
 
-    let result;
+        return;
+    }
+
+    if (password.length > 4096) {
+
+        showLoginMessage(
+            "Password melebihi batas yang diperbolehkan."
+        );
+
+        return;
+    }
+
+
+    // ========================================================
+    // 10.2. MENGAKTIFKAN LOADING
+    // ========================================================
+
+    loginSubmitting = true;
+
+    setLoginButtonLoading(true);
+
 
     try {
-      result = await response.json();
-    } catch {
-      throw new Error("Respons server tidak valid. Periksa konfigurasi API.");
+
+        // ====================================================
+        // 10.3. MENGIRIM DATA KE LOGIN.PHP
+        // ====================================================
+
+        const response = await fetch(
+            LOGIN_CONFIG.apiUrl,
+            {
+                method: "POST",
+
+                credentials: "same-origin",
+
+                cache: "no-store",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+
+                body: JSON.stringify({
+                    identifier: identifier,
+                    password: password,
+                    role: selectedRole
+                })
+            }
+        );
+
+
+        // ====================================================
+        // 10.4. MEMBACA RESPONS SERVER
+        // ====================================================
+
+        const result = await readApiResponse(response);
+
+
+        // ====================================================
+        // 10.5. MEMERIKSA STATUS LOGIN
+        // ====================================================
+
+        if (!response.ok || result.success !== true) {
+
+            // Memberikan indikator apabila password salah.
+            if (response.status === 401) {
+
+                setPasswordError();
+
+                passwordInput.value = "";
+
+                passwordInput.focus();
+            }
+
+            throw new Error(
+                result.message ||
+                "Login gagal. Periksa kembali data Anda."
+            );
+        }
+
+
+        // ====================================================
+        // 10.6. MEMERIKSA STATUS OTP
+        // ====================================================
+
+        if (
+            !result.data ||
+            result.data.requires_otp !== true
+        ) {
+
+            throw new Error(
+                "Server belum memberikan status verifikasi OTP."
+            );
+        }
+
+
+        // ====================================================
+        // 10.7. MEMERIKSA ALAMAT HALAMAN OTP
+        // ====================================================
+
+        const redirect =
+            result.data.redirect || LOGIN_CONFIG.otpPage;
+
+        if (redirect !== LOGIN_CONFIG.otpPage) {
+
+            throw new Error(
+                "Alamat halaman verifikasi OTP tidak valid."
+            );
+        }
+
+
+        // ====================================================
+        // 10.8. MENAMPILKAN NOTIFIKASI BERHASIL
+        // ====================================================
+
+        showLoginMessage(
+            result.message ||
+            "OTP berhasil dikirim ke email Anda.",
+            "success"
+        );
+
+
+        // ====================================================
+        // 10.9. MENGARAHKAN KE HALAMAN OTP
+        // ====================================================
+
+        // Session tetap dikelola oleh PHP.
+        // Tidak menggunakan LocalStorage sebagai autentikasi.
+
+        window.setTimeout(function () {
+
+            window.location.assign(
+                LOGIN_CONFIG.otpPage
+            );
+
+        }, 500);
+
+
+    } catch (error) {
+
+        // Mencatat error untuk pemeriksaan developer.
+        console.error(
+            "[SIPFAS LOGIN ERROR]",
+            error
+        );
+
+        showLoginMessage(
+            error.message ||
+            "Terjadi kesalahan saat menghubungi server."
+        );
+
+        // Mengaktifkan kembali tombol jika login gagal.
+        loginSubmitting = false;
+
+        setLoginButtonLoading(false);
     }
-
-    if (!response.ok || result.success !== true) {
-      if (response.status === 401) {
-        setPasswordError();
-        passwordInput.value = "";
-        passwordInput.focus();
-      }
-
-      throw new Error(
-        result.message || "Login gagal. Periksa kembali data Anda.",
-      );
-    }
-
-    if (!result.data || result.data.requires_otp !== true) {
-      throw new Error("Server belum memberikan status verifikasi OTP.");
-    }
-
-    const redirect = result.data.redirect || LOGIN_CONFIG.otpPage;
-
-    // Hanya izinkan halaman OTP yang telah ditentukan.
-    if (redirect !== LOGIN_CONFIG.otpPage) {
-      throw new Error("Tujuan verifikasi login tidak valid.");
-    }
-
-    showLoginMessage(
-      "Login berhasil. Silakan lanjutkan verifikasi OTP.",
-      "success",
-    );
-
-    // Jangan membuat session autentikasi di JavaScript.
-    // Session sementara sepenuhnya dikelola oleh PHP.
-
-    window.setTimeout(function () {
-      window.location.assign(LOGIN_CONFIG.otpPage);
-    }, 500);
-  } catch (error) {
-    console.error("[SIPFAS LOGIN ERROR]", error);
-
-    showLoginMessage(
-      error.message || "Terjadi kesalahan saat menghubungi server.",
-      "error",
-    );
-
-    loginSubmitting = false;
-    setLoginButtonLoading(false);
-  }
 }
 
-/* ============================================================
-   09. AKHIR LOGIN.JS
-============================================================ */
+
+// ============================================================
+// 11. AKHIR LOGIN.JS
+// ============================================================
