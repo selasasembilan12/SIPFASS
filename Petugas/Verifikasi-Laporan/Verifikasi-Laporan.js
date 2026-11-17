@@ -96,69 +96,44 @@
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
+    // 04. IDENTITAS PETUGAS DARI SESSION PHP / DATABASE
+    const PROFILE_API = "../../api/shared/profil-login.php";
+    const LOGOUT_API = "../../api/auth/logout.php";
+    const LOGIN_PAGE = "../../auth/Login.html";
+    let currentOfficerProfile = null;
+
     function getActiveOfficerProfile() {
-      const activeUser =
-        parseStoredJson(localStorage, ACTIVE_USER_KEY) ||
-        parseStoredJson(sessionStorage, ACTIVE_USER_KEY) ||
-        parseStoredJson(sessionStorage, PENDING_USER_KEY) ||
-        parseStoredJson(localStorage, PENDING_USER_KEY);
+      return currentOfficerProfile;
+    }
 
-      if (!activeUser || typeof activeUser !== "object") return null;
+    function getInitials(name) {
+      const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+      if (!parts.length) return "PT";
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
 
-      const users = parseStoredJson(localStorage, USERS_KEY);
-      let matchedAccount = null;
+    function normalizeOfficerRole(role) {
+      const value = normalizeText(role);
+      if (value.includes("admin")) return "Administrator";
+      if (value.includes("petugas")) return "Petugas Sarana Prasarana";
+      if (value.includes("pelapor") || value === "user") return "Pelapor";
+      return String(role || "Pengguna").trim();
+    }
 
-      if (Array.isArray(users)) {
-        const activeId = String(activeUser.id || "").trim();
-        const activeUsername = normalizeText(activeUser.username);
-        const activeEmail = normalizeText(activeUser.email);
-
-        matchedAccount =
-          users.find((account) => {
-            if (!account) return false;
-            const accId = String(account.id || "").trim();
-            const accUsername = normalizeText(account.username);
-            const accEmail = normalizeText(account.email);
-            return (
-              (activeId && accId === activeId) ||
-              (activeUsername && accUsername === activeUsername) ||
-              (activeEmail && accEmail === activeEmail)
-            );
-          }) || null;
-      }
-
-      const merged = { ...(matchedAccount || {}), ...activeUser };
-      const displayName = String(
-        merged.name || merged.fullName || merged.nama || merged.username || "Petugas SIPFAS",
-      ).trim();
-
-      const photoKey = merged.username
-        ? PHOTO_PREFIX + encodeURIComponent(normalizeText(merged.username))
-        : "";
-
-      const storedPhoto =
-        (photoKey ? localStorage.getItem(photoKey) : null) ||
-        merged.avatar ||
-        merged.photo ||
-        merged.foto ||
-        "";
-
-      return {
-        id: merged.id || "",
-        name: displayName,
-        username: merged.username || "",
-        email: merged.email || "",
-        role: formatRoleLabel(merged.role),
-        avatar: storedPhoto,
-        initials: getInitials(displayName),
-      };
+    function resolveOfficerPhoto(path) {
+      if (!path) return "";
+      const value = String(path);
+      if (/^(data:|https?:\/\/|blob:)/i.test(value)) return value;
+      return new URL("../../" + value.replace(/^\/+/, ""), window.location.href).href;
     }
 
     function renderAvatarElement(el, profile) {
       if (!el) return;
+      const photo = resolveOfficerPhoto(profile.avatar);
 
       if (el.tagName === "IMG") {
-        if (profile.avatar) el.src = profile.avatar;
+        if (photo) el.src = photo;
         el.alt = `Foto ${profile.name}`;
         return;
       }
@@ -167,113 +142,132 @@
       let imgInside = el.querySelector(".profile-header-photo, img");
       let initialsEl = el.querySelector(".profile-header-initials");
 
-      if (profile.avatar) {
+      if (photo) {
         if (svgIcon) svgIcon.style.display = "none";
         if (initialsEl) initialsEl.remove();
-
         if (!imgInside) {
           imgInside = document.createElement("img");
           imgInside.className = "profile-header-photo";
           el.appendChild(imgInside);
         }
-
-        imgInside.src = profile.avatar;
+        imgInside.src = photo;
         imgInside.alt = `Foto ${profile.name}`;
         Object.assign(imgInside.style, {
-          width: "100%",
-          height: "100%",
-          display: "block",
-          objectFit: "cover",
-          borderRadius: "50%",
+          width: "100%", height: "100%", display: "block",
+          objectFit: "cover", borderRadius: "50%",
         });
-        el.style.overflow = "hidden";
       } else {
         if (imgInside) imgInside.remove();
         if (svgIcon) svgIcon.style.display = "none";
-
         if (!initialsEl) {
           initialsEl = document.createElement("span");
           initialsEl.className = "profile-header-initials";
           el.appendChild(initialsEl);
         }
-
         initialsEl.textContent = profile.initials;
         Object.assign(initialsEl.style, {
-          display: "flex",
-          width: "100%",
-          height: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#ffffff",
-          fontWeight: "700",
-          fontSize: "14px",
+          display: "flex", width: "100%", height: "100%",
+          alignItems: "center", justifyContent: "center",
+          color: "#ffffff", fontWeight: "700", fontSize: "14px",
         });
       }
 
-      el.setAttribute(
-        "aria-label",
-        profile.avatar ? `Foto profil ${profile.name}` : `Profil ${profile.name}`,
-      );
+      el.style.overflow = "hidden";
+      el.setAttribute("aria-label", photo ? `Foto profil ${profile.name}` : `Profil ${profile.name}`);
     }
 
-    function synchronizeOfficerProfile() {
-      const profile = getActiveOfficerProfile();
-      if (!profile) {
-        console.warn("[SIPFAS] Sesi akun petugas aktif tidak ditemukan.");
-        return;
-      }
+    async function synchronizeOfficerProfile() {
+      try {
+        const response = await fetch(PROFILE_API, {
+          method: "GET",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        });
+        const payload = await response.json();
 
-      const nameSelectors = [
-        "#officerName", "#petugasName", "#profileName", "#userName",
-        ".officer-name", ".petugas-name", ".profile-name", ".user-name",
-        ".account-name", "[data-profile-name]", "[data-user-name]",
-      ];
-      document.querySelectorAll(nameSelectors.join(", ")).forEach((el) => {
-        el.textContent = profile.name;
-      });
+        if (response.status === 401) {
+          window.location.replace(LOGIN_PAGE);
+          return null;
+        }
+        if (!response.ok || payload.success !== true || !payload.user) {
+          throw new Error(payload.message || "Profil petugas tidak dapat dimuat.");
+        }
 
-      const roleSelectors = [
-        "#officerRole", "#petugasRole", "#profileRole", "#userRole",
-        ".officer-role", ".petugas-role", ".profile-role", ".user-role",
-        ".account-role", "[data-profile-role]", "[data-user-role]",
-      ];
-      document.querySelectorAll(roleSelectors.join(", ")).forEach((el) => {
-        el.textContent = profile.role;
-      });
+        const user = payload.user;
+        const displayName = String(user.nama_lengkap || user.nama_pengguna || "Petugas SIPFAS").trim();
+        currentOfficerProfile = {
+          id: String(user.id_pengguna || ""),
+          name: displayName,
+          username: String(user.nama_pengguna || ""),
+          email: String(user.email || ""),
+          role: normalizeOfficerRole(user.nama_peran),
+          avatar: String(user.foto_profil || ""),
+          initials: getInitials(displayName),
+        };
 
-      const emailSelectors = [
-        "#officerEmail", "#profileEmail", "#userEmail",
-        ".profile-email", ".user-email", "[data-profile-email]",
-      ];
-      if (profile.email) {
+        const profile = currentOfficerProfile;
+        const nameSelectors = [
+          "#officerName", "#petugasName", "#profileName", "#userName",
+          ".officer-name", ".petugas-name", ".profile-name", ".user-name",
+          ".account-name", "[data-profile-name]", "[data-user-name]",
+        ];
+        document.querySelectorAll(nameSelectors.join(", ")).forEach((el) => {
+          el.textContent = profile.name;
+        });
+
+        const roleSelectors = [
+          "#officerRole", "#petugasRole", "#profileRole", "#userRole",
+          ".officer-role", ".petugas-role", ".profile-role", ".user-role",
+          ".account-role", "[data-profile-role]", "[data-user-role]",
+        ];
+        document.querySelectorAll(roleSelectors.join(", ")).forEach((el) => {
+          el.textContent = profile.role;
+        });
+
+        const emailSelectors = [
+          "#officerEmail", "#profileEmail", "#userEmail",
+          ".profile-email", ".user-email", "[data-profile-email]",
+        ];
         document.querySelectorAll(emailSelectors.join(", ")).forEach((el) => {
           el.textContent = profile.email;
         });
+
+        const avatarSelectors = [
+          ".profile-area .profile-avatar", "#profileAvatar", "#userAvatar",
+          "#officerAvatar", ".profile-avatar", ".user-avatar",
+          ".avatar", "[data-profile-avatar]",
+        ];
+        document.querySelectorAll(avatarSelectors.join(", ")).forEach((el) => {
+          renderAvatarElement(el, profile);
+        });
+
+        console.log(`[SIPFAS] Profil server tersinkronisasi: ${profile.name} (${profile.role}).`);
+        return profile;
+      } catch (error) {
+        console.error("[SIPFAS] Gagal menyinkronkan profil dari server:", error);
+        return null;
       }
+    }
 
-      const avatarSelectors = [
-        ".profile-area .profile-avatar", "#profileAvatar", "#userAvatar",
-        "#officerAvatar", ".profile-avatar", ".user-avatar",
-        ".avatar", "[data-profile-avatar]",
-      ];
-      document.querySelectorAll(avatarSelectors.join(", ")).forEach((el) => {
-        renderAvatarElement(el, profile);
-      });
-
-      const profileContainers = document.querySelectorAll(
-        ".user-profile, .profile-box, .header-profile, .sidebar-profile",
-      );
-      profileContainers.forEach((container) => {
-        if (container.querySelector(nameSelectors.join(", "))) return;
-        const strongEl = container.querySelector("strong, h4, h5, .name");
-        const subEl = container.querySelector("small, span:not(.avatar), p");
-        if (strongEl) strongEl.textContent = profile.name;
-        if (subEl && subEl !== strongEl && !subEl.querySelector("img")) {
-          subEl.textContent = profile.role;
+    async function performLogout(event) {
+      event.preventDefault();
+      if (!window.confirm("Apakah Anda yakin ingin keluar dari sistem SIPFAS?")) return;
+      try {
+        const response = await fetch(LOGOUT_API, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { Accept: "application/json" },
+        });
+        const payload = await response.json();
+        if (!response.ok || payload.success !== true) {
+          throw new Error(payload.message || "Logout gagal.");
         }
-      });
-
-      console.log(`[SIPFAS] Profil & foto petugas tersinkronisasi: ${profile.name} (${profile.role})`);
+        window.location.replace(LOGIN_PAGE);
+      } catch (error) {
+        console.error("[SIPFAS] Logout gagal:", error);
+        window.alert(error.message || "Tidak dapat mengakhiri sesi.");
+      }
     }
 
     // 05. EKSTRAKSI DATA BARIS TABEL
@@ -691,22 +685,7 @@
       if (event.key === "Escape") setSidebar(false);
     });
 
-    logoutLink?.addEventListener("click", function (event) {
-      if (!window.confirm("Apakah Anda yakin ingin keluar dari sistem SIPFAS?")) {
-        event.preventDefault();
-        return;
-      }
-
-      // Membersihkan sesi login aktif; data laporan tidak dihapus.
-      try {
-        localStorage.removeItem(ACTIVE_USER_KEY);
-        sessionStorage.removeItem(ACTIVE_USER_KEY);
-        sessionStorage.removeItem(PENDING_USER_KEY);
-      } catch (error) {
-        console.warn("[SIPFAS] Gagal membersihkan sesi aktif:", error);
-      }
-    });
-
+    logoutLink?.addEventListener("click", performLogout);
     // 09. INISIALISASI AKHIR
     synchronizeOfficerProfile();
     synchronizeVerification();
