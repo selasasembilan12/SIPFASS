@@ -1,15 +1,14 @@
-
 "use strict";
 
-/* ============================================================
-   SIPFAS - PASSWORD-BARU.JS
-   Mengirim password baru ke backend PHP dan MySQL.
-============================================================ */
-
-document.addEventListener("DOMContentLoaded", mulaiPasswordBaru);
+/**
+ * SIPFAS - PASSWORD BARU
+ *
+ * Mengelola formulir password baru, validasi,
+ * komunikasi dengan API, dan notifikasi.
+ */
 
 const PASSWORD_CONFIG = {
-  api: "../api/auth/paswoard-baru.php",
+  api: "../api/auth/password-baru.php",
   loginPage: "login.html",
 };
 
@@ -20,6 +19,10 @@ let tombolSimpan;
 let pesanPassword;
 let daftarSyarat = [];
 let passwordProcessing = false;
+let redirectTimer = null;
+
+// Menjalankan inisialisasi setelah halaman selesai dimuat.
+document.addEventListener("DOMContentLoaded", mulaiPasswordBaru);
 
 // ============================================================
 // 01. INISIALISASI HALAMAN
@@ -27,16 +30,11 @@ let passwordProcessing = false;
 
 function mulaiPasswordBaru() {
   formulirPassword = document.getElementById("passwordForm");
-
   inputPasswordBaru = document.getElementById("newPassword");
-
   inputKonfirmasi = document.getElementById("confirmPassword");
-
   tombolSimpan = document.querySelector(".save-button");
 
-  daftarSyarat = Array.from(
-    document.querySelectorAll(".security-list li")
-  );
+  daftarSyarat = Array.from(document.querySelectorAll(".security-list li"));
 
   if (
     !formulirPassword ||
@@ -44,28 +42,16 @@ function mulaiPasswordBaru() {
     !inputKonfirmasi ||
     !tombolSimpan
   ) {
-    console.error("Elemen password baru tidak ditemukan.");
+    console.error("Elemen formulir password tidak ditemukan.");
     return;
   }
 
-  // Membuat tempat pesan.
   buatTempatPesan();
-
-  // Mengaktifkan tombol tampil/sembunyikan password.
   aktifkanTombolPassword();
 
-  // Memperbarui indikator keamanan.
-  inputPasswordBaru.addEventListener(
-    "input",
-    perbaruiSyaratPassword
-  );
+  inputPasswordBaru.addEventListener("input", perbaruiSyaratPassword);
+  inputKonfirmasi.addEventListener("input", perbaruiSyaratPassword);
 
-  inputKonfirmasi.addEventListener(
-    "input",
-    perbaruiSyaratPassword
-  );
-
-  // Menangani pengiriman formulir.
   formulirPassword.addEventListener("submit", function (event) {
     event.preventDefault();
     simpanPasswordBaru();
@@ -73,11 +59,11 @@ function mulaiPasswordBaru() {
 
   perbaruiSyaratPassword();
 
-  console.log("Halaman password baru SIPFAS siap.");
+  console.log("SIPFAS: Halaman password baru siap.");
 }
 
 // ============================================================
-// 02. MEMBUAT TEMPAT PESAN
+// 02. MENYIAPKAN TEMPAT NOTIFIKASI
 // ============================================================
 
 function buatTempatPesan() {
@@ -86,7 +72,6 @@ function buatTempatPesan() {
   if (pesanPassword) return;
 
   pesanPassword = document.createElement("p");
-
   pesanPassword.id = "passwordMessage";
 
   pesanPassword.setAttribute("role", "status");
@@ -102,98 +87,66 @@ function buatTempatPesan() {
   const kotakKeamanan = document.querySelector(".security-box");
 
   if (kotakKeamanan) {
-    formulirPassword.insertBefore(
-      pesanPassword,
-      kotakKeamanan
-    );
+    formulirPassword.insertBefore(pesanPassword, kotakKeamanan);
   } else {
     formulirPassword.appendChild(pesanPassword);
   }
 }
 
 // ============================================================
-// 03. MENAMPILKAN PESAN
+// 03. MENAMPILKAN NOTIFIKASI
 // ============================================================
 
 function tampilkanPesanPassword(pesan, jenis) {
-  // Notifikasi berhasil.
   if (jenis === "success") {
-    if (!pesanPassword) {
-      buatTempatPesan();
-    }
+    const lama = document.getElementById("passwordSuccessToast");
 
-    if (pesanPassword) {
-      pesanPassword.textContent = "";
-      pesanPassword.style.display = "none";
-    }
-
-    const notifikasiLama = document.getElementById(
-      "passwordSuccessToast"
-    );
-
-    if (notifikasiLama) {
-      notifikasiLama.remove();
-    }
+    if (lama) lama.remove();
 
     const toast = document.createElement("div");
-
     toast.id = "passwordSuccessToast";
     toast.className = "password-success-toast";
 
     toast.setAttribute("role", "status");
     toast.setAttribute("aria-live", "polite");
 
-    const toastIcon = document.createElement("div");
+    const icon = document.createElement("div");
+    icon.className = "password-success-toast-icon";
+    icon.textContent = "✓";
 
-    toastIcon.className = "password-success-toast-icon";
-    toastIcon.textContent = "✓";
+    const content = document.createElement("div");
+    content.className = "password-success-toast-content";
 
-    const toastContent = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = "Kata Sandi Berhasil Diperbarui";
 
-    toastContent.className = "password-success-toast-content";
+    const description = document.createElement("p");
+    description.textContent = pesan;
 
-    const toastTitle = document.createElement("strong");
-
-    toastTitle.textContent = "Kata Sandi Berhasil Diperbarui";
-
-    const toastMessage = document.createElement("p");
-
-    toastMessage.textContent = pesan;
-
-    toastContent.append(toastTitle, toastMessage);
-    toast.append(toastIcon, toastContent);
+    content.append(title, description);
+    toast.append(icon, content);
 
     document.body.appendChild(toast);
 
     return;
   }
 
-  // Pesan error dan informasi.
-  if (!pesanPassword) {
-    buatTempatPesan();
-  }
+  if (!pesanPassword) buatTempatPesan();
 
   if (!pesanPassword) return;
 
   pesanPassword.style.display = "block";
   pesanPassword.textContent = pesan;
 
-  const warna = {
-    error: "#dc4545",
-    info: "#52627b",
-  };
-
-  pesanPassword.style.color = warna[jenis] || warna.info;
+  pesanPassword.style.color = jenis === "error" ? "#dc4545" : "#52627b";
 }
 
 // ============================================================
-// 04. TOMBOL TAMPIL / SEMBUNYIKAN PASSWORD
+// 04. TOMBOL TAMPILKAN PASSWORD
 // ============================================================
 
 function aktifkanTombolPassword() {
-  const ikonMata = document.querySelectorAll(".eye-icon");
-
-  ikonMata.forEach(function (ikon) {
+  document.querySelectorAll(".eye-icon").forEach(function (ikon) {
     const input = ikon.parentElement.querySelector("input");
 
     if (!input) return;
@@ -201,7 +154,6 @@ function aktifkanTombolPassword() {
     ikon.setAttribute("role", "button");
     ikon.setAttribute("tabindex", "0");
     ikon.setAttribute("aria-label", "Tampilkan kata sandi");
-    ikon.setAttribute("aria-hidden", "false");
 
     ikon.addEventListener("click", function () {
       ubahTampilanPassword(input, ikon);
@@ -216,7 +168,6 @@ function aktifkanTombolPassword() {
   });
 }
 
-// Mengubah visibilitas password.
 function ubahTampilanPassword(input, ikon) {
   const terlihat = input.type === "text";
 
@@ -224,7 +175,7 @@ function ubahTampilanPassword(input, ikon) {
 
   ikon.setAttribute(
     "aria-label",
-    terlihat ? "Tampilkan kata sandi" : "Sembunyikan kata sandi"
+    terlihat ? "Tampilkan kata sandi" : "Sembunyikan kata sandi",
   );
 }
 
@@ -234,7 +185,6 @@ function ubahTampilanPassword(input, ikon) {
 
 function periksaSyaratPassword() {
   const password = inputPasswordBaru.value;
-
   const ukuranByte = new TextEncoder().encode(password).length;
 
   return {
@@ -243,9 +193,7 @@ function periksaSyaratPassword() {
     adaHurufBesar: /[A-Z]/.test(password),
     adaHurufKecil: /[a-z]/.test(password),
     adaAngka: /[0-9]/.test(password),
-    passwordCocok:
-      password.length > 0 &&
-      password === inputKonfirmasi.value,
+    passwordCocok: password.length > 0 && password === inputKonfirmasi.value,
   };
 }
 
@@ -273,25 +221,17 @@ function perbaruiSyaratPassword() {
     if (status[index]) {
       lingkaran.style.borderColor = "#24965b";
       lingkaran.style.background = "#24965b";
-      lingkaran.style.boxShadow =
-        "inset 0 0 0 3px #edf3fa";
-
+      lingkaran.style.boxShadow = "inset 0 0 0 3px #edf3fa";
       item.style.color = "#24965b";
     } else {
       lingkaran.style.borderColor = "#7e8798";
       lingkaran.style.background = "transparent";
       lingkaran.style.boxShadow = "none";
-
       item.style.color = "#454d60";
     }
   });
 
-  // Menghapus pesan error lama ketika pengguna memperbaiki input.
-  if (
-    pesanPassword &&
-    pesanPassword.textContent &&
-    pesanPassword.style.display !== "none"
-  ) {
+  if (pesanPassword) {
     pesanPassword.textContent = "";
     pesanPassword.style.display = "none";
   }
@@ -304,75 +244,49 @@ function perbaruiSyaratPassword() {
 function validasiPasswordBaru() {
   const password = inputPasswordBaru.value;
   const konfirmasi = inputKonfirmasi.value;
-
   const syarat = periksaSyaratPassword();
 
   if (!password) {
-    tampilkanPesanPassword(
-      "Silakan masukkan kata sandi baru.",
-      "error"
-    );
-
+    tampilkanPesanPassword("Silakan masukkan kata sandi baru.", "error");
     inputPasswordBaru.focus();
     return false;
   }
 
-  if (!syarat.cukupKarakter) {
+  if (!syarat.cukupKarakter || !syarat.ukuranValid) {
     tampilkanPesanPassword(
-      "Kata sandi harus memiliki minimal 8 karakter.",
-      "error"
+      "Password harus terdiri dari minimal 8 karakter dan maksimal 72 byte.",
+      "error",
     );
-
-    inputPasswordBaru.focus();
-    return false;
-  }
-
-  if (!syarat.ukuranValid) {
-    tampilkanPesanPassword(
-      "Ukuran password tidak boleh melebihi 72 byte.",
-      "error"
-    );
-
     inputPasswordBaru.focus();
     return false;
   }
 
   if (!syarat.adaHurufBesar || !syarat.adaHurufKecil) {
     tampilkanPesanPassword(
-      "Kata sandi harus mengandung huruf besar dan huruf kecil.",
-      "error"
+      "Password harus mengandung huruf besar dan huruf kecil.",
+      "error",
     );
-
     inputPasswordBaru.focus();
     return false;
   }
 
   if (!syarat.adaAngka) {
     tampilkanPesanPassword(
-      "Kata sandi harus mengandung minimal satu angka.",
-      "error"
+      "Password harus mengandung minimal satu angka.",
+      "error",
     );
-
     inputPasswordBaru.focus();
     return false;
   }
 
   if (!konfirmasi) {
-    tampilkanPesanPassword(
-      "Silakan isi konfirmasi kata sandi.",
-      "error"
-    );
-
+    tampilkanPesanPassword("Silakan isi konfirmasi password.", "error");
     inputKonfirmasi.focus();
     return false;
   }
 
   if (password !== konfirmasi) {
-    tampilkanPesanPassword(
-      "Konfirmasi kata sandi tidak sesuai.",
-      "error"
-    );
-
+    tampilkanPesanPassword("Konfirmasi password tidak sesuai.", "error");
     inputKonfirmasi.focus();
     return false;
   }
@@ -381,14 +295,12 @@ function validasiPasswordBaru() {
 }
 
 // ============================================================
-// 08. MENGIRIM PASSWORD BARU KE BACKEND PHP
+// 08. MENGIRIM PASSWORD BARU KE API
 // ============================================================
 
 async function simpanPasswordBaru() {
-  // Mencegah pengiriman berulang.
   if (passwordProcessing) return;
 
-  // Validasi password.
   if (!validasiPasswordBaru()) return;
 
   passwordProcessing = true;
@@ -408,9 +320,10 @@ async function simpanPasswordBaru() {
     const response = await fetch(PASSWORD_CONFIG.api, {
       method: "POST",
       credentials: "same-origin",
+      cache: "no-store",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify({
         password: inputPasswordBaru.value,
@@ -418,66 +331,47 @@ async function simpanPasswordBaru() {
       }),
     });
 
-    const result = await response.json();
+    let result;
 
-    // Memeriksa respons server.
-    if (!response.ok || !result.success) {
-      throw new Error(
-        result.message ||
-          "Password gagal diperbarui."
-      );
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error("Respons server tidak valid.");
+    }
+
+    if (!response.ok || result.success !== true) {
+      throw new Error(result.message || "Password gagal diperbarui.");
     }
 
     // Menampilkan notifikasi keberhasilan.
     tampilkanPesanPassword(
-      result.message ||
-        "Password berhasil diperbarui. Silakan login kembali.",
-      "success"
+      result.message || "Password berhasil diperbarui. Silakan login kembali.",
+      "success",
     );
 
-    // Mengosongkan formulir.
     formulirPassword.reset();
-
-    // Memperbarui indikator.
-    perbaruiSyaratPassword();
-
-    // Menonaktifkan formulir setelah berhasil.
     nonaktifkanFormulir();
 
-    // Mengarahkan ke halaman login.
-    setTimeout(function () {
-      window.location.href = PASSWORD_CONFIG.loginPage;
-    }, 1500);
-
+    // Mengarahkan pengguna kembali ke halaman login.
+    redirectTimer = setTimeout(function () {
+      window.location.assign(PASSWORD_CONFIG.loginPage);
+    }, 2500);
   } catch (error) {
-    console.error(
-      "Kesalahan penyimpanan password:",
-      error
-    );
+    console.error("[SIPFAS PASSWORD BARU]", error);
 
     tampilkanPesanPassword(
-      error.message ||
-        "Tidak dapat menghubungi server. Silakan coba kembali.",
-      "error"
+      error.message || "Terjadi kesalahan saat memperbarui password.",
+      "error",
     );
 
-  } finally {
     passwordProcessing = false;
 
-    // Tombol aktif kembali jika penyimpanan gagal.
-    if (tombolSimpan && !tombolSimpan.disabled) {
-      tombolSimpan.style.opacity = "1";
-      tombolSimpan.style.cursor = "pointer";
-    }
+    tombolSimpan.disabled = false;
+    tombolSimpan.style.opacity = "1";
+    tombolSimpan.style.cursor = "pointer";
 
-    // Jika formulir tidak dinonaktifkan, pulihkan tombol.
-    if (
-      tombolSimpan &&
-      !tombolSimpan.hasAttribute("data-success")
-    ) {
-      if (teksTombol && !tombolSimpan.disabled) {
-        teksTombol.textContent = teksAwal;
-      }
+    if (teksTombol) {
+      teksTombol.textContent = teksAwal;
     }
   }
 }
@@ -487,13 +381,9 @@ async function simpanPasswordBaru() {
 // ============================================================
 
 function nonaktifkanFormulir() {
-  if (!formulirPassword) return;
-
-  formulirPassword
-    .querySelectorAll("input")
-    .forEach(function (input) {
-      input.disabled = true;
-    });
+  formulirPassword.querySelectorAll("input").forEach(function (input) {
+    input.disabled = true;
+  });
 
   if (tombolSimpan) {
     tombolSimpan.disabled = true;

@@ -1,25 +1,39 @@
-
 <?php
 declare(strict_types=1);
 
 /**
  * SIPFAS - PASSWORD BARU
- * Lokasi: api/auth/paswoard-baru.php
  *
- * Fungsi:
- * 1. Memastikan OTP sudah diverifikasi.
- * 2. Memeriksa masa berlaku sesi pemulihan.
- * 3. Memvalidasi password baru.
- * 4. Melakukan hashing password.
- * 5. Memperbarui password pada tabel pengguna.
+ * Memastikan OTP sudah diverifikasi sebelum pengguna
+ * diperbolehkan memperbarui kata sandi.
  */
 
+// Memuat session dan koneksi utama SIPFAS.
+require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
+
+// Mengatur respons API.
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');
 
+// Mengirim respons JSON.
+function passwordResponse(
+    bool $success,
+    string $message,
+    int $status = 200
+): never {
+    http_response_code($status);
+
+    echo json_encode([
+        'success' => $success,
+        'message' => $message
+    ], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+
+    exit;
+}
+
 // Memastikan metode POST.
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     header('Allow: POST');
 
     passwordResponse(
@@ -29,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     );
 }
 
-// Memastikan input menggunakan JSON.
+// Memastikan input JSON.
 $contentType = strtolower(
     trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0])
 );
@@ -63,64 +77,48 @@ if (!is_array($input)) {
     );
 }
 
-// Mendukung nama input dari JavaScript maupun HTML.
-$password = (string)(
-    $input['password']
-    ?? $input['newPassword']
-    ?? ''
+// Mengambil password dan konfirmasi.
+$password = (string) (
+    $input['password'] ??
+    $input['newPassword'] ??
+    ''
 );
 
-$confirmation = (string)(
-    $input['confirmation']
-    ?? $input['confirmPassword']
-    ?? ''
+$confirmation = (string) (
+    $input['confirmation'] ??
+    $input['confirmPassword'] ??
+    ''
 );
 
-// Memulai sesi menggunakan cookie SIPFAS.
-if (session_status() === PHP_SESSION_NONE) {
-
-    ini_set('session.use_strict_mode', '1');
-
-    session_set_cookie_params([
-        'lifetime' => 0,
-        'path' => '/',
-        'secure' => !empty($_SERVER['HTTPS'])
-            && $_SERVER['HTTPS'] !== 'off',
-        'httponly' => true,
-        'samesite' => 'Lax'
-    ]);
-
-    session_start();
-}
-
-// Memeriksa hasil verifikasi OTP.
-$isVerified =
-    ($_SESSION['pemulihan_terverifikasi'] ?? false) === true;
-
-$userId = (int)(
+// Memastikan pengguna sudah melewati verifikasi OTP.
+$userId = (int) (
     $_SESSION['pemulihan_id_pengguna'] ?? 0
 );
 
-$resetExpiry = (int)(
+$isVerified = (
+    ($_SESSION['pemulihan_terverifikasi'] ?? false) === true
+);
+
+$resetExpiry = (int) (
     $_SESSION['pemulihan_reset_berlaku_sampai'] ?? 0
 );
 
-// Menolak permintaan tanpa verifikasi OTP.
 if (
     !$isVerified ||
     $userId <= 0 ||
     $resetExpiry <= time()
 ) {
-
     unset(
         $_SESSION['pemulihan_id_pengguna'],
+        $_SESSION['pemulihan_pending_expires'],
+        $_SESSION['pemulihan_id_otp'],
         $_SESSION['pemulihan_terverifikasi'],
         $_SESSION['pemulihan_reset_berlaku_sampai']
     );
 
     passwordResponse(
         false,
-        'Sesi verifikasi sudah berakhir. Silakan ulangi pemulihan akun.',
+        'Sesi pemulihan sudah berakhir. Silakan ulangi proses.',
         401
     );
 }
@@ -134,7 +132,7 @@ if (strlen($password) < 8 || strlen($password) > 72) {
     );
 }
 
-// Memvalidasi huruf besar.
+// Memastikan password mengandung huruf besar.
 if (!preg_match('/[A-Z]/', $password)) {
     passwordResponse(
         false,
@@ -143,7 +141,7 @@ if (!preg_match('/[A-Z]/', $password)) {
     );
 }
 
-// Memvalidasi huruf kecil.
+// Memastikan password mengandung huruf kecil.
 if (!preg_match('/[a-z]/', $password)) {
     passwordResponse(
         false,
@@ -152,7 +150,7 @@ if (!preg_match('/[a-z]/', $password)) {
     );
 }
 
-// Memvalidasi angka.
+// Memastikan password mengandung angka.
 if (!preg_match('/[0-9]/', $password)) {
     passwordResponse(
         false,
@@ -161,7 +159,7 @@ if (!preg_match('/[0-9]/', $password)) {
     );
 }
 
-// Memastikan konfirmasi password sama.
+// Memastikan konfirmasi password cocok.
 if (!hash_equals($password, $confirmation)) {
     passwordResponse(
         false,
@@ -172,21 +170,13 @@ if (!hash_equals($password, $confirmation)) {
 
 try {
 
-    // Memanggil koneksi database SIPFAS.
-    require_once __DIR__ . '/../../config/koneksi.php';
-
-    if (!isset($pdo) || !($pdo instanceof PDO)) {
-        throw new RuntimeException(
-            'Koneksi database tidak tersedia.'
-        );
-    }
-
-    // Memastikan sesi masih terverifikasi di database.
+    // Memastikan akun masih aktif.
     $pdo->beginTransaction();
 
-    $check = $pdo->prepare("
+    $stmt = $pdo->prepare("
         SELECT
             id_pengguna,
+            kata_sandi,
             status_akun
         FROM pengguna
         WHERE id_pengguna = :id
@@ -194,11 +184,11 @@ try {
         FOR UPDATE
     ");
 
-    $check->execute([
+    $stmt->execute([
         ':id' => $userId
     ]);
 
-    $user = $check->fetch(PDO::FETCH_ASSOC);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
         $pdo->rollBack();
@@ -212,7 +202,7 @@ try {
 
     if (
         strcasecmp(
-            trim((string)$user['status_akun']),
+            trim((string) $user['status_akun']),
             'Aktif'
         ) !== 0
     ) {
@@ -220,12 +210,28 @@ try {
 
         passwordResponse(
             false,
-            'Akun tidak aktif.',
+            'Akun tidak aktif. Hubungi Administrator.',
             403
         );
     }
 
-    // Menghasilkan hash password baru.
+    // Mencegah pengguna menggunakan password lama kembali.
+    if (
+        password_verify(
+            $password,
+            (string) $user['kata_sandi']
+        )
+    ) {
+        $pdo->rollBack();
+
+        passwordResponse(
+            false,
+            'Password baru tidak boleh sama dengan password sebelumnya.',
+            422
+        );
+    }
+
+    // Mengamankan password menggunakan hashing.
     $passwordHash = password_hash(
         $password,
         PASSWORD_DEFAULT
@@ -237,7 +243,7 @@ try {
         );
     }
 
-    // Memperbarui password pada tabel pengguna.
+    // Memperbarui password pengguna.
     $update = $pdo->prepare("
         UPDATE pengguna
         SET kata_sandi = :password
@@ -249,10 +255,16 @@ try {
         ':id' => $userId
     ]);
 
-    // Mengakhiri transaksi.
+    if ($update->rowCount() !== 1) {
+        throw new RuntimeException(
+            'Password gagal diperbarui.'
+        );
+    }
+
+    // Menyelesaikan transaksi database.
     $pdo->commit();
 
-    // Menghapus seluruh sesi pemulihan.
+    // Menghapus seluruh session pemulihan.
     unset(
         $_SESSION['pemulihan_id_pengguna'],
         $_SESSION['pemulihan_pending_expires'],
@@ -261,23 +273,24 @@ try {
         $_SESSION['pemulihan_reset_berlaku_sampai']
     );
 
-    // Mengganti ID sesi.
+    // Mengganti ID session setelah proses selesai.
     session_regenerate_id(true);
 
     passwordResponse(
         true,
-        'Password berhasil diperbarui. Silakan login kembali.',
+        'Password berhasil diperbarui. Silakan login menggunakan password baru.',
         200
     );
 
 } catch (Throwable $e) {
 
-    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+    if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
 
     error_log(
-        '[SIPFAS PASSWORD BARU] ' . $e->getMessage()
+        '[SIPFAS PASSWORD BARU] ' .
+        get_class($e) . ': ' . $e->getMessage()
     );
 
     passwordResponse(
@@ -285,25 +298,4 @@ try {
         'Terjadi kesalahan server saat memperbarui password.',
         500
     );
-}
-
-
-// ================================================
-// FUNGSI RESPONS JSON
-// ================================================
-
-function passwordResponse(
-    bool $success,
-    string $message,
-    int $status = 200
-): never {
-
-    http_response_code($status);
-
-    echo json_encode([
-        'success' => $success,
-        'message' => $message
-    ], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
-
-    exit;
 }

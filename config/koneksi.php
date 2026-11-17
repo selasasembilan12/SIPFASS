@@ -1,25 +1,6 @@
 
 <?php
-
-/**
- * =========================================================
- * SIPFAS - DATABASE CONNECTION
- * =========================================================
- *
- * Fungsi:
- * 1. Menentukan konfigurasi database.
- * 2. Membuat koneksi PHP dengan MySQL.
- * 3. Menggunakan PDO sebagai metode koneksi.
- * 4. Menyediakan koneksi database untuk seluruh aplikasi.
- *
- * =========================================================
- */
-
-
-// =========================================================
-// 1. KONFIGURASI DATABASE
-// =========================================================
-
+// konfigurasi DB 
 // Menentukan alamat server database.
 define('DB_HOST', '127.0.0.1');
 
@@ -33,18 +14,16 @@ define('DB_USER', 'root');
 define('DB_PASS', '');
 
 
-// =========================================================
 // 2. MEMBUAT KONEKSI DATABASE
-// =========================================================
 
 try {
 
-    // Menentukan alamat koneksi database.
+    // Menentukan alamat koneksi database. (DATA SOURCE NAME)
     $dsn = 'mysql:host=' . DB_HOST .
            ';dbname=' . DB_NAME .
            ';charset=utf8mb4';
 
-    // Membuat koneksi menggunakan PDO.
+    // Membuat koneksi menggunakan PDO(PHP DATA OBJEK).
     $pdo = new PDO(
         $dsn,
         DB_USER,
