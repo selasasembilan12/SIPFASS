@@ -4,7 +4,7 @@
    File: Pelatihan-C45.js
 
    Sumber:
-   LocalStorage: sipfas_dataset_c45
+   API dataset-c45.php dan penyimpanan riwayat pelatihan-c45.php
 
    Fitur:
    1. Membaca dataset
@@ -22,7 +22,8 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "sipfas_dataset_c45";
+  const DATASET_API = "../../api/admin/dataset-c45.php";
+  const TRAINING_API = "../../api/admin/pelatihan-c45.php";
 
   const ATTRIBUTES = [
     {
@@ -76,46 +77,50 @@
   // 1. MEMBACA DATASET
   // =====================================================
 
-  function loadDataset() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+  async function loadDataset() {
+    const response = await fetch(`${DATASET_API}?limit=100`, {
+      credentials: "same-origin", headers: { "Accept": "application/json" }
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || "Gagal mengambil dataset dari server.");
+    state.dataset = (result.data?.items || []).map(item => ({
+      ...item,
+      x1: Number(item.tingkat_kerusakan_x1 ?? item.x1),
+      x2: Number(item.dampak_akademik_x2 ?? item.x2),
+      x3: Number(item.frekuensi_penggunaan_x3 ?? item.x3),
+      label: item.label_prioritas ?? item.label
+    })).filter(item => [1,2,3].includes(item.x1) && [1,2,3].includes(item.x2) &&
+      [1,2,3].includes(item.x3) && ["Tinggi","Sedang","Rendah"].includes(item.label));
+  }
 
-      if (!raw) {
-        state.dataset = [];
-        return;
-      }
+  function getLevelName(value, attribute) {
+    const item = ATTRIBUTES.find(entry => entry.key === attribute);
+    const index = Number(value) - 1;
+    return item && index >= 0 && index < item.levels.length ? item.levels[index] : String(value);
+  }
 
-      const parsed = JSON.parse(raw);
-
-      if (!Array.isArray(parsed)) {
-        throw new Error("Format dataset tidak valid.");
-      }
-
-      state.dataset = parsed.filter(item =>
-        item &&
-        Number(item.x1) >= 1 &&
-        Number(item.x1) <= 3 &&
-        Number(item.x2) >= 1 &&
-        Number(item.x2) <= 3 &&
-        Number(item.x3) >= 1 &&
-        Number(item.x3) <= 3 &&
-        ["Tinggi", "Sedang", "Rendah"].includes(item.label)
-      ).map(item => ({
-        ...item,
-        x1: Number(item.x1),
-        x2: Number(item.x2),
-        x3: Number(item.x3),
-        label: item.label
-      }));
-
-    } catch (error) {
-      console.error("Gagal memuat dataset:", error);
-      state.dataset = [];
-    }
+  async function saveTrainingResult() {
+    const payload = {
+      persentase_latih: 80, persentase_uji: 20,
+      jumlah_dataset: state.dataset.length,
+      jumlah_data_latih: state.training.length,
+      jumlah_data_uji: state.testing.length,
+      atribut_akar: state.root?.name || null,
+      struktur_pohon: state.tree, status_model: "Aktif"
+    };
+    const response = await fetch(TRAINING_API, {
+      method: "POST", credentials: "same-origin",
+      headers: { "Accept": "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) throw new Error(result.message || "Hasil pelatihan gagal disimpan.");
+    return result;
   }
 
 
   // =====================================================
+  //
   // 2. PEMBAGIAN TRAINING DAN TESTING
   // =====================================================
 
@@ -728,9 +733,9 @@
   // 16. JALANKAN PELATIHAN
   // =====================================================
 
-  function runTraining() {
-
-    loadDataset();
+  async function runTraining() {
+    try { await loadDataset(); }
+    catch (error) { alert(error.message || "Dataset gagal dimuat dari database."); return; }
 
     if (state.dataset.length < 2) {
 
@@ -755,6 +760,15 @@
     renderDecisionTree();
 
     showTrainingMessage();
+
+    saveTrainingResult().then(() => {
+      const message = $("#training-message");
+      if (message) message.textContent += " Hasil pelatihan berhasil disimpan ke database.";
+    }).catch(error => {
+      console.error("Gagal menyimpan riwayat pelatihan:", error);
+      const message = $("#training-message");
+      if (message) message.textContent += ` Riwayat belum tersimpan: ${error.message}`;
+    });
 
     $("#training-message")?.scrollIntoView({
       behavior: "smooth",
@@ -782,37 +796,7 @@
 
     });
 
-    // Sinkronisasi jika dataset berubah di tab lain.
 
-    window.addEventListener("storage", function(event) {
-
-      if (event.key === STORAGE_KEY) {
-
-        loadDataset();
-
-        if (state.dataset.length >= 2) {
-
-          trainModel();
-
-          updateStatistics();
-
-          renderEvaluation();
-
-          renderDecisionTree();
-
-        } else {
-
-          updateStatistics();
-
-          renderEvaluation();
-
-          renderDecisionTree();
-
-        }
-
-      }
-
-    });
 
   }
 
@@ -821,11 +805,12 @@
   // 18. INISIALISASI
   // =====================================================
 
-  function init() {
+  async function init() {
 
     if (!$(".evaluation-table")) return;
 
-    loadDataset();
+    try { await loadDataset(); }
+    catch (error) { console.error("Gagal memuat dataset:", error); alert(error.message || "Dataset gagal dimuat dari database."); }
 
     if (state.dataset.length >= 2) {
 
