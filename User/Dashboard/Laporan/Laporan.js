@@ -6,7 +6,10 @@ document.addEventListener("DOMContentLoaded", function () {
 // 02. Nama penyimpanan bersama untuk seluruh data laporan.
 const KUNCI_PENYIMPANAN_LAPORAN = "sipfasReports";
 
-// 03. Memulai formulir dan mengaktifkan fitur penghitung karakter.
+// 03. Alamat API penyimpanan laporan ke database.
+const URL_API_SIMPAN_LAPORAN = "../../api/user/simpan-laporan.php";
+
+// 04. Memulai formulir dan mengaktifkan fitur penghitung karakter.
 function mulaiFormLaporan() {
   const formulir = document.querySelector(".form-card form");
   const kolomDeskripsi = document.getElementById("deskripsi");
@@ -32,14 +35,14 @@ function mulaiFormLaporan() {
   });
 }
 
-// 04. Menghitung jumlah karakter pada deskripsi kerusakan.
+// 05. Menghitung jumlah karakter pada deskripsi kerusakan.
 function hitungKarakter(kolom, tampilan) {
   if (!tampilan) return;
 
   tampilan.textContent = kolom.value.length + " / 300";
 }
 
-// 05. Mengambil kode dan nama lokasi serta fasilitas.
+// 06. Mengambil kode dan nama lokasi serta fasilitas.
 function ambilInfoFasilitas(formulir) {
   const pilihanLokasi = formulir.querySelector("#lokasi");
   const pilihanFasilitas = formulir.querySelector("#fasilitas");
@@ -60,7 +63,7 @@ function ambilInfoFasilitas(formulir) {
   };
 }
 
-// 06. Mengambil tingkat kerusakan dan dampak akademik.
+// 07. Mengambil tingkat kerusakan dan dampak akademik.
 function ambilPenilaianKerusakan(formulir) {
   const tingkat = formulir.querySelector('input[name="tingkat"]:checked');
 
@@ -72,7 +75,7 @@ function ambilPenilaianKerusakan(formulir) {
   };
 }
 
-// 07. Menghitung prioritas berdasarkan penilaian kerusakan.
+// 08. Menghitung prioritas berdasarkan penilaian kerusakan.
 function hitungPrioritasLaporan(tingkat, dampak) {
   if (tingkat === "berat") {
     return "Tinggi";
@@ -89,7 +92,7 @@ function hitungPrioritasLaporan(tingkat, dampak) {
   return "Rendah";
 }
 
-// 08. Membuat kode laporan secara otomatis.
+// 09. Membuat kode laporan secara otomatis.
 function buatKodeLaporan() {
   const tahun = new Date().getFullYear();
   const waktu = Date.now();
@@ -98,7 +101,7 @@ function buatKodeLaporan() {
   return `LP-${tahun}-${waktu}-${angkaAcak}`;
 }
 
-// 09. Mengumpulkan seluruh data dari formulir laporan.
+// 10. Mengumpulkan seluruh data dari formulir laporan.
 function kumpulkanDataLaporan(formulir) {
   // Mengambil informasi fasilitas.
   const fasilitas = ambilInfoFasilitas(formulir);
@@ -197,7 +200,51 @@ function kumpulkanDataLaporan(formulir) {
   };
 }
 
-// 10. Menyimpan laporan ke dalam LocalStorage.
+// 11. Mengirim laporan ke database melalui API.
+async function kirimLaporanKeDatabase(dataLaporan) {
+  const response = await fetch(URL_API_SIMPAN_LAPORAN, {
+    method: "POST",
+
+    credentials: "same-origin",
+
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+
+    body: JSON.stringify({
+      kode_laporan: dataLaporan.kodeLaporan,
+
+      id_fasilitas: dataLaporan.facilityCode,
+
+      deskripsi_kerusakan: dataLaporan.deskripsi,
+
+      tingkat_kerusakan_x1: dataLaporan.tingkatKerusakan,
+
+      dampak_akademik_x2: dataLaporan.dampakAkademik,
+
+      prioritas_awal: dataLaporan.priority,
+    }),
+  });
+
+  // Membaca response JSON dari server.
+  let hasil;
+
+  try {
+    hasil = await response.json();
+  } catch (error) {
+    throw new Error("Server tidak memberikan respons JSON yang valid.");
+  }
+
+  // Memeriksa status response.
+  if (!response.ok || !hasil.success) {
+    throw new Error(hasil.message || "Laporan gagal disimpan ke database.");
+  }
+
+  return hasil;
+}
+
+// 12. Menyimpan laporan ke dalam LocalStorage.
 function simpanLaporan(dataLaporan) {
   // Mengambil data laporan yang sudah tersimpan.
   const dataTersimpan = localStorage.getItem(KUNCI_PENYIMPANAN_LAPORAN);
@@ -260,8 +307,8 @@ function simpanLaporan(dataLaporan) {
   return dataLaporan;
 }
 
-// 11. Memvalidasi dan memproses pengiriman laporan.
-function prosesKirimLaporan(event, formulir) {
+// 13. Memvalidasi dan memproses pengiriman laporan.
+async function prosesKirimLaporan(event, formulir) {
   // Mencegah pengiriman formulir secara otomatis oleh HTML.
   event.preventDefault();
 
@@ -284,15 +331,34 @@ function prosesKirimLaporan(event, formulir) {
   // Mengumpulkan seluruh data dari formulir.
   const dataLaporan = kumpulkanDataLaporan(formulir);
 
-  // Menyimpan laporan ke LocalStorage.
+  // ==========================================================
+  // MENGIRIM DATA KE DATABASE
+  // ==========================================================
+
+  try {
+    await kirimLaporanKeDatabase(dataLaporan);
+  } catch (error) {
+    console.error("Laporan gagal disimpan ke database:", error);
+
+    alert(
+      error.message ||
+        "Laporan gagal disimpan ke database. Silakan coba kembali.",
+    );
+
+    return;
+  }
+
+  // ==========================================================
+  // SETELAH DATABASE BERHASIL, SIMPAN CACHE LOCALSTORAGE
+  // ==========================================================
+
   try {
     simpanLaporan(dataLaporan);
   } catch (error) {
-    console.error("Laporan gagal disimpan:", error);
-
-    alert(error.message || "Laporan gagal disimpan. Silakan coba kembali.");
-
-    return;
+    console.error(
+      "Laporan database berhasil, tetapi LocalStorage gagal:",
+      error,
+    );
   }
 
   // Menyimpan laporan terakhir untuk halaman konfirmasi.
@@ -302,7 +368,7 @@ function prosesKirimLaporan(event, formulir) {
     console.error("Gagal menyimpan sesi konfirmasi:", error);
 
     alert(
-      "Laporan sudah tersimpan, tetapi informasi konfirmasi gagal disiapkan. Silakan periksa riwayat laporan.",
+      "Laporan sudah berhasil tersimpan ke database, tetapi informasi konfirmasi gagal disiapkan. Silakan periksa riwayat laporan.",
     );
 
     return;
@@ -310,14 +376,25 @@ function prosesKirimLaporan(event, formulir) {
 
   // Menampilkan hasil pengiriman pada Console.
   console.log("===== PENGIRIMAN LAPORAN SIPFAS =====");
+
   console.log("Kode laporan:", dataLaporan.id);
+
   console.log("Nama fasilitas:", dataLaporan.facility);
+
   console.log("Kode fasilitas:", dataLaporan.facilityCode);
+
   console.log("Lokasi:", dataLaporan.location);
+
   console.log("Kode lokasi:", dataLaporan.locationCode);
+
   console.log("Tanggal:", dataLaporan.dateTime);
+
   console.log("Prioritas:", dataLaporan.priority);
+
   console.log("Status:", dataLaporan.status);
+
+  console.log("Status database: BERHASIL");
+
   console.log("=====================================");
 
   // NOTIFIKASI LAPORAN BERHASIL DIKIRIM.
@@ -391,6 +468,7 @@ function buatKunciFotoProfilLaporan() {
     return "sipfasProfilePhoto_" + String(identitas).toLowerCase();
   } catch (error) {
     console.error("Gagal mengambil identitas foto:", error);
+
     return "sipfasProfilePhoto";
   }
 }
@@ -406,6 +484,7 @@ function tampilkanFotoHeaderLaporan(sumberFoto) {
   if (sumberFoto) {
     // Menampilkan foto profil terbaru.
     avatar.style.backgroundImage = `url("${sumberFoto}")`;
+
     avatar.style.backgroundSize = "cover";
     avatar.style.backgroundPosition = "center";
     avatar.style.backgroundRepeat = "no-repeat";
