@@ -64,168 +64,103 @@
 
 
   // =====================================================
-  // 3. MENGAMBIL DATA DARI HTML
+  // =====================================================
+  // 3. KONFIGURASI API DAN PEMETAAN DATA DATABASE
   // =====================================================
 
-  function getInitialReports() {
+  const API_URL = "../../api/admin/laporan-pemeliharaan.php";
 
-    const rows = $$(".report-table tbody tr");
-
-    return rows.map((row, index) => {
-
-      const cells = $$("td", row);
-
-      const facilityCell = cells[3];
-
-      const verificationCell = cells[6];
-
-      const recommendationCell = cells[5];
-
-      const handlingCell = cells[7];
-
-      const reportId =
-        $(".report-id", row)?.textContent.trim() ||
-        `LAP-${index + 1}`;
-
-      const facility =
-        $("strong", facilityCell)?.textContent.trim() || "-";
-
-      const inventory =
-        $("small", facilityCell)?.textContent.trim() || "-";
-
-      const verificationReason =
-        $("small", verificationCell)?.textContent.trim() || "";
-
-      const recommendationText =
-        recommendationCell?.textContent.trim() || "";
-
-      const scoreMatch = recommendationText.match(
-        /(\d+(?:\.\d+)?)\s*%/
-      );
-
-      return {
-
-        id: reportId,
-
-        date: cells[2]?.textContent.trim() || "-",
-
-        facility,
-
-        inventory,
-
-        location:
-          $(".location-badge", cells[4])?.textContent.trim() ||
-          cells[4]?.textContent.trim() || "-",
-
-        recommendation:
-          recommendationText.replace(/\s+/g, " ").trim(),
-
-        priority:
-          recommendationText.match(/Tinggi|Sedang|Rendah/i)?.[0] ||
-          "-",
-
-        confidence: scoreMatch
-          ? Number(scoreMatch[1])
-          : 0,
-
-        verification:
-          verificationCell?.textContent.trim() || "-",
-
-        verificationReason,
-
-        handling:
-          handlingCell?.textContent.trim() || "-"
-
-      };
-
-    }).filter(item => item.id);
-
+  function formatDate(value) {
+    if (!value) return "-";
+    const date = new Date(String(value).replace(" ", "T"));
+    if (Number.isNaN(date.getTime())) return String(value);
+    return new Intl.DateTimeFormat("id-ID", {
+      day: "2-digit", month: "short", year: "numeric",
+      hour: "2-digit", minute: "2-digit"
+    }).format(date);
   }
 
+  function firstValue(...values) {
+    return values.find(value => value !== undefined && value !== null && value !== "") ?? "-";
+  }
 
-  // =====================================================
-  // 4. LOCAL STORAGE
-  // =====================================================
+  function mapReport(row) {
+    const priority = firstValue(row.prioritas_sesudah, row.prioritas_sebelum, row.prioritas, "-");
+    const rawConfidence = firstValue(
+      row.nilai_kepercayaan, row.confidence, row.persentase_keyakinan,
+      row.confidence_score, 0
+    );
+    const confidence = Number(String(rawConfidence).replace("%", "")) || 0;
+    const verification = firstValue(row.hasil_verifikasi, "Menunggu Verifikasi");
+    let handling = firstValue(row.status_penanganan, row.status_laporan, "Menunggu");
+    if (row.waktu_selesai_penanganan) handling = "Selesai";
+    else if (row.waktu_mulai_penanganan || row.tindak_lanjut_perbaikan) handling = "Dalam Perbaikan";
 
-  function readStorage() {
+    return {
+      id: firstValue(row.kode_laporan, row.id_laporan),
+      date: formatDate(firstValue(row.waktu_laporan, row.tanggal_laporan, row.created_at)),
+      facility: firstValue(row.nama_fasilitas),
+      inventory: firstValue(row.kode_fasilitas, row.kode_inventaris),
+      location: firstValue(row.lokasi_ruangan, row.lokasi),
+      recommendation: priority === "-" ? "Belum ada rekomendasi" : `${priority}${confidence ? ` (${confidence.toFixed(1)}%)` : ""}`,
+      priority,
+      confidence,
+      verification,
+      verificationReason: firstValue(row.catatan_verifikasi, ""),
+      handling,
+      reporter: firstValue(row.nama_pelapor),
+      description: firstValue(row.deskripsi_kerusakan, row.keterangan, "-")
+    };
+  }
 
-    try {
-
-      const raw = localStorage.getItem(STORAGE_KEY);
-
-      if (raw === null) return null;
-
-      const data = JSON.parse(raw);
-
-      if (!Array.isArray(data)) {
-        return null;
+  async function requestReports() {
+    const allRows = [];
+    let page = 1;
+    let total = Infinity;
+    do {
+      const url = new URL(API_URL, window.location.href);
+      url.searchParams.set("page", String(page));
+      url.searchParams.set("limit", "100");
+      const response = await fetch(url, {
+        method: "GET",
+        credentials: "same-origin",
+        headers: { "Accept": "application/json" }
+      });
+      let result;
+      try { result = await response.json(); }
+      catch { throw new Error("Respons server bukan JSON yang valid."); }
+      if (!response.ok || result.success !== true) {
+        throw new Error(result.message || `Gagal memuat laporan (HTTP ${response.status}).`);
       }
-
-      return data;
-
-    } catch (error) {
-
-      console.error("Gagal membaca laporan:", error);
-
-      return null;
-
-    }
-
+      const data = result.data || {};
+      const rows = Array.isArray(data.items) ? data.items : (Array.isArray(data) ? data : []);
+      allRows.push(...rows.map(mapReport).filter(item => item.id !== "-"));
+      total = Number(data.pagination?.total ?? allRows.length);
+      page += 1;
+      if (!rows.length) break;
+    } while (allRows.length < total && page <= 100);
+    return allRows;
   }
 
+  // =====================================================
+  // 4. MEMUAT DATA LAPORAN DARI API PHP
+  // =====================================================
 
-  function saveStorage() {
-
+  async function loadReports() {
+    const tbody = $(".report-table tbody");
+    if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:25px">Memuat data laporan...</td></tr>`;
     try {
-
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(state.reports)
-      );
-
-      return true;
-
+      state.reports = await requestReports();
+      state.currentPage = 1;
+      renderTable();
+      updateStatistics();
     } catch (error) {
-
-      console.error("Gagal menyimpan laporan:", error);
-
-      alert("Data laporan gagal disimpan.");
-
-      return false;
-
+      console.error("Gagal memuat laporan pemeliharaan:", error);
+      if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:25px">${escapeHTML(error.message)} <button type="button" class="retry-report-load">Coba lagi</button></td></tr>`;
+      updateStatistics();
     }
-
   }
 
-
-  // =====================================================
-  // 5. MEMUAT DATA LAPORAN
-  // =====================================================
-
-  function loadReports() {
-
-    const stored = readStorage();
-
-    if (stored !== null) {
-
-      state.reports = stored;
-
-    } else {
-
-      state.reports = getInitialReports();
-
-      saveStorage();
-
-    }
-
-    renderTable();
-
-    updateStatistics();
-
-  }
-
-
-  // =====================================================
   // 6. KELAS STATUS
   // =====================================================
 
@@ -1099,19 +1034,9 @@
     });
 
 
-    // SINKRONISASI LOCAL STORAGE
-
-    window.addEventListener("storage", function(event) {
-
-      if (
-        event.key === STORAGE_KEY ||
-        event.key === null
-      ) {
-
-        loadReports();
-
-      }
-
+    // MUAT ULANG DATA JIKA REQUEST API GAGAL
+    $(".report-table tbody")?.addEventListener("click", function(event) {
+      if (event.target.closest(".retry-report-load")) loadReports();
     });
 
   }

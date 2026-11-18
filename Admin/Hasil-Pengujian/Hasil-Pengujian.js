@@ -21,7 +21,7 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "sipfas_dataset_c45";
+  const DATASET_API = "../../api/admin/dataset-c45.php";
 
   const CLASSES = ["Rendah", "Sedang", "Tinggi"];
 
@@ -102,52 +102,67 @@
   // 2. MEMBACA DATASET
   // =====================================================
 
-  function loadDataset() {
+  async function loadDataset() {
+    const allItems = [];
+    let page = 1;
+    let total = Infinity;
 
     try {
-
-      const raw = localStorage.getItem(STORAGE_KEY);
-
-      if (!raw) {
-        state.dataset = [];
-        return;
-      }
-
-      const parsed = JSON.parse(raw);
-
-      if (!Array.isArray(parsed)) {
-        throw new Error("Format dataset tidak valid.");
-      }
-
-      state.dataset = parsed.filter(item => {
-
-        return (
-          item &&
-          item.id &&
-          item.facility &&
-          [1, 2, 3].includes(Number(item.x1)) &&
-          [1, 2, 3].includes(Number(item.x2)) &&
-          [1, 2, 3].includes(Number(item.x3)) &&
-          CLASSES.includes(item.label)
+      while (allItems.length < total) {
+        const response = await fetch(
+          `${DATASET_API}?page=${page}&limit=100`,
+          { method: "GET", credentials: "same-origin", headers: { Accept: "application/json" } }
         );
 
-      }).map(item => ({
+        const result = await response.json();
+        if (!response.ok || result.success !== true) {
+          throw new Error(result.message || "Gagal mengambil dataset dari server.");
+        }
+
+        const data = result.data || {};
+        const items = Array.isArray(data.items) ? data.items : [];
+        allItems.push(...items);
+        total = Number(data.pagination?.total ?? allItems.length);
+        if (items.length === 0) break;
+        page += 1;
+      }
+
+      state.dataset = allItems.map(item => ({
+        id: item.id_data ?? item.kode_data,
+        facility: item.nama_fasilitas ?? "Fasilitas",
+        x1: Number(item.tingkat_kerusakan_x1),
+        x2: Number(item.dampak_akademik_x2),
+        x3: Number(item.frekuensi_penggunaan_x3),
+        label: item.label_prioritas,
+        ...item
+      })).filter(item => (
+        item.id && item.facility &&
+        [1, 2, 3].includes(Number(item.x1)) &&
+        [1, 2, 3].includes(Number(item.x2)) &&
+        [1, 2, 3].includes(Number(item.x3)) &&
+        CLASSES.includes(item.label)
+      )).map(item => ({
         ...item,
         x1: Number(item.x1),
         x2: Number(item.x2),
         x3: Number(item.x3)
       }));
 
+      return true;
     } catch (error) {
-
-      console.error("Gagal membaca dataset:", error);
-
+      console.error("Gagal membaca dataset dari API:", error);
       state.dataset = [];
-
+      showApiError(error.message || "Dataset gagal dimuat dari server.");
+      return false;
     }
-
   }
 
+  function showApiError(message) {
+    const target = $(".prediction-table tbody");
+    if (target) {
+      target.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px">${escapeHTML(message)}</td></tr>`;
+    }
+  }
 
   // =====================================================
   // 3. SPLIT DATA TRAINING DAN TESTING
@@ -1226,9 +1241,13 @@
   // 21. JALANKAN SEMUA PROSES
   // =====================================================
 
-  function runEvaluation() {
+  async function runEvaluation() {
 
-    loadDataset();
+    const loaded = await loadDataset();
+    if (!loaded) {
+      showEmptyState();
+      return;
+    }
 
     state.page = 1;
 
@@ -1315,21 +1334,6 @@
     });
 
 
-    // Sinkronisasi jika dataset diubah dari halaman lain.
-
-    window.addEventListener("storage", function(event) {
-
-      if (
-        event.key === STORAGE_KEY ||
-        event.key === null
-      ) {
-
-        runEvaluation();
-
-      }
-
-    });
-
   }
 
 
@@ -1343,9 +1347,9 @@
       return;
     }
 
-    runEvaluation();
-
     bindEvents();
+
+    runEvaluation();
 
     console.log(
       "SIPFAS Hasil Pengujian C4.5 siap digunakan."

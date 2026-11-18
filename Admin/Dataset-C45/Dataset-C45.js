@@ -2,7 +2,7 @@
 /* =========================================================
    SIPFAS - ADMIN DATASET C4.5
    File: Dataset-C45.js
-   Penyimpanan: LocalStorage
+   Penyimpanan: Database MySQL melalui API PHP
 
    FITUR:
    1. Tambah data simulasi
@@ -13,7 +13,7 @@
    6. Filter X1, X2, X3, Y
    7. Pagination
    8. Statistik otomatis
-   9. Penyimpanan LocalStorage
+   9. Penyimpanan Database MySQL
 ========================================================= */
 
 (() => {
@@ -23,7 +23,6 @@
   // 1. KONFIGURASI
   // =====================================================
 
-  const STORAGE_KEY = "sipfas_dataset_c45";
 
   const state = {
     data: [],
@@ -133,153 +132,61 @@
 
 
   // =====================================================
-  // 4. LOCAL STORAGE
+  // =====================================================
+  // 4. API DATABASE
   // =====================================================
 
-  function readStorage() {
+  const API_URL = "../../api/admin/dataset-c45.php";
 
-    try {
-
-      const raw = localStorage.getItem(STORAGE_KEY);
-
-      if (raw === null) return null;
-
-      const parsed = JSON.parse(raw);
-
-      return Array.isArray(parsed) ? parsed : null;
-
-    } catch (error) {
-
-      console.error("Gagal membaca dataset:", error);
-
-      return null;
-
+  async function apiRequest(method = "GET", payload = null, query = "") {
+    const options = {
+      method,
+      credentials: "same-origin",
+      headers: { "Accept": "application/json" }
+    };
+    if (payload !== null) {
+      options.headers["Content-Type"] = "application/json";
+      options.body = JSON.stringify(payload);
     }
-
-  }
-
-  function saveStorage() {
-
-    try {
-
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(state.data)
-      );
-
-      return true;
-
-    } catch (error) {
-
-      console.error("Gagal menyimpan dataset:", error);
-
-      alert("Dataset gagal disimpan.");
-
-      return false;
-
+    const response = await fetch(API_URL + query, options);
+    let result;
+    try { result = await response.json(); }
+    catch (_) { throw new Error("Respons server bukan JSON yang valid."); }
+    if (!response.ok || result.success === false) {
+      throw new Error(result.message || "Permintaan ke server gagal.");
     }
-
+    return result.data;
   }
-
-
-  // =====================================================
-  // 5. DATA AWAL DARI HTML
-  // =====================================================
-
-  function getInitialData() {
-
-    const rows = $$(".dataset-table tbody tr");
-
-    return rows.map(row => {
-
-      const id = row.querySelector(".case-id")
-        ?.textContent.trim().replace("#", "") || "";
-
-      const facility =
-        row.querySelector(".facility")?.textContent.trim() || "";
-
-      const chips = $$(".chip", row);
-
-      const x1 = getLevel(chips[0]?.textContent);
-
-      const x2 = getLevel(chips[1]?.textContent);
-
-      const x3 = getLevel(chips[2]?.textContent);
-
-      const score = calculateScore(x1, x2, x3);
-
-      return {
-        id,
-        facility,
-        x1,
-        x2,
-        x3,
-        score: Number(score.toFixed(2)),
-        label: determinePriority(score)
-      };
-
-    }).filter(item =>
-      item.id &&
-      item.facility &&
-      item.x1 &&
-      item.x2 &&
-      item.x3
-    );
-
-  }
-
-
-  // =====================================================
-  // 6. NORMALISASI DATA
-  // =====================================================
 
   function normalizeData(item) {
-
-    const x1 = Number(item.x1);
-    const x2 = Number(item.x2);
-    const x3 = Number(item.x3);
-
+    const x1 = Number(item.tingkat_kerusakan_x1 ?? item.x1);
+    const x2 = Number(item.dampak_akademik_x2 ?? item.x2);
+    const x3 = Number(item.frekuensi_penggunaan_x3 ?? item.x3);
     const score = calculateScore(x1, x2, x3);
-
     return {
-      id: String(item.id),
-      facility: String(item.facility),
-      x1,
-      x2,
-      x3,
+      id: String(item.kode_data ?? item.id ?? item.id_data ?? ""),
+      dbId: Number(item.id_data ?? 0),
+      facility: String(item.nama_fasilitas ?? item.facility ?? ""),
+      x1, x2, x3,
       score: Number(score.toFixed(2)),
-      label: determinePriority(score)
+      label: String(item.label_prioritas ?? item.label ?? determinePriority(score)).toLowerCase().replace(/^./, c => c.toUpperCase())
     };
-
   }
 
-
-  // =====================================================
-  // 7. MEMUAT DATA
-  // =====================================================
-
-  function loadData() {
-
-    const stored = readStorage();
-
-    if (stored !== null) {
-
-      state.data = stored.map(normalizeData);
-
-    } else {
-
-      state.data = getInitialData();
-
-      saveStorage();
-
+  async function loadData() {
+    try {
+      const data = await apiRequest("GET", null, "?limit=100");
+      state.data = (data?.items || []).map(normalizeData);
+      applyFilter();
+    } catch (error) {
+      console.error("Gagal memuat dataset:", error);
+      state.data = [];
+      applyFilter();
+      alert(error.message || "Dataset gagal dimuat dari server.");
     }
-
-    applyFilter();
-
   }
 
 
-  // =====================================================
   // 8. FILTER DAN PENCARIAN
   // =====================================================
 
@@ -795,67 +702,38 @@
 
     });
 
-    $("#dataset-form")?.addEventListener("submit", function(event) {
-
+    $("#dataset-form")?.addEventListener("submit", async function(event) {
       event.preventDefault();
-
       const facility = $("#newFacility").value.trim();
-
       const x1 = Number($("#newX1").value);
-
       const x2 = Number($("#newX2").value);
-
       const x3 = Number($("#newX3").value);
-
       if (!facility || !x1 || !x2 || !x3) {
         alert("Semua kolom wajib diisi.");
         return;
       }
-
-      const duplicate = state.data.some(item =>
-        normalize(item.facility) === normalize(facility)
-      );
-
-      if (duplicate) {
-        alert("Nama fasilitas sudah tersedia.");
-        return;
-      }
-
-      const numbers = state.data.map(item => {
-        const match = item.id.match(/DS-(\d+)/);
-        return match ? Number(match[1]) : 0;
-      });
-
-      const nextNumber = Math.max(0, ...numbers) + 1;
-
-      const id = "DS-" +
-        String(nextNumber).padStart(3, "0");
-
       const score = calculateScore(x1, x2, x3);
-
-      const newItem = {
-        id,
-        facility,
-        x1,
-        x2,
-        x3,
-        score: Number(score.toFixed(2)),
-        label: determinePriority(score)
-      };
-
-      state.data.push(newItem);
-
-      if (!saveStorage()) {
-        state.data.pop();
-        return;
+      const kode = "DS-" + Date.now().toString().slice(-10);
+      const button = $("#dataset-form [type='submit']");
+      if (button) button.disabled = true;
+      try {
+        await apiRequest("POST", {
+          kode_data: kode,
+          nama_fasilitas: facility,
+          tingkat_kerusakan_x1: x1,
+          dampak_akademik_x2: x2,
+          frekuensi_penggunaan_x3: x3,
+          label_prioritas: determinePriority(score),
+          sumber_data: "Simulasi"
+        });
+        closeModal();
+        await loadData();
+        alert(`Data ${kode} berhasil ditambahkan.`);
+      } catch (error) {
+        alert(error.message || "Data gagal disimpan.");
+      } finally {
+        if (button) button.disabled = false;
       }
-
-      closeModal();
-
-      applyFilter();
-
-      alert(`Data ${id} berhasil ditambahkan.`);
-
     });
 
     $(".dataset-cancel-btn")?.addEventListener(
@@ -955,131 +833,25 @@
 
 
   // =====================================================
-  // 16. HAPUS DATA DAN UNDO
+  // =====================================================
+  // 16. HAPUS DATA MELALUI API
   // =====================================================
 
-  function showUndoNotification(item) {
-
-    $("#dataset-undo-notification")?.remove();
-
-    const notification = document.createElement("div");
-
-    notification.id = "dataset-undo-notification";
-
-    notification.innerHTML = `
-
-      <span>
-        Data ${escapeHTML(item.id)} berhasil dihapus.
-      </span>
-
-      <button type="button" id="undo-delete-btn">
-        URUNGKAN
-      </button>
-
-      <button
-        type="button"
-        id="close-undo-btn"
-        aria-label="Tutup"
-      >×</button>
-
-    `;
-
-    document.body.appendChild(notification);
-
-    $("#undo-delete-btn")?.addEventListener(
-      "click",
-      undoDelete
-    );
-
-    $("#close-undo-btn")?.addEventListener(
-      "click",
-      () => {
-        clearTimeout(state.undoTimer);
-        notification.remove();
-      }
-    );
-
-    clearTimeout(state.undoTimer);
-
-    state.undoTimer = setTimeout(() => {
-      notification.remove();
-      state.deletedItem = null;
-    }, 15000);
-
-  }
-
-
-  function deleteData(id) {
-
-    const item = state.data.find(
-      data => data.id === id
-    );
-
+  async function deleteData(id) {
+    const item = state.data.find(data => data.id === id);
     if (!item) return;
-
-    const confirmation = confirm(
-      `Apakah kamu yakin ingin menghapus ${id}?\n\n` +
-      `${item.facility}`
-    );
-
-    if (!confirmation) return;
-
-    const previous = [...state.data];
-
-    state.data = state.data.filter(
-      data => data.id !== id
-    );
-
-    if (!saveStorage()) {
-      state.data = previous;
-      return;
+    if (!confirm(`Apakah kamu yakin ingin menghapus ${id}?\n\n${item.facility}`)) return;
+    try {
+      if (!item.dbId) throw new Error("ID database dataset tidak valid.");
+      await apiRequest("DELETE", { id_data: item.dbId });
+      await loadData();
+      alert(`Data ${id} berhasil dihapus.`);
+    } catch (error) {
+      alert(error.message || "Data gagal dihapus.");
     }
-
-    state.deletedItem = {
-      item,
-      originalIndex: previous.findIndex(data => data.id === id)
-    };
-
-    applyFilter();
-
-    showUndoNotification(item);
-
   }
 
 
-  function undoDelete() {
-
-    if (!state.deletedItem) return;
-
-    const { item, originalIndex } = state.deletedItem;
-
-    if (state.data.some(data => data.id === item.id)) {
-      return;
-    }
-
-    const previous = [...state.data];
-
-    state.data.splice(originalIndex, 0, item);
-
-    if (!saveStorage()) {
-      state.data = previous;
-      return;
-    }
-
-    clearTimeout(state.undoTimer);
-
-    state.deletedItem = null;
-
-    $("#dataset-undo-notification")?.remove();
-
-    applyFilter();
-
-    alert(`Data ${item.id} berhasil dikembalikan.`);
-
-  }
-
-
-  // =====================================================
   // 17. EVENT LISTENER
   // =====================================================
 
@@ -1246,18 +1018,7 @@
     });
 
 
-    // SINKRONISASI TAB
 
-    window.addEventListener("storage", function(event) {
-
-      if (
-        event.key === STORAGE_KEY ||
-        event.key === null
-      ) {
-        loadData();
-      }
-
-    });
 
   }
 
