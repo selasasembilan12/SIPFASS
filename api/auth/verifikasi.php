@@ -1,36 +1,56 @@
 <?php
 declare(strict_types=1);
 
-// 01. Memuat konfigurasi database, session, dan layanan OTP serta email.
+/**
+ * SIPFAS - VERIFIKASI OTP
+ *
+ * Fitur:
+ * 1. Verifikasi OTP 8 digit.
+ * 2. OTP berlaku 2 menit.
+ * 3. Maksimal 3 percobaan OTP.
+ * 4. Pengiriman ulang OTP.
+ * 5. Pembatasan pengiriman OTP.
+ * 6. Reset penghitung login setelah OTP berhasil.
+ * 7. Session resmi berdasarkan role.
+ */
+
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
 require_once dirname(__DIR__, 2) . '/services/OtpService.php';
 require_once dirname(__DIR__, 2) . '/services/MailService.php';
 
-// 02. Mengatur format respons JSON dan mencegah penyimpanan respons di cache.
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');
 
-// 03. Mengirim respons JSON dengan status HTTP dan menghentikan proses.
+/* =========================================================
+   01. RESPONS JSON
+========================================================= */
+
 function verifikasiResponse(
     int $status,
     bool $success,
     string $message,
     array $data = []
 ): never {
+
     http_response_code($status);
 
     echo json_encode([
         'success' => $success,
         'message' => $message,
         'data' => $data
-    ], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+    ], JSON_UNESCAPED_UNICODE |
+       JSON_INVALID_UTF8_SUBSTITUTE);
 
     exit;
 }
 
-// 04. Memastikan endpoint hanya menerima permintaan POST.
+/* =========================================================
+   02. MEMERIKSA METODE REQUEST
+========================================================= */
+
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+
     header('Allow: POST');
 
     verifikasiResponse(
@@ -40,12 +60,16 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     );
 }
 
-// 05. Membaca dan memeriksa data JSON yang dikirim oleh JavaScript.
+/* =========================================================
+   03. MEMERIKSA FORMAT INPUT
+========================================================= */
+
 $contentType = strtolower(
     trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0])
 );
 
 if ($contentType !== 'application/json') {
+
     verifikasiResponse(
         415,
         false,
@@ -53,10 +77,18 @@ if ($contentType !== 'application/json') {
     );
 }
 
-$rawInput = file_get_contents('php://input', false, null, 0, 2049);
+$rawInput = file_get_contents(
+    'php://input',
+    false,
+    null,
+    0,
+    2049
+);
+
 $data = json_decode($rawInput, true);
 
 if (!is_array($data)) {
+
     verifikasiResponse(
         400,
         false,
@@ -64,10 +96,20 @@ if (!is_array($data)) {
     );
 }
 
-// 06. Memeriksa jenis tindakan dan memastikan format OTP terdiri dari delapan digit.
+/* =========================================================
+   04. MEMERIKSA ACTION
+========================================================= */
+
 $action = $data['action'] ?? 'verify';
 
-if (!in_array($action, ['ensure', 'resend', 'verify'], true)) {
+if (
+    !in_array(
+        $action,
+        ['ensure', 'resend', 'verify'],
+        true
+    )
+) {
+
     verifikasiResponse(
         422,
         false,
@@ -84,6 +126,7 @@ if (
         !preg_match('/^[0-9]{8}$/D', $otpInput)
     )
 ) {
+
     verifikasiResponse(
         422,
         false,
@@ -91,16 +134,25 @@ if (
     );
 }
 
-// 07. Memastikan pengguna memiliki session login sementara yang masih berlaku.
+/* =========================================================
+   05. MEMERIKSA SESSION LOGIN SEMENTARA
+========================================================= */
+
 $pending = $_SESSION['pending_login'] ?? [];
 
-$idPengguna = (int) ($pending['id_pengguna'] ?? 0);
+$idPengguna = (int) (
+    $pending['id_pengguna'] ?? 0
+);
 
 $pendingExpiry = (int) (
     $_SESSION['pending_login_expires'] ?? 0
 );
 
-if ($idPengguna <= 0 || !isset($_SESSION['login_id_otp'])) {
+if (
+    $idPengguna <= 0 ||
+    !isset($_SESSION['login_id_otp'])
+) {
+
     verifikasiResponse(
         401,
         false,
@@ -109,6 +161,7 @@ if ($idPengguna <= 0 || !isset($_SESSION['login_id_otp'])) {
 }
 
 if ($pendingExpiry <= time()) {
+
     unset(
         $_SESSION['pending_login'],
         $_SESSION['pending_login_expires'],
@@ -122,10 +175,16 @@ if ($pendingExpiry <= time()) {
     );
 }
 
-// 08. Mengambil data akun, memeriksa OTP, dan memproses setiap tindakan verifikasi.
+/* =========================================================
+   06. MEMPROSES VERIFIKASI
+========================================================= */
+
 try {
 
-    // A. Mengambil identitas dan status akun pengguna dari database.
+    /* =====================================================
+       A. MENGAMBIL DATA PENGGUNA
+    ===================================================== */
+
     $stmt = $pdo->prepare("
         SELECT
             u.id_pengguna,
@@ -156,6 +215,7 @@ try {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
+
         verifikasiResponse(
             404,
             false,
@@ -163,9 +223,17 @@ try {
         );
     }
 
+    /* =====================================================
+       B. MEMERIKSA STATUS AKUN
+    ===================================================== */
+
     if (
-        strcasecmp(trim((string) $user['status_akun']), 'Aktif') !== 0
+        strcasecmp(
+            trim((string) $user['status_akun']),
+            'Aktif'
+        ) !== 0
     ) {
+
         verifikasiResponse(
             403,
             false,
@@ -173,7 +241,10 @@ try {
         );
     }
 
-    // B. Mengambil OTP terakhir dan mencocokkan ID-nya dengan session login.
+    /* =====================================================
+       C. MENGAMBIL DATA OTP
+    ===================================================== */
+
     $stmt = $pdo->prepare("
         SELECT
             id_otp,
@@ -206,7 +277,10 @@ try {
         (string) $otpRecord['id_otp'] === $sessionOtpId
     );
 
-    // C. Memeriksa apakah OTP belum digunakan, belum dibatalkan, dan belum kedaluwarsa.
+    /* =====================================================
+       D. MEMERIKSA AKTIVITAS OTP
+    ===================================================== */
+
     $active = (
         $otpRecord &&
         $otpRecord['digunakan_pada'] === null &&
@@ -215,21 +289,36 @@ try {
         (int) $otpRecord['jumlah_percobaan'] < 3
     );
 
-    // D. Menyamarkan alamat email sebelum ditampilkan pada halaman verifikasi.
-    $emailParts = explode('@', (string) $user['email'], 2);
+    /* =====================================================
+       E. MENYAMARKAN EMAIL
+    ===================================================== */
+
+    $emailParts = explode(
+        '@',
+        (string) $user['email'],
+        2
+    );
 
     $prefix = $emailParts[0] ?? '';
     $domain = $emailParts[1] ?? '';
 
     $maskedEmail =
         substr($prefix, 0, 2) .
-        str_repeat('*', max(1, strlen($prefix) - 2)) .
-        '@' . $domain;
+        str_repeat(
+            '*',
+            max(1, strlen($prefix) - 2)
+        ) .
+        '@' .
+        $domain;
 
-    // E. Memastikan OTP yang masih aktif sesuai dengan session login pengguna.
+    /* =====================================================
+       F. MEMERIKSA OTP YANG MASIH AKTIF
+    ===================================================== */
+
     if ($action === 'ensure' && $active) {
 
         if (!$owned) {
+
             verifikasiResponse(
                 409,
                 false,
@@ -252,12 +341,20 @@ try {
         );
     }
 
-    // F. Membuat OTP baru dan mengirimkannya jika belum tersedia atau diminta ulang.
-    if ($action === 'ensure' || $action === 'resend') {
+    /* =====================================================
+       G. MENGIRIM OTP BARU
+    ===================================================== */
+
+    if (
+        $action === 'ensure' ||
+        $action === 'resend'
+    ) {
 
         $stmt = $pdo->prepare("
             SELECT COUNT(*)
+
             FROM otp_verifikasi
+
             WHERE id_pengguna = :id_pengguna
             AND tujuan = 'Login'
             AND tanggal_dibuat >=
@@ -269,6 +366,7 @@ try {
         ]);
 
         if ((int) $stmt->fetchColumn() >= 5) {
+
             verifikasiResponse(
                 429,
                 false,
@@ -282,16 +380,20 @@ try {
             'Login'
         );
 
-        // Mengambil ID dan masa berlaku OTP yang baru dibuat.
+        /* Mengambil OTP terbaru. */
+
         $stmt = $pdo->prepare("
             SELECT
                 id_otp,
                 UNIX_TIMESTAMP(berlaku_sampai) AS expires_at
+
             FROM otp_verifikasi
+
             WHERE id_pengguna = :id_pengguna
             AND tujuan = 'Login'
             AND digunakan_pada IS NULL
             AND dibatalkan_pada IS NULL
+
             ORDER BY id_otp DESC
             LIMIT 1
         ");
@@ -303,12 +405,14 @@ try {
         $newOtp = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$newOtp) {
+
             throw new RuntimeException(
                 'OTP baru tidak ditemukan.'
             );
         }
 
-        // Mengirim kode OTP ke email pengguna melalui MailService.
+        /* Mengirim OTP melalui email. */
+
         $emailSent = MailService::sendOtp(
             (string) $user['email'],
             $otp,
@@ -316,6 +420,7 @@ try {
         );
 
         if (!$emailSent) {
+
             OtpService::cancel(
                 $pdo,
                 $idPengguna,
@@ -329,9 +434,9 @@ try {
             );
         }
 
-        // Menghubungkan ID OTP terbaru dengan session login pengguna.
-        $_SESSION['login_id_otp'] = (string) $newOtp['id_otp'];
+        /* Memperbarui session OTP. */
 
+$_SESSION['login_id_otp'] = (string) $newOtp['id_otp'];
         verifikasiResponse(
             200,
             true,
@@ -344,8 +449,12 @@ try {
         );
     }
 
-    // G. Memastikan OTP yang dimasukkan benar-benar milik session pengguna.
+    /* =====================================================
+       H. MEMERIKSA KEPEMILIKAN OTP
+    ===================================================== */
+
     if (!$owned || !$otpRecord) {
+
         verifikasiResponse(
             409,
             false,
@@ -354,6 +463,7 @@ try {
     }
 
     if (!$active) {
+
         verifikasiResponse(
             410,
             false,
@@ -361,7 +471,10 @@ try {
         );
     }
 
-    // H. Mencocokkan OTP yang dimasukkan dengan hash yang tersimpan di database.
+    /* =====================================================
+       I. MEMERIKSA KODE OTP
+    ===================================================== */
+
     $isValid = password_verify(
         $otpInput,
         (string) $otpRecord['kode_hash']
@@ -369,16 +482,22 @@ try {
 
     if (!$isValid) {
 
-        $attempts = (int) $otpRecord['jumlah_percobaan'] + 1;
+        $attempts = (
+            (int) $otpRecord['jumlah_percobaan'] + 1
+        );
 
         $stmt = $pdo->prepare("
             UPDATE otp_verifikasi
+
             SET
                 jumlah_percobaan = :jumlah,
+
                 dibatalkan_pada = CASE
-                    WHEN :jumlah2 >= 3 THEN NOW()
+                    WHEN :jumlah2 >= 3
+                    THEN NOW()
                     ELSE dibatalkan_pada
                 END
+
             WHERE id_otp = :id_otp
             AND digunakan_pada IS NULL
             AND dibatalkan_pada IS NULL
@@ -397,15 +516,23 @@ try {
                 ? 'Batas percobaan OTP tercapai. Silakan kirim OTP baru.'
                 : 'Kode OTP salah. Percobaan ' . $attempts . '/3.',
             [
-                'remaining_attempts' => max(0, 3 - $attempts)
+                'remaining_attempts' => max(
+                    0,
+                    3 - $attempts
+                )
             ]
         );
     }
 
-    // I. Menandai OTP sebagai sudah digunakan agar tidak dapat dipakai kembali.
+    /* =====================================================
+       J. MENANDAI OTP TELAH DIGUNAKAN
+    ===================================================== */
+
     $stmt = $pdo->prepare("
         UPDATE otp_verifikasi
+
         SET digunakan_pada = NOW()
+
         WHERE id_otp = :id_otp
         AND digunakan_pada IS NULL
         AND dibatalkan_pada IS NULL
@@ -418,6 +545,7 @@ try {
     ]);
 
     if ($stmt->rowCount() !== 1) {
+
         verifikasiResponse(
             410,
             false,
@@ -425,7 +553,32 @@ try {
         );
     }
 
-    // J. Menentukan halaman Dashboard berdasarkan role pengguna.
+    /* =====================================================
+       K. RESET PENGHITUNG LOGIN GAGAL
+    ===================================================== */
+
+    // Reset dilakukan setelah OTP benar.
+    // Dengan demikian, login dianggap berhasil
+    // setelah kedua tahap autentikasi selesai.
+
+    $stmt = $pdo->prepare("
+        UPDATE pengguna
+
+        SET
+            jumlah_login_gagal = 0,
+            login_diblokir_sampai = NULL
+
+        WHERE id_pengguna = :id_pengguna
+    ");
+
+    $stmt->execute([
+        ':id_pengguna' => $idPengguna
+    ]);
+
+    /* =====================================================
+       L. MENENTUKAN HALAMAN BERDASARKAN ROLE
+    ===================================================== */
+
     $routes = [
         'Administrator' =>
             '../Admin/Dashboard/Dashboard.html',
@@ -440,6 +593,7 @@ try {
     $role = (string) $user['nama_peran'];
 
     if (!isset($routes[$role])) {
+
         verifikasiResponse(
             403,
             false,
@@ -447,45 +601,62 @@ try {
         );
     }
 
-    // K. Membuat session resmi setelah OTP berhasil diverifikasi.
-    if (!session_regenerate_id(true)) {
-        throw new RuntimeException(
-            'Gagal memperbarui session ID.'
-        );
-    }
+/* =====================================================
+   M. MEMBUAT SESSION RESMI
+===================================================== */
 
-    $authenticatedUser = [
-        'id_pengguna' => (int) $user['id_pengguna'],
-        'id_peran' => (int) $user['id_peran'],
-        'nama_lengkap' => $user['nama_lengkap'],
-        'nama_pengguna' => $user['nama_pengguna'],
-        'email' => $user['email'],
-        'nomor_identitas' => $user['nomor_identitas'],
-        'unit_kerja' => $user['unit_kerja'],
-        'foto_profil' => $user['foto_profil'],
-        'nama_peran' => $role
-    ];
+if (!session_regenerate_id(true)) {
 
-    $_SESSION['user'] = $authenticatedUser;
+    throw new RuntimeException(
+        'Gagal memperbarui session ID.'
+    );
+}
 
-    $_SESSION['id_pengguna'] = (int) $user['id_pengguna'];
-    $_SESSION['id_peran'] = (int) $user['id_peran'];
-    $_SESSION['nama_peran'] = $role;
-    $_SESSION['nama_lengkap'] = $user['nama_lengkap'];
-    $_SESSION['sipfas_user'] = $authenticatedUser;
-    $_SESSION['login_terverifikasi'] = true;
+$authenticatedUser = [
+    'id_pengguna' => (int) $user['id_pengguna'],
+    'id_peran' => (int) $user['id_peran'],
+    'nama_lengkap' => $user['nama_lengkap'],
+    'nama_pengguna' => $user['nama_pengguna'],
+    'email' => $user['email'],
+    'nomor_identitas' => $user['nomor_identitas'],
+    'unit_kerja' => $user['unit_kerja'],
+    'foto_profil' => $user['foto_profil'],
+    'nama_peran' => $role
+];
 
-    // Menghapus data login sementara setelah session resmi terbentuk.
+$_SESSION['user'] = $authenticatedUser;
+
+$_SESSION['id_pengguna'] = (int) $user['id_pengguna'];
+
+$_SESSION['id_peran'] = (int) $user['id_peran'];
+
+$_SESSION['nama_peran'] = $role;
+
+$_SESSION['nama_lengkap'] = $user['nama_lengkap'];
+
+$_SESSION['sipfas_user'] = $authenticatedUser;
+
+$_SESSION['login_terverifikasi'] = true;
+    /* =====================================================
+       N. MENGHAPUS SESSION LOGIN SEMENTARA
+    ===================================================== */
+
     unset(
         $_SESSION['pending_login'],
         $_SESSION['pending_login_expires'],
         $_SESSION['login_id_otp']
     );
 
-    // Menyimpan session sebelum mengirimkan respons ke browser.
+    /* =====================================================
+       O. MENYIMPAN SESSION
+    ===================================================== */
+
     session_write_close();
 
-    // L. Mengirim status keberhasilan dan alamat Dashboard sesuai role.
+    /* =====================================================
+       P. RESPONS BERHASIL
+    ===================================================== */
+
     verifikasiResponse(
         200,
         true,
@@ -503,7 +674,6 @@ try {
 
 } catch (Throwable $e) {
 
-    // Mencatat detail kesalahan pada log server tanpa membocorkan informasi sensitif.
     error_log(
         '[SIPFAS VERIFIKASI ERROR] ' .
         get_class($e) . ': ' .

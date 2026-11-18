@@ -169,8 +169,7 @@ try {
         otpPemulihanResponse(
             403,
             false,
-            'Akun tidak ditemukan atau tidak aktif.'
-        );
+'Permintaan tidak dapat diproses. Silakan ulangi proses pemulihan akun.'        );
     }
 
     // Menyamarkan email pengguna.

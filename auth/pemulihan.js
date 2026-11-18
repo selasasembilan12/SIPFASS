@@ -1,4 +1,3 @@
-
 "use strict";
 
 /* ============================================================
@@ -97,8 +96,7 @@ function showRecoveryCard(message, type) {
     content.className = "recovery-toast-content";
 
     const heading = document.createElement("strong");
-    heading.textContent = "Email Berhasil Ditemukan";
-
+    heading.textContent = "Permintaan Diproses";
     const paragraph = document.createElement("p");
     paragraph.textContent = message;
 
@@ -239,7 +237,7 @@ async function processRecovery(event) {
       credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify({
         email: email,
@@ -250,16 +248,13 @@ async function processRecovery(event) {
 
     // Memeriksa respons backend.
     if (!response.ok || !result.success) {
-      throw new Error(
-        result.message || "Pemulihan akun gagal diproses."
-      );
+      throw new Error(result.message || "Pemulihan akun gagal diproses.");
     }
 
     // Menampilkan pesan berhasil.
     showRecoveryCard(
-      result.message ||
-        "Email ditemukan. Anda akan diarahkan ke verifikasi OTP.",
-      "success"
+      result.message || "Email ditemukan. Silahkan lakukan verifikasi OTP.",
+      "success",
     );
 
     // Mengambil alamat tujuan dari backend.
@@ -272,14 +267,12 @@ async function processRecovery(event) {
     setTimeout(function () {
       window.location.href = destination;
     }, 1200);
-
   } catch (error) {
     console.error("Kesalahan pemulihan SIPFAS:", error);
 
     showRecoveryCard(
-      error.message ||
-        "Tidak dapat menghubungi server. Silakan coba kembali.",
-      "error"
+      error.message || "Tidak dapat menghubungi server. Silakan coba kembali.",
+      "error",
     );
 
     recoveryProcessing = false;
