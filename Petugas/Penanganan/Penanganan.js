@@ -1,22 +1,25 @@
+
 (() => {
-  // PENANGANAN.JS
   "use strict";
 
   document.addEventListener("DOMContentLoaded", initialize);
 
   function initialize() {
-    // 01. KONFIGURASI
-    const STORAGE = {
-      verification: "sipfas_verifikasi_laporan",
-      handling: "sipfas_penanganan_laporan",
-      selected: "sipfas_selected_report",
-      activeUser: "sipfasActiveUser",
-      pendingUser: "sipfasPendingLogin",
-      users: "sipfasUsers",
-      photoPrefix: "sipfas_profile_photo_",
+
+    // Mengatur endpoint API dan penyimpanan metadata laporan terpilih.
+    const API = {
+      reports: "../../api/petugas/daftar-penanganan.php",
+      profile: "../../api/shared/profil-login.php",
+      logout: "../../api/auth/logout.php"
     };
 
-    const WIT_OFFSET_MS = 9 * 60 * 60 * 1000;
+    const STORAGE = {
+      selected: "sipfas_selected_report"
+    };
+
+    const LOGIN_URL = "../../auth/Login.html";
+    const DETAIL_URL =
+      "../Detail-Penanganan/Detail-Penanganan.html";
 
     const HANDLING_STATUS = {
       waiting: {
@@ -33,16 +36,18 @@
         label: "Selesai",
         className: "completed",
         icon: "✓"
-      },
+      }
     };
 
-    // 02. ELEMEN HTML
+    // Mengambil elemen HTML halaman.
     const $ = (id) => document.getElementById(id);
+
     const searchInput = $("searchHandling");
     const priorityFilter = $("priorityHandling");
     const table = document.querySelector(".handling-table");
     const tableBody = table?.querySelector("tbody");
     const emptyState = $("emptyHandling");
+
     const sidebar = $("sidebar");
     const menuToggle = $("menuToggle");
     const pageOverlay = $("pageOverlay");
@@ -55,7 +60,13 @@
       return;
     }
 
-    // 03. FUNGSI NORMALISASI
+    let reports = [];
+    let activeOfficerProfile = null;
+    let refreshInProgress = false;
+    let profileRequest = null;
+    let refreshTimer = null;
+
+    // Menormalisasi teks agar pencarian konsisten.
     function normalizeText(value) {
       return String(value ?? "")
         .normalize("NFD")
@@ -65,6 +76,24 @@
         .toLowerCase();
     }
 
+    // Mengambil nilai pertama yang tersedia.
+    function firstValue(object, keys, fallback = "") {
+      for (const key of keys) {
+        const value = object?.[key];
+
+        if (
+          value !== undefined &&
+          value !== null &&
+          String(value).trim() !== ""
+        ) {
+          return value;
+        }
+      }
+
+      return fallback;
+    }
+
+    // Menormalkan kode laporan.
     function normalizeReportCode(value) {
       return String(value ?? "")
         .replace(/\s+/g, "")
@@ -72,6 +101,7 @@
         .toUpperCase();
     }
 
+    // Menormalkan prioritas dari database.
     function normalizePriority(value) {
       const text = normalizeText(value);
 
@@ -90,17 +120,22 @@
       return "tidak diketahui";
     }
 
+    // Menormalkan hasil verifikasi.
     function normalizeDecision(value) {
       const text = normalizeText(value);
 
-      if (text === "valid" || text === "laporan valid") {
+      if (
+        text === "valid" ||
+        text === "laporan valid"
+      ) {
         return "valid";
       }
 
       if (
         text === "invalid" ||
         text === "tidak valid" ||
-        text === "laporan tidak valid"
+        text === "laporan tidak valid" ||
+        text === "ditolak"
       ) {
         return "invalid";
       }
@@ -108,6 +143,7 @@
       return "";
     }
 
+    // Menormalkan status penanganan.
     function normalizeHandlingStatus(status) {
       const value = normalizeText(status);
 
@@ -136,556 +172,247 @@
       return "waiting";
     }
 
-    // 04. SINKRONISASI PROFIL & FOTO PETUGAS DARI DATABASE
-
-    const PROFILE_API = "../../api/shared/profil-login.php";
-
-    let activeOfficerProfile = null;
-    let profileRequest = null;
-
-    // Menyesuaikan nama role dari database.
-    function formatRoleLabel(role) {
-      const value = normalizeText(role);
-
-      if (
-        value === "administrator" ||
-        value === "admin"
-      ) {
-        return "Administrator";
-      }
-
-      if (value.includes("petugas")) {
-        return "Petugas";
-      }
-
-      if (
-        value === "pelapor" ||
-        value === "user"
-      ) {
-        return "Pelapor";
-      }
-
-      return String(role || "Petugas");
-    }
-
-    // Membuat inisial nama petugas.
-    function getInitials(name) {
-      const parts = String(name || "")
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean);
-
-      if (parts.length === 0) return "PT";
-
-      if (parts.length === 1) {
-        return parts[0].slice(0, 2).toUpperCase();
-      }
-
-      return (
-        parts[0][0] +
-        parts[parts.length - 1][0]
-      ).toUpperCase();
-    }
-
-    // Mengubah alamat foto relatif menjadi URL.
-    function resolveProfilePhoto(photo) {
-      if (!photo) return "";
-
-      const value = String(photo).trim();
-
-      if (
-        value.startsWith("data:") ||
-        value.startsWith("blob:") ||
-        /^https?:\/\//i.test(value)
-      ) {
-        return value;
-      }
-
-      if (value.startsWith("/")) {
-        return window.location.origin + value;
-      }
-
-      const projectRoot = new URL(
-        "../../",
-        window.location.href
-      );
-
-      return new URL(value, projectRoot).href;
-    }
-
-    // Mengambil identitas petugas langsung dari database.
-    // Identitas ditentukan oleh session PHP.
-    async function getActiveOfficerProfile(forceRefresh = false) {
-      if (profileRequest && !forceRefresh) {
-        return profileRequest;
-      }
-
-      profileRequest = (async () => {
-        const response = await fetch(PROFILE_API, {
-          method: "GET",
-          credentials: "same-origin",
-          cache: "no-store",
-          headers: {
-            "Accept": "application/json"
-          }
-        });
-
-        const raw = await response.text();
-
-        let result;
-
-        try {
-          result = JSON.parse(raw);
-        } catch (error) {
-          throw new Error(
-            "Respons API profil bukan JSON. Periksa endpoint " +
-            PROFILE_API
-          );
-        }
-
-        if (!response.ok || result.success !== true) {
-          throw new Error(
-            result.message ||
-            "Gagal mengambil profil petugas. HTTP " +
-            response.status
-          );
-        }
-
-        const user = result.user || result.data;
-
-        if (!user || !user.id_pengguna) {
-          throw new Error(
-            "Identitas pengguna dari database tidak lengkap."
-          );
-        }
-
-        const displayName = String(
-          user.nama_lengkap ||
-          user.nama_pengguna ||
-          "Petugas SIPFAS"
-        ).trim();
-
-        return {
-          id: String(user.id_pengguna),
-          name: displayName,
-          username: String(user.nama_pengguna || ""),
-          email: String(user.email || ""),
-          role: formatRoleLabel(user.nama_peran),
-          avatar: resolveProfilePhoto(user.foto_profil),
-          initials: getInitials(displayName)
-        };
-      })();
-
-      try {
-        const profile = await profileRequest;
-
-        activeOfficerProfile = profile;
-
-        return profile;
-
-      } finally {
-        profileRequest = null;
-      }
-    }
-
-    // Memasang foto profil atau inisial petugas.
-    function renderAvatarElement(el, profile) {
-      if (!el) return;
-
-      if (el.tagName === "IMG") {
-        if (profile.avatar) {
-          el.src = profile.avatar;
-        } else {
-          el.removeAttribute("src");
-        }
-
-        el.alt = "Foto " + profile.name;
-
-        return;
-      }
-
-      const svgIcon = el.querySelector("svg");
-
-      let imgInside = el.querySelector(
-        ".profile-header-photo, img"
-      );
-
-      let initialsEl = el.querySelector(
-        ".profile-header-initials"
-      );
-
-      if (profile.avatar) {
-        if (svgIcon) {
-          svgIcon.style.display = "none";
-        }
-
-        if (initialsEl) {
-          initialsEl.remove();
-        }
-
-        if (!imgInside) {
-          imgInside = document.createElement("img");
-
-          imgInside.className = "profile-header-photo";
-
-          el.appendChild(imgInside);
-        }
-
-        imgInside.src = profile.avatar;
-        imgInside.alt = "Foto " + profile.name;
-
-        Object.assign(imgInside.style, {
-          width: "100%",
-          height: "100%",
-          display: "block",
-          objectFit: "cover",
-          borderRadius: "50%"
-        });
-
-        el.style.overflow = "hidden";
-
-      } else {
-        if (imgInside) {
-          imgInside.remove();
-        }
-
-        if (svgIcon) {
-          svgIcon.style.display = "none";
-        }
-
-        if (!initialsEl) {
-          initialsEl = document.createElement("span");
-
-          initialsEl.className = "profile-header-initials";
-
-          el.appendChild(initialsEl);
-        }
-
-        initialsEl.textContent = profile.initials;
-
-        Object.assign(initialsEl.style, {
-          display: "flex",
-          width: "100%",
-          height: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#ffffff",
-          fontWeight: "700",
-          fontSize: "14px"
-        });
-      }
-
-      el.setAttribute(
-        "aria-label",
-        profile.avatar
-          ? "Foto profil " + profile.name
-          : "Profil " + profile.name
+    // Mengambil kode laporan dari berbagai kemungkinan nama kolom.
+    function getReportCode(report) {
+      return normalizeReportCode(
+        firstValue(report, [
+          "kode_laporan",
+          "reportCode",
+          "report_code",
+          "id_laporan"
+        ])
       );
     }
 
-    // Memperbarui identitas pada halaman Penanganan.
-    function renderOfficerProfile(profile) {
-      const nameSelectors = [
-        "#officerName",
-        "#petugasName",
-        "#profileName",
-        "#userName",
-        ".officer-name",
-        ".petugas-name",
-        ".profile-name",
-        ".user-name",
-        ".account-name",
-        "[data-profile-name]",
-        "[data-user-name]"
-      ];
-
-      document
-        .querySelectorAll(nameSelectors.join(", "))
-        .forEach((el) => {
-          el.textContent = profile.name;
-        });
-
-      const roleSelectors = [
-        "#officerRole",
-        "#petugasRole",
-        "#profileRole",
-        "#userRole",
-        ".officer-role",
-        ".petugas-role",
-        ".profile-role",
-        ".user-role",
-        ".account-role",
-        "[data-profile-role]",
-        "[data-user-role]"
-      ];
-
-      document
-        .querySelectorAll(roleSelectors.join(", "))
-        .forEach((el) => {
-          el.textContent = profile.role;
-        });
-
-      const emailSelectors = [
-        "#officerEmail",
-        "#profileEmail",
-        "#userEmail",
-        ".profile-email",
-        ".user-email",
-        "[data-profile-email]"
-      ];
-
-      document
-        .querySelectorAll(emailSelectors.join(", "))
-        .forEach((el) => {
-          el.textContent = profile.email;
-        });
-
-      const avatarSelectors = [
-        ".profile-area .profile-avatar",
-        "#profileAvatar",
-        "#userAvatar",
-        "#officerAvatar",
-        ".profile-avatar",
-        ".user-avatar",
-        ".avatar",
-        "[data-profile-avatar]"
-      ];
-
-      document
-        .querySelectorAll(avatarSelectors.join(", "))
-        .forEach((el) => {
-          renderAvatarElement(el, profile);
-        });
-
-      const profileContainers = document.querySelectorAll(
-        ".user-profile, .profile-box, .header-profile, .sidebar-profile"
-      );
-
-      profileContainers.forEach((container) => {
-        if (
-          container.querySelector(nameSelectors.join(", "))
-        ) {
-          return;
-        }
-
-        const strongEl = container.querySelector(
-          "strong, h4, h5, .name"
-        );
-
-        const subEl = container.querySelector(
-          "small, span:not(.avatar), p"
-        );
-
-        if (strongEl) {
-          strongEl.textContent = profile.name;
-        }
-
-        if (
-          subEl &&
-          subEl !== strongEl &&
-          !subEl.querySelector("img")
-        ) {
-          subEl.textContent = profile.role;
+    // Mengambil data JSON dari API.
+    async function fetchJson(url, options = {}) {
+      const response = await fetch(url, {
+        credentials: "same-origin",
+        cache: "no-store",
+        ...options,
+        headers: {
+          Accept: "application/json",
+          ...(options.headers || {})
         }
       });
-    }
 
-    // Memuat ulang profil dari database.
-    async function synchronizeOfficerProfile() {
+      const raw = await response.text();
+
+      let payload;
+
       try {
-        const profile = await getActiveOfficerProfile(true);
-
-        renderOfficerProfile(profile);
-
-        console.log(
-          "[SIPFAS] Profil petugas tersinkronisasi dari database:",
-          profile.name,
-          "(" + profile.role + ")"
+        payload = JSON.parse(raw);
+      } catch {
+        throw new Error(
+          "Respons server bukan JSON. Periksa endpoint API Petugas."
         );
-
-        return profile;
-
-      } catch (error) {
-        console.error(
-          "[SIPFAS] Gagal menyinkronkan profil petugas:",
-          error
-        );
-
-        return null;
       }
-    }
 
-    // 05. FUNGSI WAKTU WIT MALUKU UTARA
-
-    function parseTimestamp(value) {
-      if (!value) return null;
-
-      const date = typeof value === "number"
-        ? new Date(value)
-        : new Date(value);
-
-      return Number.isNaN(date.getTime())
-        ? null
-        : date;
-    }
-
-    function formatWIT(value, includeSeconds = true) {
-      const date = parseTimestamp(value);
-
-      if (!date) return "Belum tersedia";
-
-      const witDate = new Date(
-        date.getTime() + WIT_OFFSET_MS
-      );
-
-      return (
-        new Intl.DateTimeFormat("id-ID", {
-          timeZone: "UTC",
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: includeSeconds ? "2-digit" : undefined,
-          hour12: false,
-        }).format(witDate) + " WIT"
-      );
-    }
-
-    function formatReportDate(value) {
-      if (!value) return "—";
-
-      const date = parseTimestamp(value);
-
-      if (!date) return String(value);
-
-      const witDate = new Date(
-        date.getTime() + WIT_OFFSET_MS
-      );
-
-      return new Intl.DateTimeFormat("id-ID", {
-        timeZone: "UTC",
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }).format(witDate);
-    }
-
-    function getUpdatedTimestamp(record) {
-      return (
-        record?.updatedAt ||
-        record?.updated_at ||
-        record?.lastUpdated ||
-        record?.tanggalPembaruan ||
-        null
-      );
-    }
-
-    // 06. PENYIMPANAN & DATA CADANGAN HTML
-
-    function readStorage(key) {
-      try {
-        const raw = localStorage.getItem(key);
-
-        if (raw === null) return {};
-
-        const data = JSON.parse(raw);
-
-        if (
-          !data ||
-          typeof data !== "object" ||
-          Array.isArray(data)
-        ) {
-          throw new Error("Format penyimpanan tidak valid.");
-        }
-
-        return data;
-
-      } catch (error) {
-        console.error(
-          `[SIPFAS] Gagal membaca ${key}:`,
-          error
-        );
-
-        return null;
+      if (response.status === 401) {
+        window.location.replace(LOGIN_URL);
+        throw new Error("Sesi login telah berakhir.");
       }
+
+      if (!response.ok || payload?.success !== true) {
+        throw new Error(
+          payload?.message ||
+          `Permintaan gagal. HTTP ${response.status}`
+        );
+      }
+
+      return payload;
     }
 
-    const originalReportData = {};
+    // Memuat seluruh laporan dari database.
+    async function loadReportsFromDatabase() {
+      const payload = await fetchJson(API.reports);
 
-    Array.from(tableBody.querySelectorAll("tr")).forEach((row) => {
-      const code = normalizeReportCode(
-        row.cells[0]?.innerText
-      );
+      if (!Array.isArray(payload.data)) {
+        throw new Error(
+          "Format data daftar penanganan tidak sesuai."
+        );
+      }
 
-      if (!code) return;
+      return payload.data.map(normalizeReport);
+    }
 
-      const facilityCell = row.cells[1];
+    // Menyesuaikan data SQL dengan kebutuhan tabel Penanganan.
+    function normalizeReport(report) {
+      return {
+        ...report,
 
-      originalReportData[code] = {
-        facility:
-          facilityCell?.querySelector("strong")?.textContent.trim() || "",
+        id: getReportCode(report),
 
-        damage:
-          facilityCell?.querySelector("small")?.textContent.trim() || "",
+        reporterId: firstValue(report, [
+          "id_pelapor"
+        ]),
 
-        location:
-          row.cells[2]?.innerText.trim() || "",
+        reporterName: firstValue(report, [
+          "nama_pelapor"
+        ], "Tidak diketahui"),
 
-        priority:
-          row.cells[3]?.innerText.trim() || "",
+        reporterNim: firstValue(report, [
+          "nomor_identitas"
+        ]),
 
-        date:
-          row.cells[5]?.innerText.trim() || "",
+        facility: firstValue(report, [
+          "nama_fasilitas"
+        ], "Data fasilitas tidak tersedia"),
+
+        location: firstValue(report, [
+          "nama_lokasi",
+          "lokasi_ruangan"
+        ], "Lokasi tidak tersedia"),
+
+        description: firstValue(report, [
+          "deskripsi_kerusakan"
+        ], "Deskripsi kerusakan tidak tersedia"),
+
+        priority: normalizePriority(
+          firstValue(report, [
+            "prioritas_sesudah",
+            "prioritas_prediksi",
+            "prioritas_awal"
+          ])
+        ),
+
+        decision: normalizeDecision(
+          firstValue(report, [
+            "hasil_verifikasi"
+          ])
+        ),
+
+        verificationStatus: firstValue(report, [
+          "status_verifikasi"
+        ]),
+
+        handlingStatus: normalizeHandlingStatus(
+          firstValue(report, [
+            "status_penanganan"
+          ], "Menunggu")
+        ),
+
+        verificationTime: firstValue(report, [
+          "waktu_verifikasi"
+        ]),
+
+        reportDate: firstValue(report, [
+          "tanggal_dibuat"
+        ]),
+
+        updatedAt: firstValue(report, [
+          "waktu_pembaruan",
+          "tanggal_diperbarui"
+        ]),
+
+        handlingStart: firstValue(report, [
+          "waktu_mulai_penanganan"
+        ]),
+
+        handlingEnd: firstValue(report, [
+          "waktu_selesai_penanganan"
+        ]),
+
+        lastAction: firstValue(report, [
+          "tindak_lanjut_perbaikan"
+        ]),
+
+        officerNotes: firstValue(report, [
+          "catatan_petugas"
+        ]),
+
+        officerId: firstValue(report, [
+          "id_petugas"
+        ])
       };
-    });
-
-    // 07. VALIDASI & PEMBENTUKAN ELEMEN TABEL
-
-    function getReportCode(report, storageKey = "") {
-      return normalizeReportCode(
-        report?.reportCode ||
-        report?.report_code ||
-        report?.id ||
-        report?.reportId ||
-        report?.report_id ||
-        report?.kodeLaporan ||
-        report?.kode_laporan ||
-        storageKey
-      );
     }
 
-    function isEligibleForHandling(verification) {
-      if (!verification) return false;
+    // Memastikan laporan sudah diverifikasi valid.
+    function isEligibleForHandling(report) {
+      if (!report) return false;
 
-      const decision = normalizeDecision(
-        verification.decision ||
-        verification.decisionLabel
-      );
-
-      if (decision !== "valid") return false;
+      if (report.decision !== "valid") {
+        return false;
+      }
 
       const status = normalizeText(
-        verification.status || ""
+        report.verificationStatus
       );
 
       if (
-        status &&
-        ![
-          "selesai diverifikasi",
-          "terverifikasi",
-          "verified"
-        ].includes(status)
+        status.includes("tidak valid") ||
+        status.includes("ditolak") ||
+        status === "invalid"
       ) {
+        return false;
+      }
+
+      // Laporan yang sudah selesai tidak ditampilkan dalam antrean aktif.
+      if (report.handlingStatus === "completed") {
         return false;
       }
 
       return true;
     }
 
+    // Mengubah tanggal database menjadi objek Date.
+    function parseTimestamp(value) {
+      if (!value) return null;
+
+      const date = new Date(
+        String(value).replace(" ", "T")
+      );
+
+      return Number.isNaN(date.getTime())
+        ? null
+        : date;
+    }
+
+    // Memformat tanggal laporan dalam zona WIT.
+    function formatReportDate(value) {
+      const date = parseTimestamp(value);
+
+      if (!date) return "—";
+
+      return new Intl.DateTimeFormat("id-ID", {
+        timeZone: "Asia/Jayapura",
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }).format(date);
+    }
+
+    // Memformat waktu pembaruan terakhir dalam zona WIT.
+    function formatWIT(value, includeSeconds = true) {
+      const date = parseTimestamp(value);
+
+      if (!date) return "Belum tersedia";
+
+      return new Intl.DateTimeFormat("id-ID", {
+        timeZone: "Asia/Jayapura",
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: includeSeconds ? "2-digit" : undefined,
+        hourCycle: "h23"
+      }).format(date) + " WIT";
+    }
+
+    // Mengambil waktu pembaruan terakhir dari laporan.
+    function getUpdatedTimestamp(report) {
+      return (
+        report.updatedAt ||
+        report.handlingStart ||
+        report.verificationTime ||
+        null
+      );
+    }
+
+    // Mengatur tampilan badge status penanganan.
     function createStatusBadge(status) {
       const normalized = normalizeHandlingStatus(status);
-
       const config = HANDLING_STATUS[normalized];
 
       const badge = document.createElement("span");
@@ -698,7 +425,6 @@
       const icon = document.createElement("span");
 
       icon.setAttribute("aria-hidden", "true");
-
       icon.textContent = config.icon;
 
       badge.appendChild(icon);
@@ -707,14 +433,12 @@
         document.createTextNode(` ${config.label}`)
       );
 
-      badge.setAttribute(
-        "aria-label",
-        config.label
-      );
+      badge.setAttribute("aria-label", config.label);
 
       return badge;
     }
 
+    // Mengatur tampilan badge prioritas.
     function createPriorityBadge(priority) {
       const badge = document.createElement("span");
 
@@ -727,7 +451,7 @@
         tinggi: "Tinggi",
         sedang: "Sedang",
         rendah: "Rendah",
-        "tidak diketahui": "Tidak Diketahui",
+        "tidak diketahui": "Tidak Diketahui"
       };
 
       badge.textContent =
@@ -736,6 +460,7 @@
       return badge;
     }
 
+    // Menampilkan waktu pembaruan terakhir.
     function createUpdatedTimeElement(timestamp) {
       const element = document.createElement("small");
 
@@ -761,223 +486,188 @@
         fontSize: "10px",
         lineHeight: "1.5",
         color: "#737e8c",
-        fontWeight: "400",
+        fontWeight: "400"
       });
 
       return element;
     }
 
-    function createReportRow(
-      verification,
-      handlingData,
-      storageKey
-    ) {
-      const reportCode = getReportCode(
-        verification,
-        storageKey
-      );
+    // Menyimpan metadata laporan terpilih untuk halaman detail.
+    // Data utama tetap dibaca kembali dari database pada halaman detail.
+    function saveSelectedReport(report, officer) {
+      const selected = {
+        id: report.id,
+        reportCode: report.id,
 
-      const original =
-        originalReportData[reportCode] || {};
+        reporterName: report.reporterName,
+        reporterNim: report.reporterNim,
 
-      const priority = normalizePriority(
-        verification.priority ||
-        verification.priorityLabel ||
-        verification.recommendation ||
-        original.priority
-      );
+        facility: report.facility,
+        facilityName: report.facility,
 
-      const facility =
-        verification.facilityName ||
-        verification.facility ||
-        verification.namaFasilitas ||
-        original.facility ||
-        "Data fasilitas tidak tersedia";
+        location: report.location,
+        facilityLocation: report.location,
 
-      const damage =
-        verification.damageDescription ||
-        verification.description ||
-        verification.kerusakan ||
-        original.damage ||
-        "Deskripsi kerusakan tidak tersedia";
+        date: report.reportDate,
+        priority: report.priority,
+        description: report.description,
 
-      const location =
-        verification.facilityLocation ||
-        verification.location ||
-        verification.lokasi ||
-        original.location ||
-        "Lokasi tidak tersedia";
+        handlerName: officer.name,
+        handlerId: officer.id,
+        handlerEmail: officer.email,
+        handlerRole: officer.role,
 
-      const reportDate =
-        verification.createdAt ||
-        verification.reportCreatedAt ||
-        verification.reportTime ||
-        verification.reportDate ||
-        verification.date ||
-        verification.tanggalLaporan ||
-        original.date ||
-        "—";
+        selectedAt: new Date().toISOString()
+      };
 
-      const savedHandling =
-        handlingData[reportCode] || {};
+      try {
+        localStorage.setItem(
+          STORAGE.selected,
+          JSON.stringify(selected)
+        );
 
-      const handlingStatus = normalizeHandlingStatus(
-        savedHandling.status ||
-        savedHandling.handlingStatus ||
-        savedHandling.statusPenanganan ||
-        "waiting"
-      );
+        return true;
 
-      const updatedAt =
-        getUpdatedTimestamp(savedHandling);
+      } catch (error) {
+        console.error(
+          "[SIPFAS] Gagal menyimpan metadata laporan:",
+          error
+        );
+
+        return false;
+      }
+    }
+
+    // Membuat satu baris laporan pada tabel.
+    function createReportRow(report) {
+      const priority = report.priority;
+      const updatedAt = getUpdatedTimestamp(report);
 
       const row = document.createElement("tr");
 
       row.dataset.priority = priority;
-      row.dataset.reportCode = reportCode;
+      row.dataset.reportCode = report.id;
       row.dataset.verificationStatus = "valid";
-      row.dataset.handlingStatus = handlingStatus;
+      row.dataset.handlingStatus = report.handlingStatus;
 
-      // Kolom 1: Kode Laporan
+      // Kolom kode laporan.
       const codeCell = document.createElement("td");
 
       const codeBadge = document.createElement("span");
 
-      codeBadge.className =
-        `report-id ${priority}`;
-
-      codeBadge.textContent = reportCode;
+      codeBadge.className = `report-id ${priority}`;
+      codeBadge.textContent = report.id;
 
       codeCell.appendChild(codeBadge);
 
-      // Kolom 2: Fasilitas & Deskripsi Kerusakan
+      // Kolom fasilitas dan deskripsi kerusakan.
       const facilityCell = document.createElement("td");
 
       facilityCell.className = "facility";
 
       const facilityName = document.createElement("strong");
-
-      facilityName.textContent = facility;
+      facilityName.textContent = report.facility;
 
       const damageDescription = document.createElement("small");
-
-      damageDescription.textContent = damage;
+      damageDescription.textContent = report.description;
 
       facilityCell.append(
         facilityName,
         damageDescription
       );
 
-      // Kolom 3: Lokasi
+      // Kolom lokasi ruangan.
       const locationCell = document.createElement("td");
 
       const locationElement = document.createElement("span");
 
       locationElement.className = "location";
-
-      locationElement.textContent = location;
+      locationElement.textContent = report.location;
 
       locationCell.appendChild(locationElement);
 
-      // Kolom 4: Prioritas
+      // Kolom prioritas.
       const priorityCell = document.createElement("td");
 
       priorityCell.appendChild(
         createPriorityBadge(priority)
       );
 
-      // Kolom 5: Status & Waktu Pembaruan
+      // Kolom status penanganan.
       const statusCell = document.createElement("td");
 
       statusCell.append(
-        createStatusBadge(handlingStatus),
+        createStatusBadge(report.handlingStatus),
         createUpdatedTimeElement(updatedAt)
       );
 
-      // Kolom 6: Tanggal Laporan
+      // Kolom tanggal laporan.
       const dateCell = document.createElement("td");
 
       dateCell.className = "date";
+      dateCell.textContent = formatReportDate(report.reportDate);
 
-      dateCell.textContent =
-        formatReportDate(reportDate);
-
-      // Kolom 7: Tombol Kelola
+      // Kolom tombol pengelolaan.
       const actionCell = document.createElement("td");
 
       const manageLink = document.createElement("a");
 
       manageLink.className = "manage-button";
-
       manageLink.textContent = "Kelola Penanganan";
 
       const detailURL = new URL(
-        "../Detail-Penanganan/Detail-Penanganan.html",
+        DETAIL_URL,
         window.location.href
       );
 
-      detailURL.searchParams.set(
-        "kode",
-        reportCode
-      );
+      detailURL.searchParams.set("kode", report.id);
 
       manageLink.href = detailURL.href;
 
-      // Mengambil identitas terbaru sebelum membuka detail.
-      manageLink.addEventListener(
-        "click",
-        async (event) => {
-          event.preventDefault();
+      // Mengambil profil petugas terbaru sebelum membuka detail.
+      manageLink.addEventListener("click", async (event) => {
+        event.preventDefault();
 
-          try {
-            const activeOfficer =
-              await getActiveOfficerProfile(true);
+        if (!isEligibleForHandling(report)) {
+          window.alert(
+            "Laporan ini tidak lagi berada dalam antrean penanganan."
+          );
 
-            localStorage.setItem(
-              STORAGE.selected,
-              JSON.stringify({
-                id: reportCode,
-                reportCode,
+          await refreshHandlingReports();
+          return;
+        }
 
-                reporterName:
-                  verification.reporterName ||
-                  verification.namaPelapor ||
-                  "",
+        try {
+          const officer = await getActiveOfficerProfile(true);
 
-                reporterNim:
-                  verification.reporterNim ||
-                  verification.nim ||
-                  "",
-
-                facility,
-                location,
-                date: reportDate,
-                priority,
-                description: damage,
-
-                handlerName: activeOfficer.name,
-                handlerId: activeOfficer.id,
-                handlerEmail: activeOfficer.email,
-                handlerRole: activeOfficer.role
-              })
-            );
-
-            // Navigasi setelah identitas berhasil diambil.
-            window.location.assign(detailURL.href);
-
-          } catch (error) {
-            console.error(
-              "[SIPFAS] Gagal mengambil identitas petugas:",
-              error
-            );
-
-            alert(
-              "Identitas petugas gagal dimuat. " +
-              "Periksa sesi login dan koneksi server."
+          if (!officer) {
+            throw new Error(
+              "Identitas petugas tidak berhasil dimuat."
             );
           }
+
+          const saved = saveSelectedReport(report, officer);
+
+          if (!saved) {
+            throw new Error(
+              "Metadata laporan gagal disimpan."
+            );
+          }
+
+          window.location.assign(detailURL.href);
+
+        } catch (error) {
+          console.error(
+            "[SIPFAS] Gagal membuka detail penanganan:",
+            error
+          );
+
+          window.alert(
+            error.message ||
+            "Gagal membuka detail penanganan."
+          );
         }
-      );
+      });
 
       actionCell.appendChild(manageLink);
 
@@ -991,143 +681,37 @@
         actionCell
       );
 
-      row.dataset.search = normalizeText(
-        [
-          reportCode,
-          facility,
-          damage,
-          location,
-          priority,
-          reportDate,
-          handlingStatus,
-          updatedAt
-            ? formatWIT(updatedAt)
-            : "",
-        ].join(" ")
-      );
+      row.dataset.search = normalizeText([
+        report.id,
+        report.reporterName,
+        report.reporterNim,
+        report.facility,
+        report.description,
+        report.location,
+        priority,
+        report.handlingStatus,
+        report.reportDate
+      ].join(" "));
 
       return row;
     }
 
-    // 08. MEMUAT, PENCARIAN & FILTER DAFTAR PENANGANAN
-
+    // Menampilkan pesan ketika tabel tidak memiliki laporan.
     function showEmptyState(message) {
       if (!emptyState) return;
 
       emptyState.textContent = message;
-
       emptyState.hidden = false;
-
       emptyState.style.display = "block";
     }
 
-    function loadHandlingReports() {
-      const verificationData =
-        readStorage(STORAGE.verification);
-
-      const handlingData =
-        readStorage(STORAGE.handling);
-
-      if (
-        verificationData === null ||
-        handlingData === null
-      ) {
-        tableBody.replaceChildren();
-
-        showEmptyState(
-          "Data verifikasi atau penanganan tidak dapat dibaca. Periksa Local Storage."
-        );
-
-        return;
-      }
-
-      const uniqueReports = new Map();
-
-      Object.entries(verificationData).forEach(
-        ([key, verification]) => {
-          if (!isEligibleForHandling(verification)) {
-            return;
-          }
-
-          const reportCode = getReportCode(
-            verification,
-            key
-          );
-
-          if (!reportCode) return;
-
-          uniqueReports.set(
-            reportCode,
-            {
-              ...verification,
-              reportCode
-            }
-          );
-        }
-      );
-
-      const fragment =
-        document.createDocumentFragment();
-
-      uniqueReports.forEach((verification) => {
-        fragment.appendChild(
-          createReportRow(
-            verification,
-            handlingData,
-            verification.reportCode
-          )
-        );
-      });
-
-      tableBody.replaceChildren(fragment);
-
-      filterHandling();
-
-      console.log(
-        "[SIPFAS] Daftar penanganan diperbarui:",
-        uniqueReports.size
-      );
-    }
-
-    function matchesSearch(row, keyword) {
-      if (!keyword) return true;
-
-      const content = normalizeText(
-        row.dataset.search || row.innerText
-      );
-
-      const words = keyword
-        .split(/\s+/)
-        .filter(Boolean);
-
-      return words.every(
-        (word) => content.includes(word)
-      );
-    }
-
-    function matchesPriority(row, selectedPriority) {
-      if (
-        !selectedPriority ||
-        selectedPriority === "semua"
-      ) {
-        return true;
-      }
-
-      return (
-        normalizeText(row.dataset.priority) ===
-        selectedPriority
-      );
-    }
-
+    // Memfilter laporan berdasarkan pencarian dan prioritas.
     function filterHandling() {
       const rows = Array.from(
         tableBody.querySelectorAll("tr")
       );
 
-      const keyword = normalizeText(
-        searchInput.value
-      );
-
+      const keyword = normalizeText(searchInput.value);
       const selectedPriority = normalizeText(
         priorityFilter.value
       );
@@ -1135,16 +719,28 @@
       let visibleCount = 0;
 
       rows.forEach((row) => {
-        const visible =
-          matchesSearch(row, keyword) &&
-          matchesPriority(row, selectedPriority);
+        const content = normalizeText(
+          row.dataset.search || row.innerText
+        );
+
+        const matchesSearch =
+          !keyword ||
+          keyword.split(/\s+/).every((word) =>
+            content.includes(word)
+          );
+
+        const matchesPriority =
+          !selectedPriority ||
+          selectedPriority === "semua" ||
+          normalizeText(row.dataset.priority) === selectedPriority;
+
+        const visible = matchesSearch && matchesPriority;
 
         row.hidden = !visible;
 
         if (visible) {
           row.style.removeProperty("display");
           visibleCount++;
-
         } else {
           row.style.setProperty(
             "display",
@@ -1160,20 +756,425 @@
         showEmptyState(
           "Belum ada laporan yang memenuhi syarat penanganan."
         );
-
       } else if (visibleCount === 0) {
         showEmptyState(
           "Tidak ada laporan yang cocok dengan pencarian atau filter."
         );
-
       } else {
         emptyState.hidden = true;
         emptyState.style.display = "none";
       }
     }
 
-    // 09. EVENT LISTENER, SINKRONISASI & NAVIGASI
+    // Memuat laporan yang sudah valid dan belum selesai ditangani.
+    async function refreshHandlingReports() {
+      if (refreshInProgress) return;
 
+      refreshInProgress = true;
+
+      try {
+        const latestReports =
+          await loadReportsFromDatabase();
+
+        reports = latestReports.filter(
+          isEligibleForHandling
+        );
+
+        // Mengurutkan laporan dari yang paling baru.
+        reports.sort((a, b) => {
+          const dateA =
+            parseTimestamp(a.reportDate)?.getTime() || 0;
+
+          const dateB =
+            parseTimestamp(b.reportDate)?.getTime() || 0;
+
+          return dateB - dateA;
+        });
+
+        const fragment =
+          document.createDocumentFragment();
+
+        reports.forEach((report) => {
+          fragment.appendChild(
+            createReportRow(report)
+          );
+        });
+
+        // Mengganti seluruh isi tabel menggunakan data database.
+        tableBody.replaceChildren(fragment);
+
+        filterHandling();
+
+        console.log(
+          "[SIPFAS] Antrean penanganan diperbarui:",
+          reports.length
+        );
+
+      } catch (error) {
+        console.error(
+          "[SIPFAS] Gagal memuat antrean penanganan:",
+          error
+        );
+
+        // Tidak mempertahankan data contoh HTML ketika API gagal.
+        tableBody.replaceChildren();
+
+        showEmptyState(
+          "Gagal mengambil daftar penanganan dari database. " +
+          error.message
+        );
+
+      } finally {
+        refreshInProgress = false;
+      }
+    }
+
+    // Menyesuaikan label peran dari database.
+    function formatRoleLabel(role) {
+      const value = normalizeText(role);
+
+      if (
+        value === "administrator" ||
+        value === "admin"
+      ) {
+        return "Administrator";
+      }
+
+      if (value.includes("petugas")) {
+        return "Petugas Sarpras";
+      }
+
+      return String(role || "Petugas Sarpras");
+    }
+
+    // Membuat inisial nama petugas.
+    function getInitials(name) {
+      const parts = String(name || "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+      if (parts.length === 0) return "PT";
+
+      if (parts.length === 1) {
+        return parts[0].slice(0, 2).toUpperCase();
+      }
+
+      return (
+        parts[0][0] +
+        parts[parts.length - 1][0]
+      ).toUpperCase();
+    }
+
+    // Mengubah alamat foto relatif menjadi URL proyek.
+    function resolveProfilePhoto(photo) {
+      if (!photo) return "";
+
+      const value = String(photo).trim();
+
+      if (
+        value.startsWith("data:") ||
+        value.startsWith("blob:") ||
+        /^https?:\/\//i.test(value)
+      ) {
+        return value;
+      }
+
+      const projectRoot = new URL(
+        "../../",
+        window.location.href
+      );
+
+      return new URL(
+        value.replace(/^\/+/, ""),
+        projectRoot
+      ).href;
+    }
+
+    // Mengambil identitas petugas dari session PHP.
+    async function getActiveOfficerProfile(forceRefresh = false) {
+      if (profileRequest && !forceRefresh) {
+        return profileRequest;
+      }
+
+      profileRequest = (async () => {
+        const response = await fetch(API.profile, {
+          method: "GET",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: {
+            Accept: "application/json"
+          }
+        });
+
+        const raw = await response.text();
+
+        let result;
+
+        try {
+          result = JSON.parse(raw);
+        } catch {
+          throw new Error(
+            "Respons API profil bukan JSON."
+          );
+        }
+
+        if (response.status === 401) {
+          window.location.replace(LOGIN_URL);
+
+          throw new Error(
+            "Sesi login telah berakhir."
+          );
+        }
+
+        if (!response.ok || result.success !== true) {
+          throw new Error(
+            result.message ||
+            "Gagal mengambil profil petugas."
+          );
+        }
+
+        const user = result.user || result.data;
+
+        if (!user || !user.id_pengguna) {
+          throw new Error(
+            "Identitas pengguna dari database tidak lengkap."
+          );
+        }
+
+        const name = String(
+          user.nama_lengkap ||
+          user.nama_pengguna ||
+          "Petugas SIPFAS"
+        ).trim();
+
+        return {
+          id: String(user.id_pengguna),
+          name,
+          username: String(user.nama_pengguna || ""),
+          email: String(user.email || ""),
+          role: formatRoleLabel(user.nama_peran),
+          avatar: resolveProfilePhoto(user.foto_profil),
+          initials: getInitials(name)
+        };
+      })();
+
+      try {
+        activeOfficerProfile = await profileRequest;
+
+        renderOfficerProfile(activeOfficerProfile);
+
+        return activeOfficerProfile;
+
+      } finally {
+        profileRequest = null;
+      }
+    }
+
+    // Memasang foto profil atau inisial petugas.
+    function renderAvatarElement(element, profile) {
+      if (!element) return;
+
+      if (element.tagName === "IMG") {
+        element.alt = "Foto " + profile.name;
+
+        if (profile.avatar) {
+          element.src = profile.avatar;
+        } else {
+          element.removeAttribute("src");
+        }
+
+        return;
+      }
+
+      const svgIcon = element.querySelector("svg");
+
+      let image = element.querySelector(
+        ".profile-header-photo, img"
+      );
+
+      let initials = element.querySelector(
+        ".profile-header-initials"
+      );
+
+      if (profile.avatar) {
+        if (svgIcon) {
+          svgIcon.style.display = "none";
+        }
+
+        initials?.remove();
+
+        if (!image) {
+          image = document.createElement("img");
+          image.className = "profile-header-photo";
+          element.appendChild(image);
+        }
+
+        image.src = profile.avatar;
+        image.alt = "Foto " + profile.name;
+
+        image.onerror = () => {
+          image.remove();
+
+          const fallback = document.createElement("span");
+
+          fallback.className = "profile-header-initials";
+          fallback.textContent = profile.initials;
+
+          element.appendChild(fallback);
+        };
+
+        Object.assign(image.style, {
+          width: "100%",
+          height: "100%",
+          display: "block",
+          objectFit: "cover",
+          borderRadius: "50%"
+        });
+
+        element.style.overflow = "hidden";
+
+      } else {
+        image?.remove();
+
+        if (svgIcon) {
+          svgIcon.style.display = "none";
+        }
+
+        if (!initials) {
+          initials = document.createElement("span");
+          initials.className = "profile-header-initials";
+          element.appendChild(initials);
+        }
+
+        initials.textContent = profile.initials;
+
+        Object.assign(initials.style, {
+          display: "flex",
+          width: "100%",
+          height: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#ffffff",
+          fontWeight: "700",
+          fontSize: "14px"
+        });
+      }
+
+      element.setAttribute(
+        "aria-label",
+        profile.avatar
+          ? "Foto profil " + profile.name
+          : "Profil " + profile.name
+      );
+    }
+
+    // Menyinkronkan nama, peran, email, dan foto petugas.
+    function renderOfficerProfile(profile) {
+      const nameSelectors = [
+        "#officerName",
+        "#petugasName",
+        "#profileName",
+        "#userName",
+        ".officer-name",
+        ".petugas-name",
+        ".profile-name",
+        ".user-name",
+        ".account-name",
+        "[data-profile-name]",
+        "[data-user-name]"
+      ];
+
+      document.querySelectorAll(
+        nameSelectors.join(", ")
+      ).forEach((element) => {
+        element.textContent = profile.name;
+      });
+
+      const roleSelectors = [
+        "#officerRole",
+        "#petugasRole",
+        "#profileRole",
+        "#userRole",
+        ".officer-role",
+        ".petugas-role",
+        ".profile-role",
+        ".user-role",
+        ".account-role",
+        "[data-profile-role]",
+        "[data-user-role]"
+      ];
+
+      document.querySelectorAll(
+        roleSelectors.join(", ")
+      ).forEach((element) => {
+        element.textContent = profile.role;
+      });
+
+      const emailSelectors = [
+        "#officerEmail",
+        "#profileEmail",
+        "#userEmail",
+        ".profile-email",
+        ".user-email",
+        "[data-profile-email]"
+      ];
+
+      document.querySelectorAll(
+        emailSelectors.join(", ")
+      ).forEach((element) => {
+        element.textContent = profile.email;
+      });
+
+      const avatarSelectors = [
+        ".profile-area .profile-avatar",
+        "#profileAvatar",
+        "#userAvatar",
+        "#officerAvatar",
+        ".profile-avatar",
+        ".user-avatar",
+        ".avatar",
+        "[data-profile-avatar]"
+      ];
+
+      document.querySelectorAll(
+        avatarSelectors.join(", ")
+      ).forEach((element) => {
+        renderAvatarElement(element, profile);
+      });
+    }
+
+    // Memuat ulang identitas petugas dari database.
+    async function synchronizeOfficerProfile() {
+      try {
+        return await getActiveOfficerProfile(true);
+
+      } catch (error) {
+        console.error(
+          "[SIPFAS] Gagal menyinkronkan profil petugas:",
+          error
+        );
+
+        return null;
+      }
+    }
+
+    // Mengatur pembukaan dan penutupan sidebar.
+    function setSidebar(isOpen) {
+      if (!sidebar) return;
+
+      sidebar.classList.toggle("open", isOpen);
+
+      pageOverlay?.classList.toggle("show", isOpen);
+      pageOverlay?.classList.toggle("active", isOpen);
+
+      menuToggle?.setAttribute(
+        "aria-expanded",
+        String(isOpen)
+      );
+    }
+
+    // Menangani pencarian laporan.
     searchInput.addEventListener(
       "input",
       filterHandling
@@ -1184,105 +1185,70 @@
       filterHandling
     );
 
+    // Menangani filter prioritas.
     priorityFilter.addEventListener(
       "change",
       filterHandling
     );
 
+    // Memperbarui daftar ketika penanganan berhasil disimpan.
     window.addEventListener(
       "sipfas:handling-saved",
-      loadHandlingReports
+      refreshHandlingReports
     );
 
+    // Memperbarui antrean setelah verifikasi berhasil disimpan.
     window.addEventListener(
       "sipfas:verification-saved",
-      loadHandlingReports
+      refreshHandlingReports
     );
 
-    // Memuat ulang profil setelah profil diperbarui.
+    // Memperbarui identitas setelah profil diubah.
     window.addEventListener(
       "sipfas:profile-updated",
-      () => synchronizeOfficerProfile()
-    );
-
-    window.addEventListener("storage", (event) => {
-      if (
-        event.key === STORAGE.verification ||
-        event.key === STORAGE.handling ||
-        event.key === null
-      ) {
-        loadHandlingReports();
-      }
-
-      if (
-        event.key === STORAGE.activeUser ||
-        event.key === STORAGE.users ||
-        (
-          event.key &&
-          event.key.startsWith(STORAGE.photoPrefix)
-        ) ||
-        event.key === null
-      ) {
-        synchronizeOfficerProfile();
-      }
-    });
-
-    // Memuat ulang profil ketika halaman dibuka kembali.
-    window.addEventListener("pageshow", () => {
-      synchronizeOfficerProfile();
-      loadHandlingReports();
-    });
-
-    window.addEventListener(
-      "focus",
       synchronizeOfficerProfile
     );
 
+    // Memuat ulang data ketika halaman dibuka kembali.
+    window.addEventListener("pageshow", () => {
+      refreshHandlingReports();
+      synchronizeOfficerProfile();
+    });
+
+    // Memuat ulang data ketika tab kembali aktif.
     document.addEventListener(
       "visibilitychange",
       () => {
         if (!document.hidden) {
+          refreshHandlingReports();
           synchronizeOfficerProfile();
-          loadHandlingReports();
         }
       }
     );
 
-    // Mengatur sidebar.
-    function setSidebar(isOpen) {
-      if (!sidebar) return;
-
-      sidebar.classList.toggle(
-        "open",
-        isOpen
-      );
-
-      pageOverlay?.classList.toggle(
-        "show",
-        isOpen
-      );
-
-      pageOverlay?.classList.toggle(
-        "active",
-        isOpen
-      );
-
-      menuToggle?.setAttribute(
-        "aria-expanded",
-        String(isOpen)
-      );
-    }
-
-    menuToggle?.addEventListener(
-      "click",
-      () => {
-        const isOpen =
-          sidebar.classList.contains("open") ||
-          sidebar.classList.contains("active");
-
-        setSidebar(!isOpen);
+    // Memperbarui data dari database setiap 15 detik.
+    refreshTimer = window.setInterval(() => {
+      if (!document.hidden) {
+        refreshHandlingReports();
       }
-    );
+    }, 15000);
+
+    // Membersihkan timer ketika halaman ditinggalkan.
+    window.addEventListener("pagehide", () => {
+      if (refreshTimer !== null) {
+        clearInterval(refreshTimer);
+        refreshTimer = null;
+      }
+    });
+
+    // Mengatur tombol sidebar.
+    menuToggle?.addEventListener("click", () => {
+      const isOpen =
+        sidebar?.classList.contains("open") ||
+        sidebar?.classList.contains("active");
+
+      setSidebar(!isOpen);
+    });
 
     pageOverlay?.addEventListener(
       "click",
@@ -1298,61 +1264,57 @@
       }
     );
 
-    document.addEventListener(
-      "keydown",
-      (event) => {
-        if (event.key === "Escape") {
-          setSidebar(false);
-        }
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        setSidebar(false);
       }
-    );
+    });
 
-    // Logout menggunakan endpoint PHP.
-    logoutLink?.addEventListener(
-      "click",
-      (event) => {
-        event.preventDefault();
+    // Menangani logout menggunakan session PHP.
+    logoutLink?.addEventListener("click", async (event) => {
+      event.preventDefault();
 
-        if (
-          !window.confirm(
-            "Apakah Anda yakin ingin keluar dari sistem SIPFAS?"
-          )
-        ) {
-          return;
-        }
+      if (!window.confirm(
+        "Apakah Anda yakin ingin keluar dari sistem SIPFAS?"
+      )) {
+        return;
+      }
 
-        // Menghapus data autentikasi lama di browser.
-        [
-          "sipfasPendingLogin",
-          "sipfasLoginEmail",
-          "sipfasLoginOtp",
-          "sipfasLoginOtpExpiresAt",
-          "sipfasLoginAttempts",
-          "sipfasLoginVerified",
-          "sipfasActiveUser",
-        ].forEach((key) => {
-          sessionStorage.removeItem(key);
-          localStorage.removeItem(key);
+      try {
+        const response = await fetch(API.logout, {
+          method: "POST",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: {
+            Accept: "application/json"
+          }
         });
 
-        window.location.replace(
-          logoutLink.href
+        const payload = await response.json();
+
+        if (!response.ok || payload.success !== true) {
+          throw new Error(
+            payload.message || "Logout gagal."
+          );
+        }
+
+      } catch (error) {
+        console.error(
+          "[SIPFAS] Logout error:",
+          error
         );
+
+      } finally {
+        window.location.replace(LOGIN_URL);
       }
-    );
+    });
 
-    // 10. INISIALISASI HALAMAN
-
+    // Menjalankan pemuatan awal halaman.
     synchronizeOfficerProfile();
-
-    loadHandlingReports();
+    refreshHandlingReports();
 
     console.log(
       "[SIPFAS] Halaman Penanganan berhasil diinisialisasi."
-    );
-
-    console.log(
-      "[SIPFAS] Zona waktu: WIT Maluku Utara (UTC+09:00)."
     );
   }
 })();

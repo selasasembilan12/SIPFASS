@@ -1,149 +1,486 @@
-//SIMPAN-PENANGANAN.PHP
 <?php
-
-// Memuat konfigurasi sistem dan koneksi database
+declare(strict_types=1);
+//revisi akhir
+// Memuat konfigurasi session dan koneksi database.
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
-require_once dirname(__DIR__, 2) . '/config/koneksi.php';
 
-// Mengatur header respons JSON dan zona waktu WIT
+// Mengatur respons JSON.
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
+header('Pragma: no-cache');
+
 date_default_timezone_set('Asia/Jayapura');
 
-// Memastikan metode request adalah POST
-if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Metode request harus POST.'], JSON_UNESCAPED_UNICODE);
-    exit;
-}
+// Mengirim respons JSON.
+function simpanPenangananResponse(
+    int $status,
+    bool $success,
+    string $message,
+    ?array $data = null
+): never {
+    http_response_code($status);
 
-// Membaca dan memvalidasi input JSON
-$raw = file_get_contents('php://input');
-$input = json_decode($raw ?: '{}', true);
-if (!is_array($input) || empty($input)) {
-    $input = $_POST;
-}
+    echo json_encode([
+        'success' => $success,
+        'message' => $message,
+        'data' => $data
+    ], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
 
-$kode         = trim((string)($input['kode_laporan'] ?? $input['reportCode'] ?? ''));
-$tindakLanjut = trim((string)($input['tindak_lanjut_perbaikan'] ?? $input['followUp'] ?? ''));
-$statusBaru   = trim((string)($input['status_penanganan'] ?? $input['status'] ?? ''));
-$catatan      = trim((string)($input['catatan_petugas'] ?? $input['officerNotes'] ?? ''));
-
-if ($kode === '' || $tindakLanjut === '' || $statusBaru === '') {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Kode laporan, tindak lanjut, dan status wajib diisi.'], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
 try {
-    // Mencari data laporan target di database
-    $cols = $pdo->query("SHOW COLUMNS FROM laporan_kerusakan")->fetchAll(PDO::FETCH_COLUMN);
-    $codeCol = in_array('kode_laporan', $cols, true)
-        ? 'kode_laporan'
-        : (in_array('nomor_laporan', $cols, true) ? 'nomor_laporan' : 'id_laporan');
 
-    $stmt = $pdo->prepare("SELECT * FROM laporan_kerusakan WHERE {$codeCol} = :kode OR id_laporan = :id_num LIMIT 1");
-    $stmt->execute([
-        ':kode'   => $kode,
-        ':id_num' => ctype_digit($kode) ? (int)$kode : 0,
-    ]);
-    $laporan = $stmt->fetch(PDO::FETCH_ASSOC);
+    // 01. Memastikan metode request POST.
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        header('Allow: POST');
 
-    if (!$laporan) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'message' => "Laporan {$kode} tidak ditemukan."], JSON_UNESCAPED_UNICODE);
-        exit;
+        simpanPenangananResponse(
+            405,
+            false,
+            'Metode permintaan tidak diizinkan.'
+        );
     }
 
-    $idLaporan = (int)$laporan['id_laporan'];
+    // 02. Memeriksa session petugas.
+    $userId = (int) (
+        $_SESSION['id_pengguna']
+        ?? $_SESSION['user']['id_pengguna']
+        ?? $_SESSION['sipfas_user']['id_pengguna']
+        ?? 0
+    );
 
-    // Mengambil ID petugas dari session atau fallback ke Petugas Sarpras pertama
-    $idPetugas = (int)($_SESSION['id_pengguna'] ?? $_SESSION['user']['id_pengguna'] ?? 0);
-    if ($idPetugas <= 0) {
-        $idPetugas = (int)($pdo->query("
-            SELECT u.id_pengguna
-            FROM pengguna u
-            JOIN peran p ON p.id_peran = u.id_peran
-            WHERE p.nama_peran IN ('Petugas Sarpras', 'Administrator')
-            ORDER BY u.id_pengguna ASC
-            LIMIT 1
-        ")->fetchColumn() ?: 1);
+    if (
+        $userId <= 0 ||
+        ($_SESSION['login_terverifikasi'] ?? false) !== true
+    ) {
+        simpanPenangananResponse(
+            401,
+            false,
+            'Sesi login tidak ditemukan. Silakan login kembali.'
+        );
     }
 
-    // Mempertahankan waktu_mulai_penanganan dari riwayat sebelumnya jika sudah ada
-    $prevStmt = $pdo->prepare("
-        SELECT waktu_mulai_penanganan, waktu_selesai_penanganan
-        FROM riwayat_penanganan
-        WHERE id_laporan = :id
-        ORDER BY id_riwayat_penanganan DESC
+    // 03. Memeriksa identitas dan hak akses petugas.
+    $userStmt = $pdo->prepare("
+        SELECT
+            u.id_pengguna,
+            u.status_akun,
+            p.nama_peran
+        FROM pengguna u
+        INNER JOIN peran p
+            ON p.id_peran = u.id_peran
+        WHERE u.id_pengguna = :id
         LIMIT 1
     ");
-    $prevStmt->execute([':id' => $idLaporan]);
-    $prev = $prevStmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-    $nowSql      = date('Y-m-d H:i:s');
-    $startedAt   = $prev['waktu_mulai_penanganan'] ?? null;
-    $completedAt = $prev['waktu_selesai_penanganan'] ?? null;
+    $userStmt->execute([
+        ':id' => $userId
+    ]);
 
-    if (!$startedAt && in_array($statusBaru, ['Diproses', 'Selesai'], true)) {
-        $startedAt = $nowSql;
+    $user = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user) {
+        simpanPenangananResponse(
+            401,
+            false,
+            'Identitas petugas tidak ditemukan.'
+        );
+    }
+
+    if (strcasecmp((string) $user['status_akun'], 'Aktif') !== 0) {
+        simpanPenangananResponse(
+            403,
+            false,
+            'Akun petugas tidak aktif.'
+        );
+    }
+
+    $role = (string) $user['nama_peran'];
+
+    if (
+        !in_array(
+            $role,
+            ['Petugas Sarpras', 'Administrator'],
+            true
+        )
+    ) {
+        simpanPenangananResponse(
+            403,
+            false,
+            'Anda tidak memiliki hak akses penanganan.'
+        );
+    }
+
+    // 04. Memvalidasi format request JSON.
+    $contentType = strtolower(
+        trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0])
+    );
+
+    if ($contentType !== 'application/json') {
+        simpanPenangananResponse(
+            415,
+            false,
+            'Gunakan format JSON.'
+        );
+    }
+
+    $raw = file_get_contents('php://input');
+
+    if ($raw === false || strlen($raw) > 100000) {
+        simpanPenangananResponse(
+            413,
+            false,
+            'Ukuran data permintaan terlalu besar.'
+        );
+    }
+
+    $input = json_decode($raw, true);
+
+    if (!is_array($input)) {
+        simpanPenangananResponse(
+            400,
+            false,
+            'Format data permintaan tidak valid.'
+        );
+    }
+
+    // 05. Mengambil data tindakan penanganan.
+    $kode = trim((string) (
+        $input['kode_laporan']
+        ?? $input['kode']
+        ?? ''
+    ));
+
+    $idLaporan = filter_var(
+        $input['id_laporan'] ?? null,
+        FILTER_VALIDATE_INT
+    );
+
+    $tindakan = trim((string) (
+        $input['tindak_lanjut_perbaikan']
+        ?? $input['tindakan']
+        ?? ''
+    ));
+
+    $catatan = trim((string) (
+        $input['catatan_petugas']
+        ?? $input['catatan']
+        ?? ''
+    ));
+
+    $statusBaru = trim((string) (
+        $input['status_penanganan']
+        ?? $input['status']
+        ?? ''
+    ));
+
+    if ($kode === '' && (!$idLaporan || $idLaporan <= 0)) {
+        simpanPenangananResponse(
+            422,
+            false,
+            'Kode laporan atau ID laporan wajib diisi.'
+        );
+    }
+
+    if ($kode !== '' && mb_strlen($kode) > 30) {
+        simpanPenangananResponse(
+            422,
+            false,
+            'Kode laporan tidak valid.'
+        );
+    }
+
+    if ($tindakan === '') {
+        simpanPenangananResponse(
+            422,
+            false,
+            'Tindakan perbaikan wajib diisi.'
+        );
+    }
+
+    if (
+        mb_strlen($tindakan) > 10000 ||
+        mb_strlen($catatan) > 10000
+    ) {
+        simpanPenangananResponse(
+            422,
+            false,
+            'Teks tindakan atau catatan terlalu panjang.'
+        );
+    }
+
+    // Status yang diperbolehkan untuk disimpan.
+    $allowedStatuses = [
+        'Sedang Diproses',
+        'Selesai'
+    ];
+
+    if (!in_array($statusBaru, $allowedStatuses, true)) {
+        simpanPenangananResponse(
+            422,
+            false,
+            'Status penanganan harus Sedang Diproses atau Selesai.'
+        );
+    }
+
+    // 06. Memulai transaksi database.
+    $pdo->beginTransaction();
+
+    // Mengunci laporan agar tidak diperbarui bersamaan.
+    if ($kode !== '') {
+
+        $reportStmt = $pdo->prepare("
+            SELECT
+                id_laporan,
+                kode_laporan,
+                status_verifikasi,
+                status_penanganan,
+                id_petugas_penanggung_jawab
+            FROM laporan_kerusakan
+            WHERE kode_laporan = :kode
+            LIMIT 1
+            FOR UPDATE
+        ");
+
+        $reportStmt->execute([
+            ':kode' => $kode
+        ]);
+
+    } else {
+
+        $reportStmt = $pdo->prepare("
+            SELECT
+                id_laporan,
+                kode_laporan,
+                status_verifikasi,
+                status_penanganan,
+                id_petugas_penanggung_jawab
+            FROM laporan_kerusakan
+            WHERE id_laporan = :id
+            LIMIT 1
+            FOR UPDATE
+        ");
+
+        $reportStmt->execute([
+            ':id' => $idLaporan
+        ]);
+    }
+
+    $report = $reportStmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$report) {
+        $pdo->rollBack();
+
+        simpanPenangananResponse(
+            404,
+            false,
+            'Laporan tidak ditemukan.'
+        );
+    }
+
+    // 07. Memastikan laporan sudah lolos verifikasi.
+    $verificationStatus = strtolower(
+        trim((string) $report['status_verifikasi'])
+    );
+
+    if (
+        !in_array(
+            $verificationStatus,
+            ['terverifikasi', 'valid', 'diterima'],
+            true
+        )
+    ) {
+        $pdo->rollBack();
+
+        simpanPenangananResponse(
+            409,
+            false,
+            'Laporan belum lolos verifikasi.'
+        );
+    }
+
+    // 08. Memeriksa status penanganan sebelumnya.
+    $currentStatus = strtolower(
+        trim((string) $report['status_penanganan'])
+    );
+
+    $isWaiting = in_array(
+        $currentStatus,
+        [
+            'menunggu penanganan',
+            'menunggu',
+            'belum ditangani'
+        ],
+        true
+    );
+
+    $isProcessing = in_array(
+        $currentStatus,
+        [
+            'sedang diproses',
+            'diproses',
+            'dalam proses',
+            'sedang dikerjakan'
+        ],
+        true
+    );
+
+    $isCompleted = in_array(
+        $currentStatus,
+        ['selesai', 'completed', 'ditutup'],
+        true
+    );
+
+    if ($isCompleted) {
+        $pdo->rollBack();
+
+        simpanPenangananResponse(
+            409,
+            false,
+            'Laporan sudah selesai ditangani.'
+        );
+    }
+
+    if (!$isWaiting && !$isProcessing) {
+        $pdo->rollBack();
+
+        simpanPenangananResponse(
+            409,
+            false,
+            'Status laporan tidak memungkinkan untuk diproses.'
+        );
+    }
+
+    // 09. Memeriksa petugas penanggung jawab.
+    $assignedUser = (int) (
+        $report['id_petugas_penanggung_jawab'] ?? 0
+    );
+
+    if (
+        $assignedUser > 0 &&
+        $assignedUser !== $userId &&
+        $role !== 'Administrator'
+    ) {
+        $pdo->rollBack();
+
+        simpanPenangananResponse(
+            403,
+            false,
+            'Laporan ini sudah ditangani oleh petugas lain.'
+        );
+    }
+
+    // 10. Memeriksa urutan perubahan status.
+    if ($statusBaru === 'Sedang Diproses' && $isCompleted) {
+        $pdo->rollBack();
+
+        simpanPenangananResponse(
+            409,
+            false,
+            'Laporan yang sudah selesai tidak dapat diproses kembali.'
+        );
+    }
+
+    if ($statusBaru === 'Selesai' && !$isProcessing) {
+        $pdo->rollBack();
+
+        simpanPenangananResponse(
+            409,
+            false,
+            'Laporan harus berstatus Sedang Diproses sebelum diselesaikan.'
+        );
+    }
+
+    // 11. Menentukan waktu mulai dan selesai.
+    $waktuMulai = null;
+    $waktuSelesai = null;
+
+    if ($isWaiting) {
+
+        // Penanganan pertama dimulai saat petugas memproses laporan.
+        $waktuMulai = date('Y-m-d H:i:s');
+
+    } else {
+
+        // Mengambil waktu mulai penanganan pertama.
+        $startStmt = $pdo->prepare("
+            SELECT MIN(waktu_mulai_penanganan)
+            FROM riwayat_penanganan
+            WHERE id_laporan = :id
+              AND waktu_mulai_penanganan IS NOT NULL
+        ");
+
+        $startStmt->execute([
+            ':id' => $report['id_laporan']
+        ]);
+
+        $waktuMulai = $startStmt->fetchColumn();
+
+        if (!$waktuMulai) {
+            $pdo->rollBack();
+
+            simpanPenangananResponse(
+                409,
+                false,
+                'Riwayat waktu mulai penanganan tidak ditemukan.'
+            );
+        }
     }
 
     if ($statusBaru === 'Selesai') {
-        if (!$completedAt) {
-            $completedAt = $nowSql;
-        }
-    } else {
-        $completedAt = null;
+        $waktuSelesai = date('Y-m-d H:i:s');
     }
 
-    // Memulai transaksi penyimpanan
-    $pdo->beginTransaction();
-
-    // Menyimpan tindak lanjut perbaikan ke riwayat_penanganan
-    $ins = $pdo->prepare("
+    // 12. Menyimpan riwayat tindakan perbaikan.
+    $historyStmt = $pdo->prepare("
         INSERT INTO riwayat_penanganan (
             id_laporan,
             id_petugas,
             tindak_lanjut_perbaikan,
             catatan_petugas,
             waktu_mulai_penanganan,
-            waktu_selesai_penanganan,
-            waktu_pembaruan
+            waktu_selesai_penanganan
         ) VALUES (
             :id_laporan,
             :id_petugas,
-            :tindak_lanjut,
+            :tindakan,
             :catatan,
-            :mulai,
-            :selesai,
-            :pembaruan
+            :waktu_mulai,
+            :waktu_selesai
         )
     ");
 
-    $ins->execute([
-        ':id_laporan'    => $idLaporan,
-        ':id_petugas'    => $idPetugas,
-        ':tindak_lanjut' => $tindakLanjut,
-        ':catatan'       => $catatan !== '' ? $catatan : null,
-        ':mulai'         => $startedAt,
-        ':selesai'       => $completedAt,
-        ':pembaruan'     => $nowSql,
+    $historyStmt->execute([
+        ':id_laporan' => $report['id_laporan'],
+        ':id_petugas' => $userId,
+        ':tindakan' => $tindakan,
+        ':catatan' => $catatan !== ''
+            ? $catatan
+            : null,
+        ':waktu_mulai' => $waktuMulai,
+        ':waktu_selesai' => $waktuSelesai
     ]);
 
-    // Memperbarui status terbaru pada laporan_kerusakan
-    $statusLama = (string)($laporan['status_laporan'] ?? $laporan['status'] ?? 'Terverifikasi');
+    $idRiwayat = (int) $pdo->lastInsertId();
 
-    if (in_array('status_laporan', $cols, true)) {
-        $pdo->prepare("UPDATE laporan_kerusakan SET status_laporan = :st WHERE id_laporan = :id")
-            ->execute([':st' => $statusBaru, ':id' => $idLaporan]);
-    } elseif (in_array('status', $cols, true)) {
-        $pdo->prepare("UPDATE laporan_kerusakan SET status = :st WHERE id_laporan = :id")
-            ->execute([':st' => $statusBaru, ':id' => $idLaporan]);
-    }
+    // 13. Memperbarui status laporan dan petugas penanggung jawab.
+    $updateStmt = $pdo->prepare("
+        UPDATE laporan_kerusakan
+        SET
+            status_penanganan = :status,
+            id_petugas_penanggung_jawab = :petugas
+        WHERE id_laporan = :id
+    ");
 
-    // Mencatat log perubahan status ke riwayat_status_laporan
-    $pdo->prepare("
+    $updateStmt->execute([
+        ':status' => $statusBaru,
+        ':petugas' => $userId,
+        ':id' => $report['id_laporan']
+    ]);
+
+    // 14. Mencatat perubahan status laporan.
+    $statusHistoryStmt = $pdo->prepare("
         INSERT INTO riwayat_status_laporan (
             id_laporan,
             id_pengguna,
@@ -159,35 +496,55 @@ try {
             :status_baru,
             :catatan
         )
-    ")->execute([
-        ':id_laporan'        => $idLaporan,
-        ':id_pengguna'       => $idPetugas,
-        ':status_sebelumnya' => $statusLama,
-        ':status_baru'       => $statusBaru,
-        ':catatan'           => $catatan !== '' ? $catatan : null,
+    ");
+
+    $statusHistoryStmt->execute([
+        ':id_laporan' => $report['id_laporan'],
+        ':id_pengguna' => $userId,
+        ':status_sebelumnya' => $report['status_penanganan'],
+        ':status_baru' => $statusBaru,
+        ':catatan' => $catatan !== ''
+            ? $catatan
+            : $tindakan
     ]);
 
+    // 15. Memastikan seluruh perubahan berhasil.
     $pdo->commit();
 
-    echo json_encode([
-        'success' => true,
-        'message' => 'Data penanganan berhasil disimpan ke database.',
-        'data'    => [
-            'kode_laporan'             => $kode,
-            'status_penanganan'        => $statusBaru,
-            'waktu_mulai_penanganan'   => $startedAt ? date(DATE_ATOM, strtotime($startedAt)) : null,
-            'waktu_selesai_penanganan' => $completedAt ? date(DATE_ATOM, strtotime($completedAt)) : null,
-            'waktu_pembaruan'          => date(DATE_ATOM, strtotime($nowSql)),
-        ],
-    ], JSON_UNESCAPED_UNICODE);
+    // 16. Mengirim hasil penyimpanan kepada JavaScript.
+    simpanPenangananResponse(
+        200,
+        true,
+        $statusBaru === 'Selesai'
+            ? 'Penanganan laporan berhasil diselesaikan.'
+            : 'Tindakan penanganan berhasil disimpan.',
+        [
+            'id_laporan' => (int) $report['id_laporan'],
+            'kode_laporan' => $report['kode_laporan'],
+            'id_riwayat_penanganan' => $idRiwayat,
+            'id_petugas' => $userId,
+            'status_sebelumnya' => $report['status_penanganan'],
+            'status_penanganan' => $statusBaru,
+            'waktu_mulai_penanganan' => $waktuMulai,
+            'waktu_selesai_penanganan' => $waktuSelesai
+        ]
+    );
+
 } catch (Throwable $e) {
+
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    error_log('[SIPFAS SIMPAN PENANGANAN ERROR] ' . $e->getMessage());
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Gagal menyimpan penanganan: ' . $e->getMessage(),
-    ], JSON_UNESCAPED_UNICODE);
+
+    error_log(
+        '[SIPFAS SIMPAN PENANGANAN ERROR] ' .
+        get_class($e) . ': ' .
+        $e->getMessage()
+    );
+
+    simpanPenangananResponse(
+        500,
+        false,
+        'Gagal menyimpan penanganan laporan. Periksa PHP error log.'
+    );
 }

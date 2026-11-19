@@ -1,26 +1,66 @@
 <?php
 declare(strict_types=1);
-
+//revisi akhir
+// Memuat konfigurasi session dan koneksi database.
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
 
+// Mengatur respons JSON.
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');
 
-function responseJson(int $status, bool $success, string $message, ?array $user = null): never
-{
+function profilResponse(
+    int $status,
+    bool $success,
+    string $message,
+    ?array $user = null
+): never {
     http_response_code($status);
+
     echo json_encode([
         'success' => $success,
         'message' => $message,
         'user' => $user,
         'data' => $user
     ], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+
     exit;
 }
 
-function findProfile(PDO $pdo, int $id): ?array
-{
+try {
+
+    // 01. Memastikan metode request GET.
+    if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+        header('Allow: GET');
+
+        profilResponse(
+            405,
+            false,
+            'Metode permintaan tidak diizinkan.'
+        );
+    }
+
+    // 02. Mengambil ID pengguna dari session aktif.
+    $userId = (int) (
+        $_SESSION['id_pengguna']
+        ?? $_SESSION['user']['id_pengguna']
+        ?? $_SESSION['sipfas_user']['id_pengguna']
+        ?? 0
+    );
+
+    // Session tidak boleh digantikan dengan akun pertama database.
+    if (
+        $userId <= 0 ||
+        ($_SESSION['login_terverifikasi'] ?? false) !== true
+    ) {
+        profilResponse(
+            401,
+            false,
+            'Sesi login tidak ditemukan. Silakan login kembali.'
+        );
+    }
+
+    // 03. Mengambil identitas pengguna berdasarkan session.
     $stmt = $pdo->prepare("
         SELECT
             u.id_pengguna,
@@ -29,296 +69,129 @@ function findProfile(PDO $pdo, int $id): ?array
             u.nomor_identitas,
             u.nama_pengguna,
             u.email,
+            u.unit_kerja,
             u.foto_profil,
             u.status_akun,
+            u.tanggal_dibuat,
+            u.tanggal_diperbarui,
             p.nama_peran
+
         FROM pengguna u
-        INNER JOIN peran p ON p.id_peran = u.id_peran
+
+        INNER JOIN peran p
+            ON p.id_peran = u.id_peran
+
         WHERE u.id_pengguna = :id
         LIMIT 1
     ");
-    $stmt->execute([':id' => $id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
-}
 
-function syncSessionProfile(array $user): void
-{
-    $data = [
-        'id_pengguna' => (int)$user['id_pengguna'],
-        'id_peran' => (int)$user['id_peran'],
-        'nama_lengkap' => $user['nama_lengkap'],
-        'nama_pengguna' => $user['nama_pengguna'],
-        'email' => $user['email'],
-        'nomor_identitas' => $user['nomor_identitas'],
-        'foto_profil' => $user['foto_profil'],
-        'nama_peran' => $user['nama_peran']
-    ];
-
-    $_SESSION['user'] = $data;
-    $_SESSION['sipfas_user'] = $data;
-    $_SESSION['id_pengguna'] = (int)$user['id_pengguna'];
-    $_SESSION['id_peran'] = (int)$user['id_peran'];
-    $_SESSION['nama_lengkap'] = $user['nama_lengkap'];
-    $_SESSION['nama_peran'] = $user['nama_peran'];
-}
-
-try {
-    if (!isset($pdo) || !($pdo instanceof PDO)) {
-        throw new RuntimeException('Koneksi database tidak tersedia.');
-    }
-
-    $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
-
-    $userId = (int)(
-        $_SESSION['id_pengguna']
-        ?? $_SESSION['user']['id_pengguna']
-        ?? $_SESSION['sipfas_user']['id_pengguna']
-        ?? 0
-    );
-
-    if ($userId <= 0) {
-        responseJson(401, false, 'Sesi login tidak ditemukan. Silakan login kembali.');
-    }
-
-    $user = findProfile($pdo, $userId);
-
-    if (!$user) {
-        responseJson(404, false, 'Pengguna tidak ditemukan.');
-    }
-
-    if (strcasecmp(trim((string)$user['status_akun']), 'Aktif') !== 0) {
-        responseJson(403, false, 'Akun tidak aktif. Hubungi Administrator.');
-    }
-
-    if ($method === 'GET') {
-        syncSessionProfile($user);
-        session_write_close();
-        responseJson(200, true, 'Profil berhasil dimuat.', $user);
-    }
-
-    if ($method !== 'POST') {
-        header('Allow: GET, POST');
-        responseJson(405, false, 'Metode permintaan tidak diizinkan.');
-    }
-
-    $raw = file_get_contents('php://input');
-
-    if ($raw === false || strlen($raw) > 2500000) {
-        responseJson(413, false, 'Ukuran permintaan terlalu besar.');
-    }
-
-    $input = json_decode($raw, true);
-
-    if (!is_array($input)) {
-        responseJson(400, false, 'Format data tidak valid.');
-    }
-
-    $name = trim((string)($input['nama_lengkap'] ?? ''));
-    $username = trim((string)($input['nama_pengguna'] ?? ''));
-    $email = strtolower(trim((string)($input['email'] ?? '')));
-
-    $currentPassword = (string)($input['current_password'] ?? '');
-    $newPassword = (string)($input['new_password'] ?? '');
-
-    $photoData = $input['foto_data_url'] ?? null;
-
-    if (mb_strlen($name) < 3 || mb_strlen($name) > 100) {
-        responseJson(422, false, 'Nama lengkap harus terdiri dari 3 sampai 100 karakter.');
-    }
-
-    if (!preg_match('/^[A-Za-z0-9._-]{3,30}$/D', $username)) {
-        responseJson(422, false, 'Username harus terdiri dari 3 sampai 30 karakter.');
-    }
-
-    if (strlen($email) > 150 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        responseJson(422, false, 'Format email tidak valid.');
-    }
-
-    // Password opsional.
-    // Jika kedua kolom kosong, proses pembaruan profil tetap berjalan.
-
-    if ($newPassword !== '') {
-        if ($currentPassword === '') {
-            responseJson(422, false, 'Masukkan kata sandi saat ini.');
-        }
-
-        if (
-            strlen($newPassword) < 8 ||
-            !preg_match('/[A-Za-z]/', $newPassword) ||
-            !preg_match('/[0-9]/', $newPassword)
-        ) {
-            responseJson(422, false, 'Kata sandi baru minimal 8 karakter dan mengandung huruf serta angka.');
-        }
-
-        if ($newPassword === $currentPassword) {
-            responseJson(422, false, 'Kata sandi baru harus berbeda dari kata sandi saat ini.');
-        }
-    }
-
-    if ($newPassword !== '' && !password_verify($currentPassword, (string)$user['kata_sandi'])) {
-        // kata_sandi diambil pada query khusus di bawah.
-    }
-
-    $checkPassword = $pdo->prepare("
-        SELECT kata_sandi
-        FROM pengguna
-        WHERE id_pengguna = :id
-        LIMIT 1
-    ");
-    $checkPassword->execute([':id' => $userId]);
-    $passwordHash = (string)$checkPassword->fetchColumn();
-
-    if (
-        $newPassword !== '' &&
-        !password_verify($currentPassword, $passwordHash)
-    ) {
-        responseJson(422, false, 'Kata sandi saat ini tidak sesuai.');
-    }
-
-    // Memeriksa username dan email duplikat.
-
-    $duplicate = $pdo->prepare("
-        SELECT id_pengguna
-        FROM pengguna
-        WHERE id_pengguna <> :id
-          AND (
-              LOWER(nama_pengguna) = LOWER(:username)
-              OR LOWER(email) = LOWER(:email)
-          )
-        LIMIT 1
-    ");
-
-    $duplicate->execute([
-        ':id' => $userId,
-        ':username' => $username,
-        ':email' => $email
+    $stmt->execute([
+        ':id' => $userId
     ]);
 
-    if ($duplicate->fetchColumn()) {
-        responseJson(409, false, 'Username atau email sudah digunakan akun lain.');
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user) {
+        profilResponse(
+            404,
+            false,
+            'Data profil pengguna tidak ditemukan.'
+        );
     }
 
-    // Memproses foto baru jika pengguna memilih foto.
-
-    $photoPath = null;
-    $photoAbsolute = null;
-
-    if ($photoData !== null && $photoData !== '') {
-        if (!is_string($photoData) || !preg_match(
-            '#^data:image/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$#',
-            $photoData,
-            $matches
-        )) {
-            responseJson(422, false, 'Format foto harus JPG, PNG, atau WEBP.');
-        }
-
-        $binary = base64_decode($matches[2], true);
-
-        if ($binary === false || strlen($binary) === 0 || strlen($binary) > 1572864) {
-            responseJson(422, false, 'Ukuran foto maksimal 1,5 MB.');
-        }
-
-        $imageInfo = @getimagesizefromstring($binary);
-
-        $extensions = [
-            'image/jpeg' => 'jpg',
-            'image/png' => 'png',
-            'image/webp' => 'webp'
-        ];
-
-        $mime = $imageInfo['mime'] ?? '';
-
-        if (!isset($extensions[$mime]) || $mime !== 'image/' . $matches[1]) {
-            responseJson(422, false, 'Isi file bukan gambar yang valid.');
-        }
-
-        $root = dirname(__DIR__, 2);
-        $uploadDirectory = $root . DIRECTORY_SEPARATOR . 'uploads'
-            . DIRECTORY_SEPARATOR . 'profil';
-
-        if (
-            !is_dir($uploadDirectory) &&
-            !mkdir($uploadDirectory, 0755, true) &&
-            !is_dir($uploadDirectory)
-        ) {
-            throw new RuntimeException('Folder penyimpanan foto gagal dibuat.');
-        }
-
-        $fileName = 'user_' . $userId . '_' .
-            bin2hex(random_bytes(12)) . '.' . $extensions[$mime];
-
-        $photoAbsolute = $uploadDirectory . DIRECTORY_SEPARATOR . $fileName;
-
-        if (file_put_contents($photoAbsolute, $binary, LOCK_EX) === false) {
-            throw new RuntimeException('Foto gagal disimpan.');
-        }
-
-        $photoPath = 'uploads/profil/' . $fileName;
+    // 04. Memastikan akun masih aktif.
+    if (
+        strcasecmp(
+            (string) $user['status_akun'],
+            'Aktif'
+        ) !== 0
+    ) {
+        profilResponse(
+            403,
+            false,
+            'Akun pengguna tidak aktif.'
+        );
     }
 
-    try {
-        $pdo->beginTransaction();
-
-        $sql = "
-            UPDATE pengguna
-            SET nama_lengkap = :nama,
-                nama_pengguna = :username,
-                email = :email
-        ";
-
-        $params = [
-            ':nama' => $name,
-            ':username' => $username,
-            ':email' => $email,
-            ':id' => $userId
-        ];
-
-        if ($newPassword !== '') {
-            $sql .= ", kata_sandi = :password";
-            $params[':password'] = password_hash($newPassword, PASSWORD_DEFAULT);
-        }
-
-        if ($photoPath !== null) {
-            $sql .= ", foto_profil = :foto";
-            $params[':foto'] = $photoPath;
-        }
-
-        $sql .= " WHERE id_pengguna = :id";
-
-        $update = $pdo->prepare($sql);
-        $update->execute($params);
-
-        $pdo->commit();
-
-    } catch (Throwable $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
-
-        if ($photoAbsolute && is_file($photoAbsolute)) {
-            @unlink($photoAbsolute);
-        }
-
-        throw $e;
+    // 05. Memastikan pengguna memiliki peran petugas.
+    if (
+        !in_array(
+            (string) $user['nama_peran'],
+            ['Petugas Sarpras', 'Administrator'],
+            true
+        )
+    ) {
+        profilResponse(
+            403,
+            false,
+            'Anda tidak memiliki akses profil petugas.'
+        );
     }
 
-    $updatedUser = findProfile($pdo, $userId);
+    // 06. Menyusun data profil tanpa informasi kata sandi.
+    $profile = [
+        'id_pengguna' => (int) $user['id_pengguna'],
+        'id_peran' => (int) $user['id_peran'],
 
-    if (!$updatedUser) {
-        throw new RuntimeException('Profil gagal dibaca kembali.');
+        'nama_lengkap' => (string) $user['nama_lengkap'],
+        'nomor_identitas' => (string) $user['nomor_identitas'],
+
+        'nama_pengguna' => (string) $user['nama_pengguna'],
+        'email' => (string) $user['email'],
+
+        'unit_kerja' => $user['unit_kerja'],
+        'foto_profil' => $user['foto_profil'],
+
+        'status_akun' => (string) $user['status_akun'],
+        'nama_peran' => (string) $user['nama_peran'],
+
+        'tanggal_dibuat' => $user['tanggal_dibuat'],
+        'tanggal_diperbarui' => $user['tanggal_diperbarui']
+    ];
+
+    // 07. Memperbarui data profil pada session.
+    $_SESSION['id_pengguna'] = $profile['id_pengguna'];
+    $_SESSION['id_peran'] = $profile['id_peran'];
+    $_SESSION['nama_peran'] = $profile['nama_peran'];
+    $_SESSION['nama_lengkap'] = $profile['nama_lengkap'];
+
+    if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
+        $_SESSION['user'] = array_merge(
+            $_SESSION['user'],
+            $profile
+        );
     }
 
-    syncSessionProfile($updatedUser);
-    session_write_close();
+    if (
+        isset($_SESSION['sipfas_user']) &&
+        is_array($_SESSION['sipfas_user'])
+    ) {
+        $_SESSION['sipfas_user'] = array_merge(
+            $_SESSION['sipfas_user'],
+            $profile
+        );
+    }
 
-    responseJson(200, true, 'Profil berhasil diperbarui.', $updatedUser);
-
-} catch (Throwable $e) {
-    error_log(
-        '[SIPFAS PROFILE API] ' .
-        $e->getMessage() . ' | ' .
-        $e->getFile() . ':' . $e->getLine()
+    // 08. Mengirim profil terbaru dari database.
+    profilResponse(
+        200,
+        true,
+        'Profil pengguna berhasil dimuat.',
+        $profile
     );
 
-    responseJson(500, false, 'Terjadi kesalahan saat memproses profil. Periksa PHP error log.');
+} catch (Throwable $e) {
+
+    // Mencatat kesalahan pada log server.
+    error_log(
+        '[SIPFAS PROFIL PETUGAS ERROR] ' .
+        get_class($e) . ': ' .
+        $e->getMessage()
+    );
+
+    profilResponse(
+        500,
+        false,
+        'Gagal memuat profil pengguna. Periksa PHP error log.'
+    );
 }
