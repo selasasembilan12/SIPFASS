@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
-//revisi akhir
-// Memuat konfigurasi session dan koneksi database.
+
+
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -10,7 +10,6 @@ header('Pragma: no-cache');
 
 date_default_timezone_set('Asia/Jayapura');
 
-// Mengirim respons JSON.
 function perbaruiProfilResponse(
     int $status,
     bool $success,
@@ -30,10 +29,15 @@ function perbaruiProfilResponse(
 }
 
 $newPhotoPath = null;
+$projectRoot = dirname(__DIR__, 2);
+$uploadDirectory = $projectRoot . '/uploads/profil';
 
 try {
 
-    // 01. Memastikan metode request POST.
+    // ==================================================
+    // 01. VALIDASI METODE REQUEST
+    // ==================================================
+
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         header('Allow: POST');
 
@@ -44,7 +48,10 @@ try {
         );
     }
 
-    // 02. Memeriksa session pengguna.
+    // ==================================================
+    // 02. VALIDASI SESSION PENGGUNA
+    // ==================================================
+
     $userId = (int) (
         $_SESSION['id_pengguna']
         ?? $_SESSION['user']['id_pengguna']
@@ -63,7 +70,10 @@ try {
         );
     }
 
-    // 03. Memastikan akun aktif dan memiliki hak akses.
+    // ==================================================
+    // 03. MENGAMBIL DATA PENGGUNA
+    // ==================================================
+
     $userStmt = $pdo->prepare("
         SELECT
             u.id_pengguna,
@@ -101,6 +111,7 @@ try {
         );
     }
 
+    // Memastikan akun aktif.
     if (
         strcasecmp(
             (string) $currentUser['status_akun'],
@@ -114,6 +125,7 @@ try {
         );
     }
 
+    // Memastikan hak akses.
     if (
         !in_array(
             (string) $currentUser['nama_peran'],
@@ -128,7 +140,10 @@ try {
         );
     }
 
-    // 04. Memvalidasi format request.
+    // ==================================================
+    // 04. MEMBACA REQUEST JSON
+    // ==================================================
+
     $contentType = strtolower(
         trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0])
     );
@@ -164,7 +179,13 @@ try {
         );
     }
 
-    // 05. Mengambil data profil.
+    // ==================================================
+    // 05. MENGAMBIL DATA PROFIL SECARA OPSIONAL
+    // ==================================================
+
+    // Kolom yang tidak dikirim atau kosong akan
+    // mempertahankan nilai sebelumnya dari database.
+
     $namaLengkap = trim((string) (
         $input['nama_lengkap'] ?? ''
     ));
@@ -177,6 +198,18 @@ try {
         $input['email'] ?? ''
     ));
 
+    if ($namaLengkap === '') {
+        $namaLengkap = (string) $currentUser['nama_lengkap'];
+    }
+
+    if ($namaPengguna === '') {
+        $namaPengguna = (string) $currentUser['nama_pengguna'];
+    }
+
+    if ($email === '') {
+        $email = (string) $currentUser['email'];
+    }
+
     $currentPassword = (string) (
         $input['current_password'] ?? ''
     );
@@ -187,7 +220,10 @@ try {
 
     $photoData = $input['foto_data_url'] ?? null;
 
-    // 06. Memvalidasi nama lengkap.
+    // ==================================================
+    // 06. VALIDASI NAMA LENGKAP
+    // ==================================================
+
     if (
         $namaLengkap === '' ||
         mb_strlen($namaLengkap) > 150
@@ -195,11 +231,14 @@ try {
         perbaruiProfilResponse(
             422,
             false,
-            'Nama lengkap wajib diisi dan maksimal 150 karakter.'
+            'Nama lengkap maksimal 150 karakter dan tidak boleh kosong.'
         );
     }
 
-    // 07. Memvalidasi username.
+    // ==================================================
+    // 07. VALIDASI USERNAME
+    // ==================================================
+
     if (
         $namaPengguna === '' ||
         mb_strlen($namaPengguna) > 50 ||
@@ -215,7 +254,10 @@ try {
         );
     }
 
-    // 08. Memvalidasi email.
+    // ==================================================
+    // 08. VALIDASI EMAIL
+    // ==================================================
+
     if (
         $email === '' ||
         mb_strlen($email) > 150 ||
@@ -228,51 +270,70 @@ try {
         );
     }
 
-    // 09. Memeriksa username agar tidak digunakan akun lain.
-    $usernameStmt = $pdo->prepare("
-        SELECT id_pengguna
-        FROM pengguna
-        WHERE nama_pengguna = :username
-          AND id_pengguna <> :id
-        LIMIT 1
-    ");
+    // ==================================================
+    // 09. PEMERIKSAAN USERNAME UNIK
+    // ==================================================
 
-    $usernameStmt->execute([
-        ':username' => $namaPengguna,
-        ':id' => $userId
-    ]);
+    if (
+        $namaPengguna !==
+        (string) $currentUser['nama_pengguna']
+    ) {
+        $usernameStmt = $pdo->prepare("
+            SELECT id_pengguna
+            FROM pengguna
+            WHERE nama_pengguna = :username
+              AND id_pengguna <> :id
+            LIMIT 1
+        ");
 
-    if ($usernameStmt->fetchColumn()) {
-        perbaruiProfilResponse(
-            409,
-            false,
-            'Username sudah digunakan oleh pengguna lain.'
-        );
+        $usernameStmt->execute([
+            ':username' => $namaPengguna,
+            ':id' => $userId
+        ]);
+
+        if ($usernameStmt->fetchColumn()) {
+            perbaruiProfilResponse(
+                409,
+                false,
+                'Username sudah digunakan oleh pengguna lain.'
+            );
+        }
     }
 
-    // 10. Memeriksa email agar tidak digunakan akun lain.
-    $emailStmt = $pdo->prepare("
-        SELECT id_pengguna
-        FROM pengguna
-        WHERE email = :email
-          AND id_pengguna <> :id
-        LIMIT 1
-    ");
+    // ==================================================
+    // 10. PEMERIKSAAN EMAIL UNIK
+    // ==================================================
 
-    $emailStmt->execute([
-        ':email' => $email,
-        ':id' => $userId
-    ]);
+    if (
+        $email !==
+        (string) $currentUser['email']
+    ) {
+        $emailStmt = $pdo->prepare("
+            SELECT id_pengguna
+            FROM pengguna
+            WHERE email = :email
+              AND id_pengguna <> :id
+            LIMIT 1
+        ");
 
-    if ($emailStmt->fetchColumn()) {
-        perbaruiProfilResponse(
-            409,
-            false,
-            'Email sudah digunakan oleh pengguna lain.'
-        );
+        $emailStmt->execute([
+            ':email' => $email,
+            ':id' => $userId
+        ]);
+
+        if ($emailStmt->fetchColumn()) {
+            perbaruiProfilResponse(
+                409,
+                false,
+                'Email sudah digunakan oleh pengguna lain.'
+            );
+        }
     }
 
-    // 11. Memeriksa apakah pengguna meminta perubahan kata sandi.
+    // ==================================================
+    // 11. VALIDASI PASSWORD OPSIONAL
+    // ==================================================
+
     $passwordRequested = (
         $currentPassword !== '' ||
         $newPassword !== ''
@@ -282,7 +343,6 @@ try {
 
     if ($passwordRequested) {
 
-        // Kata sandi lama dan baru wajib diisi bersamaan.
         if (
             $currentPassword === '' ||
             $newPassword === ''
@@ -294,7 +354,6 @@ try {
             );
         }
 
-        // Memastikan kata sandi lama benar.
         if (
             !password_verify(
                 $currentPassword,
@@ -308,7 +367,6 @@ try {
             );
         }
 
-        // Memvalidasi kata sandi baru.
         if (
             strlen($newPassword) < 8 ||
             strlen($newPassword) > 72 ||
@@ -330,7 +388,6 @@ try {
             );
         }
 
-        // Menghasilkan hash kata sandi baru.
         $passwordHash = password_hash(
             $newPassword,
             PASSWORD_DEFAULT
@@ -343,10 +400,9 @@ try {
         }
     }
 
-    // 12. Menyiapkan direktori penyimpanan foto.
-    $projectRoot = dirname(__DIR__, 2);
-
-    $uploadDirectory = $projectRoot . '/uploads/profil';
+    // ==================================================
+    // 12. MENYIAPKAN DIREKTORI FOTO
+    // ==================================================
 
     if (
         !is_dir($uploadDirectory) &&
@@ -358,7 +414,10 @@ try {
         );
     }
 
-    // 13. Memvalidasi dan menyimpan foto profil baru.
+    // ==================================================
+    // 13. VALIDASI DAN PENYIMPANAN FOTO
+    // ==================================================
+
     if ($photoData !== null && $photoData !== '') {
 
         if (!is_string($photoData)) {
@@ -371,7 +430,7 @@ try {
 
         if (
             !preg_match(
-                '/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+\/=\r\n]+)$/',
+                '~^data:image/(jpeg|png|webp);base64,([A-Za-z0-9+/=\r\n]+)$~D',
                 $photoData,
                 $matches
             )
@@ -400,7 +459,7 @@ try {
             );
         }
 
-        // Memastikan isi file benar-benar gambar.
+        // Memastikan file benar-benar gambar.
         $imageInfo = getimagesizefromstring($imageData);
 
         if ($imageInfo === false) {
@@ -419,11 +478,14 @@ try {
             'image/webp' => 'webp'
         ];
 
-        if (!isset($allowedImages[$mime])) {
+        if (
+            !isset($allowedImages[$mime]) ||
+            $mime !== 'image/' . $matches[1]
+        ) {
             perbaruiProfilResponse(
                 422,
                 false,
-                'Format gambar tidak didukung.'
+                'Format gambar tidak sesuai dengan isi file.'
             );
         }
 
@@ -438,14 +500,12 @@ try {
             );
         }
 
-        // Menghasilkan nama file unik.
         $fileName = bin2hex(random_bytes(16))
             . '.'
             . $allowedImages[$mime];
 
         $absolutePath = $uploadDirectory . '/' . $fileName;
 
-        // Menulis file foto baru.
         $written = file_put_contents(
             $absolutePath,
             $imageData,
@@ -461,10 +521,13 @@ try {
         $newPhotoPath = 'uploads/profil/' . $fileName;
     }
 
-    // 14. Menyimpan perubahan dalam transaksi database.
+    // ==================================================
+    // 14. MEMULAI TRANSAKSI DATABASE
+    // ==================================================
+
     $pdo->beginTransaction();
 
-    // Mengunci data akun sebelum pembaruan.
+    // Mengunci data pengguna.
     $lockStmt = $pdo->prepare("
         SELECT
             id_pengguna,
@@ -495,7 +558,7 @@ try {
         );
     }
 
-    // Memastikan kata sandi tidak berubah sejak pemeriksaan awal.
+    // Memastikan password tidak berubah.
     if (
         !hash_equals(
             (string) $currentUser['kata_sandi'],
@@ -507,101 +570,121 @@ try {
         );
     }
 
-    // Memastikan username tetap unik.
-    $checkUsername = $pdo->prepare("
-        SELECT id_pengguna
-        FROM pengguna
-        WHERE nama_pengguna = :username
-          AND id_pengguna <> :id
-        LIMIT 1
-    ");
+    // ==================================================
+    // 15. MEMERIKSA KEUNIKAN KEMBALI
+    // ==================================================
 
-    $checkUsername->execute([
-        ':username' => $namaPengguna,
+    if (
+        $namaPengguna !==
+        (string) $currentUser['nama_pengguna']
+    ) {
+        $checkUsername = $pdo->prepare("
+            SELECT id_pengguna
+            FROM pengguna
+            WHERE nama_pengguna = :username
+              AND id_pengguna <> :id
+            LIMIT 1
+        ");
+
+        $checkUsername->execute([
+            ':username' => $namaPengguna,
+            ':id' => $userId
+        ]);
+
+        if ($checkUsername->fetchColumn()) {
+            throw new RuntimeException(
+                'Username sudah digunakan pengguna lain.'
+            );
+        }
+    }
+
+    if (
+        $email !==
+        (string) $currentUser['email']
+    ) {
+        $checkEmail = $pdo->prepare("
+            SELECT id_pengguna
+            FROM pengguna
+            WHERE email = :email
+              AND id_pengguna <> :id
+            LIMIT 1
+        ");
+
+        $checkEmail->execute([
+            ':email' => $email,
+            ':id' => $userId
+        ]);
+
+        if ($checkEmail->fetchColumn()) {
+            throw new RuntimeException(
+                'Email sudah digunakan pengguna lain.'
+            );
+        }
+    }
+
+    // ==================================================
+    // 16. UPDATE HANYA KOLOM YANG BERUBAH
+    // ==================================================
+
+    $setParts = [];
+
+    $updateParams = [
         ':id' => $userId
-    ]);
+    ];
 
-    if ($checkUsername->fetchColumn()) {
+    if (
+        $namaLengkap !==
+        (string) $currentUser['nama_lengkap']
+    ) {
+        $setParts[] = 'nama_lengkap = :nama';
+        $updateParams[':nama'] = $namaLengkap;
+    }
+
+    if (
+        $namaPengguna !==
+        (string) $currentUser['nama_pengguna']
+    ) {
+        $setParts[] = 'nama_pengguna = :username';
+        $updateParams[':username'] = $namaPengguna;
+    }
+
+    if (
+        $email !==
+        (string) $currentUser['email']
+    ) {
+        $setParts[] = 'email = :email';
+        $updateParams[':email'] = $email;
+    }
+
+    if ($newPhotoPath !== null) {
+        $setParts[] = 'foto_profil = :foto';
+        $updateParams[':foto'] = $newPhotoPath;
+    }
+
+    if ($passwordHash !== null) {
+        $setParts[] = 'kata_sandi = :password';
+        $updateParams[':password'] = $passwordHash;
+    }
+
+    if (empty($setParts)) {
         throw new RuntimeException(
-            'Username sudah digunakan pengguna lain.'
+            'Tidak ada perubahan profil yang perlu disimpan.'
         );
     }
 
-    // Memastikan email tetap unik.
-    $checkEmail = $pdo->prepare("
-        SELECT id_pengguna
-        FROM pengguna
-        WHERE email = :email
-          AND id_pengguna <> :id
-        LIMIT 1
-    ");
-
-    $checkEmail->execute([
-        ':email' => $email,
-        ':id' => $userId
-    ]);
-
-    if ($checkEmail->fetchColumn()) {
-        throw new RuntimeException(
-            'Email sudah digunakan pengguna lain.'
-        );
-    }
-
-    // 15. Menyusun query sesuai permintaan perubahan kata sandi.
-    if ($passwordRequested) {
-
-        $updateSql = "
-            UPDATE pengguna
-            SET
-                nama_lengkap = :nama,
-                nama_pengguna = :username,
-                email = :email,
-                foto_profil = COALESCE(
-                    :foto,
-                    foto_profil
-                ),
-                kata_sandi = :password
-            WHERE id_pengguna = :id
-        ";
-
-        $updateParams = [
-            ':nama' => $namaLengkap,
-            ':username' => $namaPengguna,
-            ':email' => $email,
-            ':foto' => $newPhotoPath,
-            ':password' => $passwordHash,
-            ':id' => $userId
-        ];
-
-    } else {
-
-        // Kata sandi tidak disentuh ketika tidak diminta.
-        $updateSql = "
-            UPDATE pengguna
-            SET
-                nama_lengkap = :nama,
-                nama_pengguna = :username,
-                email = :email,
-                foto_profil = COALESCE(
-                    :foto,
-                    foto_profil
-                )
-            WHERE id_pengguna = :id
-        ";
-
-        $updateParams = [
-            ':nama' => $namaLengkap,
-            ':username' => $namaPengguna,
-            ':email' => $email,
-            ':foto' => $newPhotoPath,
-            ':id' => $userId
-        ];
-    }
+    $updateSql = "
+        UPDATE pengguna
+        SET " . implode(', ', $setParts) . "
+        WHERE id_pengguna = :id
+    ";
 
     $updateStmt = $pdo->prepare($updateSql);
     $updateStmt->execute($updateParams);
 
-    // 16. Mengambil data terbaru dari database.
+    // ==================================================
+    // 17. MENGAMBIL DATA PROFIL TERBARU
+    // ==================================================
+
     $resultStmt = $pdo->prepare("
         SELECT
             u.id_pengguna,
@@ -638,10 +721,16 @@ try {
         );
     }
 
-    // 17. Menyelesaikan transaksi.
+    // ==================================================
+    // 18. COMMIT TRANSAKSI
+    // ==================================================
+
     $pdo->commit();
 
-    // Menghapus foto lama setelah transaksi berhasil.
+    // ==================================================
+    // 19. MENGHAPUS FOTO LAMA SETELAH COMMIT
+    // ==================================================
+
     $oldPhoto = $lockedUser['foto_profil'] ?? '';
 
     if (
@@ -660,7 +749,10 @@ try {
         }
     }
 
-    // 18. Menyusun profil terbaru.
+    // ==================================================
+    // 20. MENYUSUN DATA PROFIL
+    // ==================================================
+
     $profile = [
         'id_pengguna' => (int) $updatedUser['id_pengguna'],
         'id_peran' => (int) $updatedUser['id_peran'],
@@ -681,13 +773,19 @@ try {
         'tanggal_diperbarui' => $updatedUser['tanggal_diperbarui']
     ];
 
-    // 19. Menyinkronkan session dengan database.
+    // ==================================================
+    // 21. MENYINKRONKAN PHP SESSION
+    // ==================================================
+
     $_SESSION['id_pengguna'] = $profile['id_pengguna'];
     $_SESSION['id_peran'] = $profile['id_peran'];
     $_SESSION['nama_lengkap'] = $profile['nama_lengkap'];
     $_SESSION['nama_peran'] = $profile['nama_peran'];
 
-    if (isset($_SESSION['user']) && is_array($_SESSION['user'])) {
+    if (
+        isset($_SESSION['user']) &&
+        is_array($_SESSION['user'])
+    ) {
         $_SESSION['user'] = array_merge(
             $_SESSION['user'],
             $profile
@@ -704,7 +802,10 @@ try {
         );
     }
 
-    // 20. Mengirim hasil pembaruan.
+    // ==================================================
+    // 22. MENGIRIM RESPONS BERHASIL
+    // ==================================================
+
     perbaruiProfilResponse(
         200,
         true,
@@ -716,12 +817,15 @@ try {
 
 } catch (Throwable $e) {
 
-    // Membatalkan transaksi jika terjadi kesalahan.
+    // ==================================================
+    // 23. ROLLBACK JIKA TERJADI KEGAGALAN
+    // ==================================================
+
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
 
-    // Menghapus foto baru apabila penyimpanan database gagal.
+    // Menghapus foto baru jika transaksi gagal.
     if (
         $newPhotoPath !== null &&
         isset($projectRoot, $uploadDirectory)
