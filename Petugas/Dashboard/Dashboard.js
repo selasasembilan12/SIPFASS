@@ -1,19 +1,13 @@
 
-// DASHBOARD.JS
-
 (() => {
   "use strict";
 
   document.addEventListener("DOMContentLoaded", initializeDashboard);
 
-  // ========================================================
-  // 01. KONFIGURASI ENDPOINT API & NAVIGASI
-  // ========================================================
-
   const API = {
     dashboard: "../../api/petugas/dashboard.php",
     profile: "../../api/shared/profil-login.php",
-    logout: "../../api/auth/logout.php",
+    logout: "../../api/auth/logout.php"
   };
 
   const DETAIL_URL =
@@ -21,13 +15,14 @@
 
   const LOGIN_URL = "../../auth/Login.html";
 
-  // ========================================================
-  // 02. INISIALISASI DASHBOARD
-  // ========================================================
+  let refreshTimer = null;
+  let refreshInProgress = false;
 
   function initializeDashboard() {
     const tableBody = document.querySelector(".report-panel tbody");
-    const summaryCards = Array.from(document.querySelectorAll(".summary-card"));
+    const summaryCards = Array.from(
+      document.querySelectorAll(".summary-card")
+    );
 
     const sidebar = document.getElementById("sidebar");
     const menuToggle = document.getElementById("menuToggle");
@@ -35,40 +30,34 @@
     const logoutLink = document.getElementById("logoutLink");
 
     if (!tableBody) {
-      console.error("[SIPFAS] Tabel laporan dashboard tidak ditemukan.");
+      console.error("[SIPFAS] Tabel dashboard tidak ditemukan.");
       return;
     }
 
-    // ====================================================
-    // 03. HELPER FETCH API DATABASE
-    // ====================================================
-
     async function fetchJson(endpoint, options = {}) {
-      const url = new URL(endpoint, window.location.href);
-
-      const response = await fetch(url.href, {
-        credentials: "same-origin",
-        headers: {
-          Accept: "application/json",
-          ...(options.headers || {})
-        },
-        ...options,
-      });
+      const response = await fetch(
+        new URL(endpoint, window.location.href).href,
+        {
+          credentials: "same-origin",
+          cache: "no-store",
+          ...options,
+          headers: {
+            Accept: "application/json",
+            ...(options.headers || {})
+          }
+        }
+      );
 
       const payload = await response.json();
 
       if (!response.ok || payload?.success === false) {
         throw new Error(
-          payload?.message || `Gagal memuat data dari ${endpoint}.`
+          payload?.message || "Gagal mengambil data dari server."
         );
       }
 
       return payload;
     }
-
-    // ====================================================
-    // 04. NORMALISASI TEKS & DATA
-    // ====================================================
 
     function normalizeText(value) {
       return String(value ?? "")
@@ -77,29 +66,6 @@
         .replace(/\s+/g, " ")
         .trim()
         .toLowerCase();
-    }
-
-    function normalizeCode(value) {
-      return String(value ?? "")
-        .replace(/\s+/g, "")
-        .trim()
-        .toUpperCase();
-    }
-
-    function normalizeRole(value) {
-      const role = normalizeText(value);
-
-      if (role === "admin" || role === "administrator") {
-        return "administrator";
-      }
-
-      if (role.includes("petugas")) return "petugas";
-
-      if (role === "pelapor" || role === "user") {
-        return "pelapor";
-      }
-
-      return role;
     }
 
     function firstValue(object, keys, fallback = "") {
@@ -118,258 +84,199 @@
       return fallback;
     }
 
-    function getReportCode(report, fallback = "") {
-      return normalizeCode(
-        firstValue(
-          report,
-          [
-            "kode_laporan",
-            "nomor_laporan",
-            "reportCode",
-            "report_code",
-            "id_laporan",
-            "id",
-            "code",
-          ],
-          fallback,
-        ),
-      );
+    function getReportCode(report) {
+      return String(
+        firstValue(report, [
+          "kode_laporan",
+          "nomor_laporan",
+          "reportCode",
+          "report_code",
+          "id_laporan"
+        ])
+      ).trim().toUpperCase();
     }
 
-    function extractCollection(payload) {
+    function extractReports(payload) {
       if (Array.isArray(payload)) return payload;
       if (Array.isArray(payload?.data)) return payload.data;
       if (Array.isArray(payload?.reports)) return payload.reports;
       if (Array.isArray(payload?.laporan)) return payload.laporan;
-      if (Array.isArray(payload?.data?.laporan)) return payload.data.laporan;
-      if (Array.isArray(payload?.data?.reports)) return payload.data.reports;
 
       return [];
     }
 
     function normalizeReport(report) {
-      const code = getReportCode(report);
-
       return {
         ...report,
 
-        id: code,
-        reportCode: code,
+        id: getReportCode(report),
 
-        reporterName: firstValue(
-          report,
-          [
-            "reporterName",
-            "nama_pelapor",
-            "nama_lengkap",
-            "reporter",
-            "nama",
-          ],
-          "Tidak diketahui",
-        ),
+        reporterName: firstValue(report, [
+          "nama_pelapor",
+          "nama_lengkap",
+          "reporterName"
+        ], "Tidak diketahui"),
 
-        reporterNim: firstValue(
-          report,
-          ["reporterNim", "nomor_identitas", "nim"],
-          "",
-        ),
+        reporterNim: firstValue(report, [
+          "nomor_identitas",
+          "reporterNim",
+          "nim"
+        ]),
 
-        facility: firstValue(
-          report,
-          [
-            "nama_fasilitas",
-            "facilityName",
-            "facility",
-            "fasilitas",
-          ],
-          "Fasilitas belum disebutkan",
-        ),
+        facility: firstValue(report, [
+          "nama_fasilitas",
+          "facilityName",
+          "facility"
+        ], "Fasilitas belum disebutkan"),
 
-        location: firstValue(
-          report,
-          [
-            "lokasi_ruangan",
-            "facilityLocation",
-            "location",
-            "lokasi",
-          ],
-          "Belum dicantumkan",
-        ),
+        location: firstValue(report, [
+          "nama_lokasi",
+          "lokasi_ruangan",
+          "facilityLocation",
+          "location"
+        ], "Belum dicantumkan"),
 
-        description: firstValue(
-          report,
-          ["deskripsi_kerusakan", "description", "deskripsi", "keterangan"],
-          "",
-        ),
+        description: firstValue(report, [
+          "deskripsi_kerusakan",
+          "description"
+        ]),
 
-        date: firstValue(
-          report,
-          [
-            "tanggal_dibuat",
-            "tanggal_laporan",
-            "waktu_lapor",
-            "created_at",
-            "createdAt",
-            "date",
-          ],
-          "",
-        ),
+        date: firstValue(report, [
+          "tanggal_dibuat",
+          "tanggal_laporan",
+          "created_at"
+        ]),
 
-        priority: firstValue(
-          report,
-          [
-            "prioritas_sesudah",
-            "prioritas_sebelum",
-            "prioritas",
-            "label_prioritas",
-            "priority",
-            "priorityLabel",
-          ],
-          "Belum Dinilai",
-        ),
+        verificationStatus: firstValue(report, [
+          "status_verifikasi",
+          "statusVerifikasi"
+        ]),
 
-        status: firstValue(
-          report,
-          ["status_laporan", "status", "statusLaporan"],
-          "Menunggu Verifikasi",
-        ),
+        handlingStatus: firstValue(report, [
+          "status_penanganan",
+          "handlingStatus"
+        ]),
 
-        decision: firstValue(
-          report,
-          ["hasil_verifikasi", "decision", "verificationResult"],
-          "",
-        ),
+        decision: firstValue(report, [
+          "hasil_verifikasi",
+          "decision"
+        ]),
 
-        handlingStatus: firstValue(
-          report,
-          ["status_penanganan", "handlingStatus"],
-          report.waktu_selesai_penanganan || report.completedAt
-            ? "Selesai"
-            : report.waktu_mulai_penanganan || report.startedAt
-              ? "Diproses"
-              : "",
-        ),
+        priority: firstValue(report, [
+          "prioritas_sesudah",
+          "prioritas_prediksi",
+          "prioritas_awal",
+          "prioritas"
+        ], "Belum Dinilai")
       };
     }
 
     async function getAllReportsFromDB() {
       const payload = await fetchJson(API.dashboard);
-      const items = extractCollection(payload);
 
       return {
-        reports: items.map(normalizeReport),
+        reports: extractReports(payload).map(normalizeReport),
         serverStats:
           payload?.stats ||
           payload?.statistik ||
           payload?.data?.stats ||
-          null,
+          null
       };
     }
 
-    // ====================================================
-    // 05. STATUS & STATISTIK DASHBOARD
-    // ====================================================
-
     function getReportState(report) {
-      const decision = normalizeText(report.decision);
-      const reportStatus = normalizeText(report.status);
-      const handlingStatus = normalizeText(report.handlingStatus);
+      const verification = normalizeText(
+        report.verificationStatus
+      );
 
+      const decision = normalizeText(report.decision);
+      const handling = normalizeText(report.handlingStatus);
+
+      const completedTime =
+        report.waktu_selesai_penanganan ||
+        report.completedAt;
+
+      // Laporan yang ditolak tidak masuk antrean penanganan.
       if (
-        decision === "invalid" ||
+        verification.includes("tidak valid") ||
+        verification.includes("ditolak") ||
+        verification === "invalid" ||
         decision.includes("tidak valid") ||
         decision.includes("ditolak") ||
-        reportStatus.includes("tidak valid") ||
-        reportStatus === "invalid"
+        decision === "invalid"
       ) {
         return "invalid";
       }
 
+      // Status selesai memiliki prioritas klasifikasi tertinggi.
       if (
-        report.waktu_selesai_penanganan ||
-        report.completedAt ||
-        handlingStatus.includes("selesai") ||
-        handlingStatus === "completed" ||
-        reportStatus.includes("selesai") ||
-        reportStatus === "completed"
+        completedTime ||
+        handling.includes("selesai") ||
+        handling === "completed"
       ) {
         return "completed";
       }
 
+      // Laporan yang sudah valid masuk proses penanganan.
       if (
+        verification === "valid" ||
+        verification.includes("terverifikasi") ||
         decision === "valid" ||
-        decision.includes("terverifikasi") ||
-        handlingStatus.includes("diproses") ||
-        handlingStatus.includes("menunggu perbaikan") ||
-        handlingStatus.includes("sedang dikerjakan") ||
-        reportStatus.includes("diproses") ||
-        reportStatus.includes("dalam penanganan") ||
-        reportStatus.includes("terverifikasi") ||
-        report.waktu_mulai_penanganan ||
-        report.startedAt
+        handling.includes("diproses") ||
+        handling.includes("penanganan") ||
+        handling.includes("perbaikan")
       ) {
         return "handling";
       }
 
+      // Laporan yang belum diverifikasi tetap menunggu verifikasi.
       return "pending";
     }
 
-    function calculateStatistics(reports, serverStats = null) {
-      if (serverStats && typeof serverStats === "object") {
-        return {
-          total: Number(
-            serverStats.total ??
-            serverStats.total_laporan ??
-            reports.length
-          ),
-
-          pending: Number(
-            serverStats.pending ??
-            serverStats.menunggu_verifikasi ??
-            0
-          ),
-
-          handling: Number(
-            serverStats.handling ??
-            serverStats.dalam_penanganan ??
-            0
-          ),
-
-          completed: Number(
-            serverStats.completed ??
-            serverStats.selesai ??
-            0
-          ),
-
-          invalid: Number(
-            serverStats.invalid ??
-            serverStats.tidak_valid ??
-            0
-          ),
-        };
-      }
-
-      const statistics = {
+    function calculateStatistics(reports) {
+      const stats = {
         total: reports.length,
         pending: 0,
         handling: 0,
         completed: 0,
-        invalid: 0,
+        invalid: 0
       };
 
       reports.forEach((report) => {
         const state = getReportState(report);
-
-        if (Object.prototype.hasOwnProperty.call(statistics, state)) {
-          statistics[state]++;
-        }
+        stats[state]++;
       });
 
-      return statistics;
+      return stats;
     }
 
     function renderStatistics(reports, serverStats = null) {
-      const stats = calculateStatistics(reports, serverStats);
+      const calculated = calculateStatistics(reports);
+
+      const stats = serverStats
+        ? {
+            total: Number(
+              serverStats.total ??
+              serverStats.total_laporan ??
+              calculated.total
+            ),
+            pending: Number(
+              serverStats.pending ??
+              serverStats.menunggu_verifikasi ??
+              calculated.pending
+            ),
+            handling: Number(
+              serverStats.handling ??
+              serverStats.dalam_penanganan ??
+              calculated.handling
+            ),
+            completed: Number(
+              serverStats.completed ??
+              serverStats.selesai ??
+              calculated.completed
+            )
+          }
+        : calculated;
 
       const values = [
         stats.total,
@@ -386,34 +293,37 @@
         }
       });
 
-      const totalDescription = summaryCards[0]?.querySelector("p");
+      const description = summaryCards[0]?.querySelector("p");
 
-      if (totalDescription) {
-        totalDescription.textContent =
-          stats.invalid > 0
-            ? `${stats.total} laporan tercatat, ${stats.invalid} tidak valid`
-            : `${stats.total} laporan masuk semester ini`;
+      if (description) {
+        description.textContent =
+          calculated.invalid > 0
+            ? `${stats.total} laporan tercatat, ${calculated.invalid} tidak valid`
+            : `${stats.total} laporan masuk`;
       }
-
-      return stats;
     }
-
-    // ====================================================
-    // 06. PRIORITAS & FORMAT TANGGAL WIT
-    // ====================================================
 
     function normalizePriority(value) {
       const priority = normalizeText(value);
 
-      if (priority.includes("tinggi") || priority === "high") {
+      if (
+        priority.includes("tinggi") ||
+        priority === "high"
+      ) {
         return "Tinggi";
       }
 
-      if (priority.includes("sedang") || priority === "medium") {
+      if (
+        priority.includes("sedang") ||
+        priority === "medium"
+      ) {
         return "Sedang";
       }
 
-      if (priority.includes("rendah") || priority === "low") {
+      if (
+        priority.includes("rendah") ||
+        priority === "low"
+      ) {
         return "Rendah";
       }
 
@@ -422,34 +332,34 @@
 
     function parseDate(value) {
       if (!value) return 0;
-      if (typeof value === "number") return value;
 
-      const timestamp = new Date(
+      const date = new Date(
         String(value).replace(" ", "T")
-      ).getTime();
+      );
 
-      return Number.isNaN(timestamp) ? 0 : timestamp;
+      return Number.isNaN(date.getTime())
+        ? 0
+        : date.getTime();
     }
 
     function formatDate(value) {
       if (!value) return "—";
 
-      const text = String(value).trim();
-      const date = new Date(text.replace(" ", "T"));
+      const date = new Date(
+        String(value).replace(" ", "T")
+      );
 
-      if (Number.isNaN(date.getTime())) return text;
+      if (Number.isNaN(date.getTime())) {
+        return String(value);
+      }
 
       return new Intl.DateTimeFormat("id-ID", {
         timeZone: "Asia/Jayapura",
         day: "2-digit",
         month: "short",
-        year: "numeric",
+        year: "numeric"
       }).format(date);
     }
-
-    // ====================================================
-    // 07. RENDER TABEL ANTREAN VERIFIKASI
-    // ====================================================
 
     function createCell(value, className = "") {
       const cell = document.createElement("td");
@@ -530,17 +440,36 @@
 
         row.dataset.reportCode = report.id;
 
-        row.appendChild(createCell(report.id, "report-code"));
-        row.appendChild(createCell(report.facility, "facility"));
-        row.appendChild(createCell(report.location));
-        row.appendChild(createCell(formatDate(report.date)));
+        row.appendChild(
+          createCell(report.id, "report-code")
+        );
+
+        row.appendChild(
+          createCell(report.facility, "facility")
+        );
+
+        row.appendChild(
+          createCell(report.location)
+        );
+
+        row.appendChild(
+          createCell(formatDate(report.date))
+        );
 
         const priorityCell = document.createElement("td");
-        priorityCell.appendChild(createPriorityBadge(report.priority));
+
+        priorityCell.appendChild(
+          createPriorityBadge(report.priority)
+        );
+
         row.appendChild(priorityCell);
 
         const actionCell = document.createElement("td");
-        actionCell.appendChild(createCheckButton(report));
+
+        actionCell.appendChild(
+          createCheckButton(report)
+        );
+
         row.appendChild(actionCell);
 
         fragment.appendChild(row);
@@ -550,23 +479,29 @@
     }
 
     async function refreshDashboard() {
-      try {
-        const { reports, serverStats } = await getAllReportsFromDB();
+      if (refreshInProgress) return;
 
-        renderStatistics(reports, serverStats);
-        renderPendingReports(reports);
+      refreshInProgress = true;
+
+      try {
+        const result = await getAllReportsFromDB();
+
+        renderStatistics(
+          result.reports,
+          result.serverStats
+        );
+
+        renderPendingReports(result.reports);
 
       } catch (error) {
         console.error(
-          "[SIPFAS] Gagal memuat dashboard dari database:",
+          "[SIPFAS] Gagal memperbarui dashboard:",
           error
         );
+      } finally {
+        refreshInProgress = false;
       }
     }
-
-    // ====================================================
-    // 08. IDENTITAS & FOTO PETUGAS DARI DATABASE
-    // ====================================================
 
     function getInitials(name) {
       const words = String(name || "")
@@ -586,8 +521,7 @@
       ).toUpperCase();
     }
 
-    // PERBAIKAN:
-    // Path foto database harus diarahkan ke root proyek SIPFAS.
+    // Mengarahkan path foto relatif ke root proyek SIPFAS.
     function resolvePhotoUrl(path) {
       const value = String(path ?? "").trim();
 
@@ -597,7 +531,10 @@
         return value;
       }
 
-      const appRoot = new URL("../../", window.location.href);
+      const appRoot = new URL(
+        "../../",
+        window.location.href
+      );
 
       return new URL(
         value.replace(/^\/+/, ""),
@@ -605,227 +542,170 @@
       ).href;
     }
 
-    function renderAvatarPhoto(avatarEl, name, photo, initials) {
+    function renderAvatarPhoto(
+      avatarEl,
+      name,
+      photo,
+      initials
+    ) {
       if (!avatarEl) return;
 
-      if (avatarEl.tagName === "IMG") {
-        if (photo) {
-          avatarEl.onerror = () => {
-            avatarEl.removeAttribute("src");
-            avatarEl.alt = `Foto profil ${name} tidak dapat dimuat`;
-          };
-
-          avatarEl.src = resolvePhotoUrl(photo);
-        }
-
-        avatarEl.alt = `Foto profil ${name}`;
-
-        return;
-      }
-
-      const svgIcon = avatarEl.querySelector("svg");
-
-      let imgEl = avatarEl.querySelector(
+      let image = avatarEl.querySelector(
         ".profile-header-photo, img"
       );
 
-      let initialsEl = avatarEl.querySelector(
+      let initialsElement = avatarEl.querySelector(
         ".profile-header-initials"
       );
 
-      if (photo) {
-        if (svgIcon) {
-          svgIcon.style.display = "none";
+      const svg = avatarEl.querySelector("svg");
+
+      function showInitials() {
+        if (image) {
+          image.remove();
+          image = null;
         }
 
-        if (initialsEl) {
-          initialsEl.remove();
-          initialsEl = null;
+        if (!initialsElement) {
+          initialsElement = document.createElement("span");
+          initialsElement.className = "profile-header-initials";
+          avatarEl.appendChild(initialsElement);
         }
 
-        if (!imgEl) {
-          imgEl = document.createElement("img");
-          imgEl.className = "profile-header-photo";
-          avatarEl.appendChild(imgEl);
+        initialsElement.textContent = initials;
+
+        if (svg) {
+          svg.style.display = "none";
         }
-
-        imgEl.onerror = () => {
-          imgEl.remove();
-
-          if (!initialsEl) {
-            initialsEl = document.createElement("span");
-            initialsEl.className = "profile-header-initials";
-            avatarEl.appendChild(initialsEl);
-          }
-
-          initialsEl.textContent = initials;
-
-          Object.assign(initialsEl.style, {
-            display: "flex",
-            width: "100%",
-            height: "100%",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#ffffff",
-            fontWeight: "700",
-            fontSize: "14px",
-          });
-        };
-
-        imgEl.src = resolvePhotoUrl(photo);
-        imgEl.alt = `Foto profil ${name}`;
-
-        Object.assign(imgEl.style, {
-          width: "100%",
-          height: "100%",
-          display: "block",
-          objectFit: "cover",
-          borderRadius: "50%",
-        });
-
-        avatarEl.style.overflow = "hidden";
-
-      } else {
-        if (imgEl) imgEl.remove();
-
-        if (svgIcon) {
-          svgIcon.style.display = "none";
-        }
-
-        if (!initialsEl) {
-          initialsEl = document.createElement("span");
-          initialsEl.className = "profile-header-initials";
-          avatarEl.appendChild(initialsEl);
-        }
-
-        initialsEl.textContent = initials;
-
-        Object.assign(initialsEl.style, {
-          display: "flex",
-          width: "100%",
-          height: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#ffffff",
-          fontWeight: "700",
-          fontSize: "14px",
-        });
       }
+
+      if (!photo) {
+        showInitials();
+        return;
+      }
+
+      if (!image) {
+        image = document.createElement("img");
+        image.className = "profile-header-photo";
+        avatarEl.appendChild(image);
+      }
+
+      if (initialsElement) {
+        initialsElement.remove();
+        initialsElement = null;
+      }
+
+      if (svg) {
+        svg.style.display = "none";
+      }
+
+      image.onerror = showInitials;
+      image.alt = `Foto profil ${name}`;
+      image.src = resolvePhotoUrl(photo);
+
+      Object.assign(image.style, {
+        width: "100%",
+        height: "100%",
+        display: "block",
+        objectFit: "cover",
+        borderRadius: "50%"
+      });
+
+      avatarEl.style.overflow = "hidden";
     }
 
     async function displayActiveUser() {
       try {
         const payload = await fetchJson(API.profile);
 
-        const user = payload?.user || payload?.data || payload;
+        const user = payload?.user || payload?.data;
 
-        if (!user || typeof user !== "object") return;
-
-        const rawRole = firstValue(
-          user,
-          ["nama_peran", "role", "peran"],
-          "Petugas Sarpras"
-        );
-
-        const role = normalizeRole(rawRole);
-
-        if (role && role !== "petugas" && role !== "administrator") {
+        if (!user || typeof user !== "object") {
           return;
         }
 
-        const name = firstValue(
-          user,
-          [
-            "nama_lengkap",
-            "name",
-            "fullName",
-            "nama_pengguna",
-            "username"
-          ],
-          "Petugas Sarpras"
-        );
+        const name = firstValue(user, [
+          "nama_lengkap",
+          "name",
+          "fullName",
+          "nama_pengguna"
+        ], "Petugas Sarpras");
 
-        const photo = firstValue(
-          user,
-          ["foto_profil", "photo", "avatar", "foto"],
-          ""
-        );
+        const role = firstValue(user, [
+          "nama_peran",
+          "role",
+          "peran"
+        ], "Petugas Sarpras");
+
+        const photo = firstValue(user, [
+          "foto_profil",
+          "photo",
+          "avatar",
+          "foto"
+        ]);
 
         const initials = getInitials(name);
 
-        document
-          .querySelectorAll(
-            ".profile-area .profile-name, #officerName, #petugasName, #profileName, .officer-name, .petugas-name, .profile-name"
-          )
-          .forEach((el) => {
-            el.textContent = name;
-          });
+        document.querySelectorAll(
+          ".profile-area .profile-name, #officerName, #petugasName, #profileName, .officer-name, .petugas-name, .profile-name"
+        ).forEach((element) => {
+          element.textContent = name;
+        });
 
-        document
-          .querySelectorAll(
-            ".profile-area .profile-role, #officerRole, #petugasRole, #profileRole, .officer-role, .petugas-role, .profile-role"
-          )
-          .forEach((el) => {
-            el.textContent = rawRole;
-          });
+        document.querySelectorAll(
+          ".profile-area .profile-role, #officerRole, #petugasRole, #profileRole, .officer-role, .petugas-role, .profile-role"
+        ).forEach((element) => {
+          element.textContent = role;
+        });
 
-        document
-          .querySelectorAll(
-            ".profile-area .profile-avatar, #profileAvatar, #userAvatar, #officerAvatar, .profile-avatar, .user-avatar"
-          )
-          .forEach((avatarEl) => {
-            renderAvatarPhoto(
-              avatarEl,
-              name,
-              photo,
-              initials
-            );
-          });
+        document.querySelectorAll(
+          ".profile-area .profile-avatar, #profileAvatar, #userAvatar, #officerAvatar, .profile-avatar, .user-avatar"
+        ).forEach((element) => {
+          renderAvatarPhoto(
+            element,
+            name,
+            photo,
+            initials
+          );
+        });
 
       } catch (error) {
         console.error(
-          "[SIPFAS] Gagal memuat profil petugas:",
+          "[SIPFAS] Gagal memuat identitas petugas:",
           error
         );
       }
     }
-
-    // ====================================================
-    // 09. SIDEBAR & LOGOUT PHP SESSION
-    // ====================================================
 
     function setSidebar(open) {
       if (!sidebar) return;
 
       sidebar.classList.toggle("open", open);
 
-      if (pageOverlay) {
-        pageOverlay.classList.toggle("show", open);
-      }
+      pageOverlay?.classList.toggle("show", open);
 
-      if (menuToggle) {
-        menuToggle.setAttribute("aria-expanded", String(open));
+      menuToggle?.setAttribute(
+        "aria-expanded",
+        String(open)
+      );
 
-        menuToggle.setAttribute(
-          "aria-label",
-          open ? "Tutup menu" : "Buka menu"
-        );
-      }
+      menuToggle?.setAttribute(
+        "aria-label",
+        open ? "Tutup menu" : "Buka menu"
+      );
     }
 
-    menuToggle?.addEventListener("click", () =>
-      setSidebar(!sidebar?.classList.contains("open"))
-    );
+    menuToggle?.addEventListener("click", () => {
+      setSidebar(!sidebar.classList.contains("open"));
+    });
 
-    pageOverlay?.addEventListener("click", () =>
-      setSidebar(false)
-    );
+    pageOverlay?.addEventListener("click", () => {
+      setSidebar(false);
+    });
 
-    document
-      .querySelectorAll(".nav-link")
-      .forEach((link) =>
-        link.addEventListener("click", () => setSidebar(false))
-      );
+    document.querySelectorAll(".nav-link").forEach((link) => {
+      link.addEventListener("click", () => setSidebar(false));
+    });
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
@@ -842,11 +722,9 @@
       logoutLink.addEventListener("click", async (event) => {
         event.preventDefault();
 
-        if (
-          !window.confirm(
-            "Apakah Anda yakin ingin keluar dari sistem SIPFAS?"
-          )
-        ) {
+        if (!window.confirm(
+          "Apakah Anda yakin ingin keluar dari sistem SIPFAS?"
+        )) {
           return;
         }
 
@@ -856,9 +734,11 @@
             {
               method: "POST",
               credentials: "same-origin",
+              cache: "no-store"
             }
           );
-
+        } catch (error) {
+          console.error("[SIPFAS] Logout error:", error);
         } finally {
           window.location.replace(
             new URL(LOGIN_URL, window.location.href).href
@@ -867,10 +747,7 @@
       });
     }
 
-    // ====================================================
-    // 10. EVENT SINKRONISASI
-    // ====================================================
-
+    // Memperbarui dashboard ketika ada aktivitas laporan.
     window.addEventListener(
       "sipfas:report-submitted",
       refreshDashboard
@@ -891,9 +768,26 @@
       displayActiveUser
     );
 
+    // Memuat ulang data ketika pengguna kembali ke halaman dashboard.
     window.addEventListener("pageshow", () => {
       displayActiveUser();
       refreshDashboard();
+    });
+
+    // Memperbarui data berkala agar laporan dari sesi Pelapor
+    // dapat muncul tanpa pengguna harus memuat ulang halaman.
+    refreshTimer = window.setInterval(() => {
+      if (!document.hidden) {
+        refreshDashboard();
+      }
+    }, 15000);
+
+    // Menghentikan timer ketika halaman ditinggalkan.
+    window.addEventListener("pagehide", () => {
+      if (refreshTimer !== null) {
+        clearInterval(refreshTimer);
+        refreshTimer = null;
+      }
     });
 
     displayActiveUser();
