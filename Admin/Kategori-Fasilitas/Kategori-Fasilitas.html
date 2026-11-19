@@ -17,13 +17,14 @@
     <link rel="stylesheet" href="../../assets/css/logo.css" />
 
     <!-- CSS HALAMAN -->
-    <link rel="stylesheet" href="kategori-fasilitas.css" />
+    <link rel="stylesheet" href="Kategori-Fasilitas.css" />
   </head>
 
   <body>
     <!-- KONTROL MODAL HTML + CSS -->
     <input type="checkbox" id="edit-category-modal" class="modal-toggle" />
     <input type="checkbox" id="delete-category-modal" class="modal-toggle" />
+    <input type="checkbox" id="add-category-modal" class="modal-toggle" />
 
     <div class="app-layout">
       <!-- ======================================
@@ -225,6 +226,15 @@
 
               <h1>Kategori Fasilitas</h1>
             </div>
+
+            <button
+              type="button"
+              class="add-category-btn"
+              id="open-add-category"
+            >
+              <span>+</span>
+              Tambah Kategori
+            </button>
           </section>
 
           <!-- SEARCH DAN FILTER -->
@@ -778,6 +788,80 @@
           </section>
         </main>
       </div>
+    </div>
+
+    <!-- ======================================
+         MODAL TAMBAH KATEGORI
+    ======================================= -->
+    <div class="modal-overlay add-modal-overlay">
+      <label
+        for="add-category-modal"
+        class="modal-backdrop"
+        aria-label="Tutup modal"
+      ></label>
+
+      <section class="modal-card" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <div>
+            <h2>Tambah Kategori Fasilitas</h2>
+            <p>Tambahkan kategori fasilitas baru ke SIPFAS.</p>
+          </div>
+
+          <label for="add-category-modal" class="modal-close" title="Tutup">
+            &times;
+          </label>
+        </div>
+
+        <div class="modal-body">
+          <form class="category-form" id="add-category-form">
+            <div class="form-group">
+              <label for="add-code">Kode Kategori <span>*</span></label>
+              <input
+                type="text"
+                id="add-code"
+                maxlength="20"
+                placeholder="Contoh: KTG-010"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="add-name">Nama Kategori <span>*</span></label>
+              <input
+                type="text"
+                id="add-name"
+                maxlength="100"
+                placeholder="Masukkan nama kategori"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="add-description">Deskripsi Cakupan</label>
+              <textarea
+                id="add-description"
+                rows="3"
+                placeholder="Masukkan deskripsi kategori"
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="add-status">Status Kategori</label>
+              <select id="add-status">
+                <option value="aktif" selected>Aktif</option>
+                <option value="nonaktif">Nonaktif</option>
+              </select>
+            </div>
+
+            <div class="modal-footer">
+              <label for="add-category-modal" class="cancel-btn">Batal</label>
+              <button type="submit" class="save-btn add-save-btn">
+                Simpan Kategori
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
     </div>
 
     <!-- ======================================
