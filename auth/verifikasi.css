@@ -337,46 +337,58 @@ body {
 }
 
 /* ============================================================
-   NOTIFIKASI VERIFIKASI OTP
-   Desain pesan error, warning, success, dan informasi.
-   Tidak mengubah komponen halaman lainnya.
+   NOTIFIKASI VERIFIKASI OTP LOGIN SIPFAS
+   Posisi: atas tengah layar (top-center).
+   Terpisah dari kartu verifikasi.
 ============================================================ */
 
-/* KARTU NOTIFIKASI */
 #verificationMessage {
-  display: none;
-  align-items: flex-start;
-  gap: 11px;
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
 
-  width: 100%;
-  margin: 15px 0 5px;
-  padding: 13px 14px;
+  width: calc(100% - 32px);
+  max-width: 440px;
+  min-height: 68px;
+
+  display: none;
+  align-items: center;
+  gap: 12px;
+
+  padding: 14px 17px;
 
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-left-width: 4px;
+  border-radius: 10px;
+
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgba(24, 39, 75, 0.14);
+
+  box-sizing: border-box;
+  z-index: 99999;
 
   text-align: left;
-  font-family: inherit;
-  font-size: 12px;
-  line-height: 1.5;
-
-  animation: notificationAppear 0.2s ease;
+  font-family: "Inter", Arial, sans-serif;
 }
 
 /* IKON NOTIFIKASI */
 #verificationMessage .notification-icon {
-  width: 19px;
-  height: 19px;
-  flex-shrink: 0;
+  width: 29px;
+  height: 29px;
+  min-width: 29px;
 
   display: flex;
   align-items: center;
   justify-content: center;
+
+  border-radius: 50%;
 }
 
 #verificationMessage .notification-icon svg {
-  width: 19px;
-  height: 19px;
+  width: 17px;
+  height: 17px;
+
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
@@ -388,80 +400,138 @@ body {
 #verificationMessage .notification-content {
   flex: 1;
   min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 #verificationMessage .notification-title {
   display: block;
-  margin-bottom: 2px;
-
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
 }
 
 #verificationMessage .notification-text {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
-/* NOTIFIKASI ERROR */
+/* ERROR */
 #verificationMessage.error {
   display: flex;
   background: #fef2f2;
   border-color: #fecaca;
+  border-left-color: #dc2626;
   color: #dc2626;
 }
 
-/* NOTIFIKASI WARNING */
+#verificationMessage.error .notification-icon {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+/* WARNING */
 #verificationMessage.warning {
   display: flex;
   background: #fff7ed;
   border-color: #fed7aa;
+  border-left-color: #ea580c;
   color: #c2410c;
 }
 
-/* NOTIFIKASI BERHASIL */
+#verificationMessage.warning .notification-icon {
+  background: #ea580c;
+  color: #ffffff;
+}
+
+/* SUCCESS */
 #verificationMessage.success {
   display: flex;
   background: #ecfdf5;
   border-color: #bbf7d0;
+  border-left-color: #16a34a;
   color: #15803d;
 }
 
-/* NOTIFIKASI INFORMASI */
+#verificationMessage.success .notification-icon {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+/* INFORMATION */
 #verificationMessage.info {
   display: flex;
   background: #eff6ff;
   border-color: #bfdbfe;
+  border-left-color: #2563eb;
   color: #1d4ed8;
 }
 
-/* ANIMASI KEMUNCULAN */
-@keyframes notificationAppear {
+#verificationMessage.info .notification-icon {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+/* ANIMASI MASUK */
+@keyframes verificationToastIn {
   from {
     opacity: 0;
-    transform: translateY(-5px);
+    transform: translate(-50%, -15px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, 0);
   }
 }
 
-/* PENYESUAIAN PADA LAYAR KECIL */
+/* RESPONSIVE */
 @media (max-width: 520px) {
   #verificationMessage {
-    padding: 11px;
+    top: 15px;
+    width: calc(100% - 24px);
+    padding: 12px;
     gap: 9px;
   }
 
   #verificationMessage .notification-title {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   #verificationMessage .notification-text {
-    font-size: 10px;
+    font-size: 11px;
   }
+}
+
+/* ============================================================
+   STATUS TOMBOL VERIFIKASI OTP
+============================================================ */
+
+/* TOMBOL SAAT OTP TIDAK BISA DIGUNAKAN */
+.verification-button:disabled {
+  background: #b8c9e8 !important;
+  color: #ffffff !important;
+
+  cursor: not-allowed !important;
+
+  opacity: 1;
+  box-shadow: none;
+
+  transform: none;
+}
+
+/* HOVER TIDAK MENGUBAH WARNA TOMBOL DISABLED */
+.verification-button:disabled:hover {
+  background: #b8c9e8 !important;
+}
+
+/* INPUT OTP KETIKA TERKUNCI */
+.otp-input:disabled {
+  background: #e5ebf3;
+  color: #9ca3af;
+
+  cursor: not-allowed;
 }

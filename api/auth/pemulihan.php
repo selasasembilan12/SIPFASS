@@ -118,7 +118,7 @@ try {
     if (!$user) {
         pemulihanResponse(
             false,
-            'Email tidak ditemukan dalam akun SIPFAS.',
+            'Silahkan coba lagi!',
             404
         );
     }

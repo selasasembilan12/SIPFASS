@@ -1,27 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/**
- * ============================================================
- * SIPFAS - SIMPAN LAPORAN USER
- * ============================================================
- *
- * Fungsi:
- * 1. Memastikan pengguna sudah login.
- * 2. Memastikan role pengguna adalah Pelapor.
- * 3. Membaca data laporan dari JavaScript.
- * 4. Memastikan fasilitas tersedia.
- * 5. Mengambil frekuensi penggunaan fasilitas sebagai X3.
- * 6. Menyimpan laporan ke tabel laporan_kerusakan.
- *
- * Identitas pengguna TIDAK diambil dari browser.
- * ID pengguna diambil dari PHP Session.
- * ============================================================
- */
-
-// ============================================================
-// 01. MEMUAT BOOTSTRAP SIPFAS
-// ============================================================
 
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
 

@@ -1,22 +1,4 @@
 <?php
-declare(strict_types=1);
-
-/**
- * =========================================================
- * SIPFAS - APPLICATION BOOTSTRAP
- * =========================================================
- * Fungsi:
- * 1. Mengatur zona waktu.
- * 2. Mengatur keamanan session.
- * 3. Memulai session sebelum koneksi database.
- * 4. Memuat koneksi database.
- * 5. Menjaga konsistensi session seluruh aplikasi.
- * =========================================================
- */
-
-// =========================================================
-// 1. ZONA WAKTU
-// =========================================================
 
 date_default_timezone_set('Asia/Makassar');
 

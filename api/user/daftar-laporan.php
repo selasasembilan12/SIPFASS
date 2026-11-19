@@ -2,30 +2,6 @@
 
 declare(strict_types=1);
 
-/**
- * ============================================================
- * SIPFAS - API DAFTAR LAPORAN PELAPOR
- * ============================================================
- *
- * Method:
- * GET
- *
- * Fungsi:
- * Mengambil daftar laporan yang dibuat oleh pengguna yang
- * sedang login.
- *
- * Sumber identitas:
- * Database -> Session -> API
- *
- * Relasi utama:
- * pengguna
- *     ↓
- * laporan_kerusakan
- *     ↓
- * fasilitas
- *
- * ============================================================
- */
 
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
 

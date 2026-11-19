@@ -1,35 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/**
- * ============================================================
- * SIPFAS - API DASHBOARD USER / PELAPOR
- * ============================================================
- *
- * Method:
- * GET
- *
- * Fungsi:
- * 1. Memastikan user sudah login.
- * 2. Memastikan akun masih aktif.
- * 3. Memastikan role adalah Pelapor.
- * 4. Mengambil ringkasan laporan milik user.
- * 5. Mengambil beberapa laporan terbaru milik user.
- *
- * Sumber data:
- * - pengguna
- * - peran
- * - laporan_kerusakan
- *
- * Catatan:
- * Dashboard USER hanya menampilkan laporan milik user
- * yang sedang login.
- *
- * Dashboard PETUGAS nantinya berbeda:
- * PETUGAS akan mengambil seluruh laporan dari seluruh user.
- *
- * ============================================================
- */
 
 // ============================================================
 // 01. BOOTSTRAP

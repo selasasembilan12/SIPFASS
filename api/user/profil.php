@@ -1,16 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/**
- * =========================================================
- * SIPFAS - API PROFIL PELAPOR
- * =========================================================
- * GET  : Mengambil profil pengguna.
- * POST : Memperbarui profil, password, dan foto.
- *
- * Sumber data: DATABASE + PHP SESSION
- * =========================================================
- */
 
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
 

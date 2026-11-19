@@ -1,48 +1,59 @@
 <?php
 declare(strict_types=1);
 
-/**
- * SIPFAS - VERIFIKASI OTP PEMULIHAN
- *
- * Action:
- * 1. ensure: Memastikan OTP tersedia.
- * 2. resend: Mengirim OTP baru.
- * 3. verify: Memeriksa OTP dan mengaktifkan sesi pembuatan password baru.
- */
 
-// Memuat konfigurasi, session, database, dan service.
+
+// =========================================================
+// 01. MEMUAT KONFIGURASI DAN SERVICE
+// =========================================================
+
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
 require_once dirname(__DIR__, 2) . '/services/OtpService.php';
 require_once dirname(__DIR__, 2) . '/services/MailService.php';
 
-// Mengatur respons JSON.
+// =========================================================
+// 02. HEADER RESPONS
+// =========================================================
+
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');
 
-// Mengirim respons JSON.
+// =========================================================
+// 03. FUNGSI RESPONS JSON
+// =========================================================
+
 function otpPemulihanResponse(
     int $status,
     bool $success,
     string $message,
     array $data = []
 ): never {
+
     http_response_code($status);
 
     echo json_encode(
-        array_merge([
-            'success' => $success,
-            'message' => $message,
-            'data' => $data
-        ], $data),
-        JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE
+        array_merge(
+            [
+                'success' => $success,
+                'message' => $message,
+                'data' => $data
+            ],
+            $data
+        ),
+        JSON_UNESCAPED_UNICODE |
+        JSON_INVALID_UTF8_SUBSTITUTE
     );
 
     exit;
 }
 
-// Memastikan metode request POST.
+// =========================================================
+// 04. MEMASTIKAN REQUEST POST
+// =========================================================
+
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+
     header('Allow: POST');
 
     otpPemulihanResponse(
@@ -52,12 +63,18 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     );
 }
 
-// Memastikan input JSON.
+// =========================================================
+// 05. MEMASTIKAN FORMAT JSON
+// =========================================================
+
 $contentType = strtolower(
-    trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0])
+    trim(
+        explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0]
+    )
 );
 
 if ($contentType !== 'application/json') {
+
     otpPemulihanResponse(
         415,
         false,
@@ -65,10 +82,13 @@ if ($contentType !== 'application/json') {
     );
 }
 
-// Membaca data permintaan.
 $rawInput = file_get_contents('php://input');
 
-if ($rawInput === false || strlen($rawInput) > 2048) {
+if (
+    $rawInput === false ||
+    strlen($rawInput) > 2048
+) {
+
     otpPemulihanResponse(
         400,
         false,
@@ -79,6 +99,7 @@ if ($rawInput === false || strlen($rawInput) > 2048) {
 $input = json_decode($rawInput, true);
 
 if (!is_array($input)) {
+
     otpPemulihanResponse(
         400,
         false,
@@ -86,18 +107,32 @@ if (!is_array($input)) {
     );
 }
 
-// Memeriksa action.
+// =========================================================
+// 06. VALIDASI ACTION
+// =========================================================
+
 $action = $input['action'] ?? 'verify';
 
-if (!in_array($action, ['ensure', 'resend', 'verify'], true)) {
+if (
+    !is_string($action) ||
+    !in_array(
+        $action,
+        ['ensure', 'resend', 'verify'],
+        true
+    )
+) {
+
     otpPemulihanResponse(
         422,
         false,
-        'Aksi tidak valid.'
+        'Aksi permintaan tidak valid.'
     );
 }
 
-// Memvalidasi format OTP.
+// =========================================================
+// 07. VALIDASI FORMAT OTP
+// =========================================================
+
 $otpInput = $input['otp'] ?? '';
 
 if (
@@ -107,6 +142,7 @@ if (
         !preg_match('/^[0-9]{8}$/D', $otpInput)
     )
 ) {
+
     otpPemulihanResponse(
         422,
         false,
@@ -114,7 +150,10 @@ if (
     );
 }
 
-// Mengambil identitas dari session server.
+// =========================================================
+// 08. MEMERIKSA SESSION PEMULIHAN
+// =========================================================
+
 $userId = (int) (
     $_SESSION['pemulihan_id_pengguna'] ?? 0
 );
@@ -128,6 +167,7 @@ if (
     $pendingExpiry <= time() ||
     ($_SESSION['pemulihan_terverifikasi'] ?? false) === true
 ) {
+
     unset(
         $_SESSION['pemulihan_id_pengguna'],
         $_SESSION['pemulihan_pending_expires'],
@@ -143,9 +183,16 @@ if (
     );
 }
 
+// =========================================================
+// 09. PROSES UTAMA
+// =========================================================
+
 try {
 
-    // Mengambil data pengguna terbaru.
+    // -----------------------------------------------------
+    // A. MENGAMBIL DATA PENGGUNA
+    // -----------------------------------------------------
+
     $stmt = $pdo->prepare("
         SELECT
             id_pengguna,
@@ -164,23 +211,44 @@ try {
 
     if (
         !$user ||
-        strcasecmp(trim((string) $user['status_akun']), 'Aktif') !== 0
+        strcasecmp(
+            trim((string) $user['status_akun']),
+            'Aktif'
+        ) !== 0
     ) {
+
         otpPemulihanResponse(
             403,
             false,
-'Permintaan tidak dapat diproses. Silakan ulangi proses pemulihan akun.'        );
+            'Akun tidak ditemukan atau tidak aktif.'
+        );
     }
 
-    // Menyamarkan email pengguna.
-    $parts = explode('@', (string) $user['email'], 2);
+    // -----------------------------------------------------
+    // B. MENYAMARKAN EMAIL
+    // -----------------------------------------------------
+
+    $parts = explode(
+        '@',
+        (string) $user['email'],
+        2
+    );
+
+    $prefix = $parts[0];
+    $domain = $parts[1] ?? '';
 
     $maskedEmail =
-        substr($parts[0], 0, 2) .
-        str_repeat('*', max(3, strlen($parts[0]) - 2)) .
-        '@' . ($parts[1] ?? '');
+        substr($prefix, 0, 2) .
+        str_repeat(
+            '*',
+            max(3, strlen($prefix) - 2)
+        ) .
+        '@' . $domain;
 
-    // Mengambil OTP terbaru untuk sesi ini.
+    // -----------------------------------------------------
+    // C. MENGAMBIL OTP TERBARU
+    // -----------------------------------------------------
+
     $stmt = $pdo->prepare("
         SELECT
             id_otp,
@@ -203,6 +271,10 @@ try {
 
     $record = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    // -----------------------------------------------------
+    // D. MEMERIKSA KEPEMILIKAN OTP
+    // -----------------------------------------------------
+
     $sessionOtpId = (string) (
         $_SESSION['pemulihan_id_otp'] ?? ''
     );
@@ -212,6 +284,10 @@ try {
         (string) $record['id_otp'] === $sessionOtpId
     );
 
+    // -----------------------------------------------------
+    // E. MEMERIKSA STATUS OTP
+    // -----------------------------------------------------
+
     $active = (
         $record &&
         $record['digunakan_pada'] === null &&
@@ -220,10 +296,47 @@ try {
         (int) $record['jumlah_percobaan'] < 3
     );
 
-    // Memastikan OTP tersedia.
-    if ($action === 'ensure' || $action === 'resend') {
+    // =====================================================
+    // 10. ACTION ENSURE DAN RESEND
+    // =====================================================
+
+    if (
+        $action === 'ensure' ||
+        $action === 'resend'
+    ) {
+
+        // -------------------------------------------------
+        // PERBAIKAN UTAMA:
+        // OTP aktif tetapi session belum memiliki ID OTP.
+        // -------------------------------------------------
+
+        if ($active && !$owned) {
+
+            // Mengikat OTP aktif dengan session pemulihan.
+            $_SESSION['pemulihan_id_otp'] =
+                (string) $record['id_otp'];
+
+            otpPemulihanResponse(
+                200,
+                true,
+                'Kode OTP tersedia. Silakan masukkan kode yang dikirim ke email Anda.',
+                [
+                    'expires_at' => (int) $record['expires_at'],
+                    'masked_email' => $maskedEmail,
+                    'remaining_attempts' => max(
+                        0,
+                        3 - (int) $record['jumlah_percobaan']
+                    )
+                ]
+            );
+        }
+
+        // -------------------------------------------------
+        // OTP MASIH AKTIF DAN SUDAH TERIKAT SESSION
+        // -------------------------------------------------
 
         if ($active && $owned) {
+
             otpPemulihanResponse(
                 200,
                 true,
@@ -239,23 +352,18 @@ try {
             );
         }
 
-        // Jika OTP aktif berasal dari sesi lain, jangan
-        // langsung menggantinya sebelum masa berlakunya habis.
-        if ($active && !$owned) {
-            otpPemulihanResponse(
-                409,
-                false,
-                'Kode OTP sebelumnya masih aktif. Silakan tunggu hingga kedaluwarsa.'
-            );
-        }
+        // -------------------------------------------------
+        // MEMBATASI PENGIRIMAN OTP
+        // Maksimal 5 kali dalam 15 menit.
+        // -------------------------------------------------
 
-        // Membatasi maksimal 5 pengiriman dalam 15 menit.
         $stmt = $pdo->prepare("
             SELECT COUNT(*)
             FROM otp_verifikasi
             WHERE id_pengguna = :id
             AND tujuan = 'Pemulihan'
-            AND tanggal_dibuat >= DATE_SUB(NOW(), INTERVAL 15 MINUTE)
+            AND tanggal_dibuat >=
+                DATE_SUB(NOW(), INTERVAL 15 MINUTE)
         ");
 
         $stmt->execute([
@@ -263,21 +371,28 @@ try {
         ]);
 
         if ((int) $stmt->fetchColumn() >= 5) {
+
             otpPemulihanResponse(
                 429,
                 false,
-                'Batas pengiriman OTP tercapai. Silakan coba lagi nanti.'
+                'Batas pengiriman OTP tercapai. Silakan coba kembali nanti.'
             );
         }
 
-        // Membuat OTP melalui service utama SIPFAS.
+        // -------------------------------------------------
+        // MEMBUAT OTP BARU
+        // -------------------------------------------------
+
         $otp = OtpService::create(
             $pdo,
             $userId,
             'Pemulihan'
         );
 
-        // Mengambil ID OTP terbaru.
+        // -------------------------------------------------
+        // MENGAMBIL ID OTP BARU
+        // -------------------------------------------------
+
         $stmt = $pdo->prepare("
             SELECT
                 id_otp,
@@ -298,12 +413,16 @@ try {
         $newOtp = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$newOtp) {
+
             throw new RuntimeException(
                 'OTP baru tidak ditemukan.'
             );
         }
 
-        // Mengirim OTP melalui MailService utama.
+        // -------------------------------------------------
+        // MENGIRIM OTP MELALUI EMAIL
+        // -------------------------------------------------
+
         $emailSent = MailService::sendOtp(
             (string) $user['email'],
             $otp,
@@ -311,11 +430,14 @@ try {
         );
 
         if (!$emailSent) {
+
             OtpService::cancel(
                 $pdo,
                 $userId,
                 'Pemulihan'
             );
+
+            unset($_SESSION['pemulihan_id_otp']);
 
             otpPemulihanResponse(
                 500,
@@ -324,9 +446,16 @@ try {
             );
         }
 
-        // Mengikat OTP terbaru dengan session.
+        // -------------------------------------------------
+        // MENGIKAT OTP BARU KE SESSION
+        // -------------------------------------------------
+
         $_SESSION['pemulihan_id_otp'] =
             (string) $newOtp['id_otp'];
+
+        // -------------------------------------------------
+        // RESPONS OTP BERHASIL DIKIRIM
+        // -------------------------------------------------
 
         otpPemulihanResponse(
             200,
@@ -340,33 +469,47 @@ try {
         );
     }
 
-    // Memastikan OTP berasal dari session pengguna.
+    // =====================================================
+    // 11. ACTION VERIFY
+    // =====================================================
+
+    // Memastikan OTP tersedia untuk session.
     if (!$owned || !$record) {
+
         otpPemulihanResponse(
             409,
             false,
-            'Kode OTP tidak tersedia untuk sesi ini.'
+            'Kode OTP tidak tersedia untuk sesi ini. Silakan muat ulang halaman.'
         );
     }
 
     // Memastikan OTP belum kedaluwarsa.
     if (!$active) {
+
         otpPemulihanResponse(
             410,
             false,
-            'Kode OTP kedaluwarsa atau tidak berlaku.'
+            'Kode OTP sudah kedaluwarsa atau tidak berlaku. Silakan kirim ulang kode.'
         );
     }
 
-    // Memeriksa kode OTP.
+    // -----------------------------------------------------
+    // A. MEMERIKSA KODE OTP
+    // -----------------------------------------------------
+
     $valid = password_verify(
         $otpInput,
         (string) $record['kode_hash']
     );
 
+    // -----------------------------------------------------
+    // B. JIKA OTP SALAH
+    // -----------------------------------------------------
+
     if (!$valid) {
 
-        $attempts = (int) $record['jumlah_percobaan'] + 1;
+        $attempts =
+            (int) $record['jumlah_percobaan'] + 1;
 
         $stmt = $pdo->prepare("
             UPDATE otp_verifikasi
@@ -387,19 +530,41 @@ try {
             ':id' => $record['id_otp']
         ]);
 
+        // -------------------------------------------------
+        // JIKA 3 KALI SALAH, OTP DINONAKTIFKAN.
+        // SESSION PEMULIHAN TETAP DIPERTAHANKAN.
+        // -------------------------------------------------
+
+        if ($attempts >= 3) {
+
+            otpPemulihanResponse(
+                429,
+                false,
+                'Batas percobaan OTP tercapai. Silakan kirim ulang kode untuk mendapatkan OTP baru.',
+                [
+                    'remaining_attempts' => 0,
+                    'can_resend' => true
+                ]
+            );
+        }
+
         otpPemulihanResponse(
-            $attempts >= 3 ? 429 : 422,
+            422,
             false,
-            $attempts >= 3
-                ? 'Batas percobaan OTP tercapai. Silakan kirim ulang kode.'
-                : 'Kode OTP salah. Percobaan ' . $attempts . '/3.',
+            'Kode OTP salah. Percobaan ' . $attempts . '/3.',
             [
-                'remaining_attempts' => max(0, 3 - $attempts)
+                'remaining_attempts' => max(
+                    0,
+                    3 - $attempts
+                )
             ]
         );
     }
 
-    // Menandai OTP berhasil digunakan.
+    // -----------------------------------------------------
+    // C. JIKA OTP BENAR
+    // -----------------------------------------------------
+
     $stmt = $pdo->prepare("
         UPDATE otp_verifikasi
         SET digunakan_pada = NOW()
@@ -415,15 +580,20 @@ try {
     ]);
 
     if ($stmt->rowCount() !== 1) {
+
         otpPemulihanResponse(
             410,
             false,
-            'Kode OTP sudah tidak berlaku.'
+            'Kode OTP sudah tidak berlaku. Silakan kirim ulang kode.'
         );
     }
 
-    // Memperbarui ID session setelah verifikasi.
+    // -----------------------------------------------------
+    // D. MEMPERBARUI SESSION
+    // -----------------------------------------------------
+
     if (!session_regenerate_id(true)) {
+
         throw new RuntimeException(
             'Gagal memperbarui session.'
         );
@@ -432,6 +602,7 @@ try {
     // Mengaktifkan hak pembuatan password baru.
     $_SESSION['pemulihan_terverifikasi'] = true;
 
+    // Masa berlaku sesi reset password 10 menit.
     $_SESSION['pemulihan_reset_berlaku_sampai'] =
         time() + 600;
 
@@ -441,7 +612,10 @@ try {
         $_SESSION['pemulihan_pending_expires']
     );
 
-    // Mengarahkan pengguna ke halaman password baru.
+    // -----------------------------------------------------
+    // E. RESPONS BERHASIL
+    // -----------------------------------------------------
+
     otpPemulihanResponse(
         200,
         true,
@@ -453,9 +627,11 @@ try {
 
 } catch (Throwable $e) {
 
+    // Mencatat kesalahan pada log PHP.
     error_log(
         '[SIPFAS OTP PEMULIHAN] ' .
-        get_class($e) . ': ' . $e->getMessage()
+        get_class($e) . ': ' .
+        $e->getMessage()
     );
 
     otpPemulihanResponse(

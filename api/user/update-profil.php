@@ -1,20 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/**
- * =========================================================
- * SIPFAS - API UPDATE PROFIL PELAPOR
- * =========================================================
- * Mengelola:
- * 1. Nama lengkap
- * 2. Email
- * 3. Foto profil
- * 4. Pergantian kata sandi
- *
- * Identitas pengguna diambil dari PHP Session.
- * Seluruh perubahan disimpan ke database MySQL.
- * =========================================================
- */
 
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
 
