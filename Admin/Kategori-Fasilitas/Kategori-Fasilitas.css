@@ -115,106 +115,114 @@ svg {
 }
 
 /* =========================================================
-   05. SIDEBAR
+   04. SIDEBAR
 ========================================================= */
 
 .sidebar {
-  position: relative;
-  z-index: 10;
   width: var(--sidebar-width);
   min-width: var(--sidebar-width);
+
   min-height: 100vh;
+
   display: flex;
   flex-direction: column;
+
+  position: relative;
+  z-index: 10;
+
   flex-shrink: 0;
+
   background: var(--navy);
   color: #dce7f5;
 }
 
+.sidebar::after {
+  content: "";
+
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  width: 1px;
+  height: 100%;
+
+  background: rgba(255, 255, 255, 0.08);
+}
+
 /* =========================================================
-   06. SIDEBAR LOGO
+   05. LOGO GLOBAL
+   Menggunakan logo.css.
+   Ukuran dan posisi logo tidak diatur ulang.
 ========================================================= */
 
 .sidebar-logo {
-  min-height: 67px;
-  padding: 12px 17px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #ffffff;
-  text-decoration: none;
-}
-
-.sidebar-logo img {
-  width: 35px;
-  height: 35px;
-  object-fit: contain;
   flex-shrink: 0;
 }
 
-.sidebar-brand {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.sidebar-brand strong {
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-}
-
-.sidebar-brand span {
-  color: #b9cbe0;
-  font-size: 8px;
-  font-weight: 500;
-}
+/* =========================================================
+   06. GARIS PEMISAH LOGO
+========================================================= */
 
 .sidebar-brand-divider {
+  width: 100%;
   height: 1px;
-  margin: 0 15px;
-  background: rgba(255, 255, 255, 0.13);
+
+  flex-shrink: 0;
+
+  margin: 0 0 5px 0;
+
+  background: rgba(255, 255, 255, 0.22);
 }
 
 /* =========================================================
-   07. SIDEBAR NAVIGATION
+   07. NAVIGASI SIDEBAR
 ========================================================= */
 
 .sidebar-nav {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  padding-top: 8px;
+
+  flex: 1;
 }
 
 .nav-group {
   padding: 0 11px;
-  margin-bottom: 9px;
+  margin-top: 8px;
 }
 
 .nav-title {
-  padding: 9px 8px 6px;
   color: #91aac7;
+
   font-size: 7px;
   font-weight: 700;
-  letter-spacing: 0.65px;
+
+  letter-spacing: 0.45px;
+
+  padding: 8px 5px 6px;
 }
 
 .nav-link {
-  height: 26px;
+  width: 100%;
   min-height: 26px;
+
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 4px 10px;
-  margin-bottom: 3px;
+
+  gap: 8px;
+
+  padding: 5px 8px;
+  margin-bottom: 2px;
+
   border-radius: 6px;
+
   color: #d5e2f1;
+
   font-size: 9px;
   font-weight: 500;
-  line-height: 1;
-  transition: all 0.2s ease;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
 }
 
 .nav-link:hover {
@@ -225,35 +233,42 @@ svg {
 .nav-link.active {
   background: var(--primary);
   color: #ffffff;
-  font-weight: 700;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
-}
 
-/* ICON NAVIGASI */
+  font-weight: 700;
+}
 
 .nav-icon {
   width: 13px;
   height: 13px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   flex-shrink: 0;
 }
 
 .nav-icon svg {
   width: 13px;
   height: 13px;
+
   stroke-width: 1.8;
 }
 
 /* =========================================================
-   08. SIDEBAR BOTTOM
+   08. MENU AKUN
 ========================================================= */
 
 .sidebar-bottom {
   margin-top: auto;
-  padding: 8px 11px 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+  padding: 8px 11px 9px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.sidebar-bottom .nav-title {
+  padding-top: 0;
 }
 
 /* =========================================================
@@ -273,15 +288,18 @@ svg {
 ========================================================= */
 
 .topbar {
-  width: 100%;
   height: 66px;
-  min-height: 66px;
-  padding: 0 23px;
+  min-height: 64px;
+
+  padding: 0 20px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
+
+  background: var(--white);
   border-bottom: 1px solid var(--border);
+
   flex-shrink: 0;
 }
 
@@ -309,29 +327,36 @@ svg {
 .topbar-user {
   display: flex;
   align-items: center;
-  gap: 10px;
+
+  gap: 8px;
 }
 
 .topbar-user-name {
-  color: #354153;
-  font-size: 9px;
+  color: #25303c;
+
+  font-size: 8px;
   font-weight: 600;
 }
 
 .topbar-user-avatar {
-  width: 30px;
-  height: 30px;
+  width: 23px;
+  height: 23px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   border-radius: 50%;
-  background: #e6edff;
-  color: var(--primary);
+
+  background: var(--primary);
+  color: #ffffff;
+
+  flex-shrink: 0;
 }
 
 .topbar-user-avatar svg {
-  width: 17px;
-  height: 17px;
+  width: 13px;
+  height: 13px;
 }
 
 /* =========================================================
@@ -1300,22 +1325,11 @@ svg {
   }
 
   .sidebar-logo {
-    min-height: 57px;
-    padding: 10px 14px;
-  }
-
-  .sidebar-logo img {
-    width: 32px;
-    height: 32px;
-  }
-
-  .sidebar-brand strong {
-    font-size: 15px;
+    height: 50px;
   }
 
   .sidebar-nav,
-  .sidebar-bottom,
-  .sidebar-brand-divider {
+  .sidebar-bottom {
     display: none;
   }
 

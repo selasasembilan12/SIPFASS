@@ -208,9 +208,24 @@ if (!function_exists('sipfas_require_role')) {
         // Memastikan pengguna sudah login.
         sipfas_require_auth();
 
+        // Jika role-check.php sudah dimuat,
+        // gunakan pemeriksaan role berdasarkan ID maupun nama.
+        if (function_exists('sipfas_has_role')) {
+
+            if (!sipfas_has_role($allowedRoles)) {
+
+                sipfas_auth_response(
+                    403,
+                    'Anda tidak memiliki hak akses ke halaman ini.'
+                );
+            }
+
+            return;
+        }
+
+        // Pemeriksaan cadangan jika role-check.php belum dimuat.
         $currentRole = sipfas_current_user_role();
 
-        // Memeriksa apakah role diizinkan.
         if (
             $currentRole === null ||
             !in_array($currentRole, $allowedRoles, true)
