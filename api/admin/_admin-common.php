@@ -8,7 +8,9 @@ declare(strict_types=1);
  *
  * Fungsi:
  * - Koneksi database.
+ * - Validasi login.
  * - Validasi role Admin.
+ * - Perlindungan CSRF.
  * - Respons JSON.
  * - Membaca input API.
  * - Validasi metode HTTP.
@@ -23,6 +25,9 @@ require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
 
 require_once dirname(__DIR__, 2) . '/config/role-check.php';
 
+require_once dirname(__DIR__, 2) . '/config/csrf.php';
+
+
 /* ==================================================
    01. HEADER RESPONSE
 ================================================== */
@@ -31,14 +36,40 @@ header('Content-Type: application/json; charset=utf-8');
 
 header('Cache-Control: no-store, no-cache, must-revalidate');
 
+
 /* ==================================================
-   02. VALIDASI ROLE ADMIN
+   02. VALIDASI LOGIN
 ================================================== */
+
+// Memastikan pengguna sudah login dan OTP terverifikasi.
+
+sipfas_require_auth();
+
+
+/* ==================================================
+   03. VALIDASI ROLE ADMIN
+================================================== */
+
+// Hanya Administrator yang boleh mengakses API Admin.
 
 sipfas_require_role([SIPFAS_ROLE_ADMIN]);
 
+
 /* ==================================================
-   03. RESPONSE JSON
+   04. VALIDASI CSRF
+================================================== */
+
+// Memastikan seluruh request yang mengubah data
+// memiliki token CSRF yang valid.
+//
+// POST, PUT, PATCH, DELETE wajib menggunakan token.
+// GET, HEAD, OPTIONS tidak memerlukan token.
+
+sipfas_csrf_require_valid();
+
+
+/* ==================================================
+   05. RESPONSE JSON
 ================================================== */
 
 function admin_json(
@@ -57,8 +88,9 @@ function admin_json(
     exit;
 }
 
+
 /* ==================================================
-   04. RESPONSE BERHASIL
+   06. RESPONSE BERHASIL
 ================================================== */
 
 function admin_ok(
@@ -77,8 +109,9 @@ function admin_ok(
     );
 }
 
+
 /* ==================================================
-   05. RESPONSE GAGAL
+   07. RESPONSE GAGAL
 ================================================== */
 
 function admin_fail(
@@ -98,8 +131,9 @@ function admin_fail(
     );
 }
 
+
 /* ==================================================
-   06. MEMBACA INPUT
+   08. MEMBACA INPUT
 ================================================== */
 
 function admin_input(): array
@@ -116,8 +150,9 @@ function admin_input(): array
         : $_POST;
 }
 
+
 /* ==================================================
-   07. VALIDASI HTTP METHOD
+   09. VALIDASI HTTP METHOD
 ================================================== */
 
 function admin_method(
@@ -138,8 +173,9 @@ function admin_method(
     return $method;
 }
 
+
 /* ==================================================
-   08. MENGAMBIL ID ADMIN
+   10. MENGAMBIL ID ADMIN
 ================================================== */
 
 function admin_user_id(): int
@@ -151,8 +187,9 @@ function admin_user_id(): int
     );
 }
 
+
 /* ==================================================
-   09. VALIDASI ID
+   11. VALIDASI ID
 ================================================== */
 
 function admin_id(
@@ -175,8 +212,9 @@ function admin_id(
     return (int)$id;
 }
 
+
 /* ==================================================
-   10. VALIDASI TEXT
+   12. VALIDASI TEXT
 ================================================== */
 
 function admin_text(
@@ -211,8 +249,9 @@ function admin_text(
     return $value;
 }
 
+
 /* ==================================================
-   11. PAGINATION
+   13. PAGINATION
 ================================================== */
 
 function admin_page(): array
@@ -239,8 +278,9 @@ function admin_page(): array
     ];
 }
 
+
 /* ==================================================
-   12. TRANSAKSI DATABASE
+   14. TRANSAKSI DATABASE
 ================================================== */
 
 function admin_transaction(
@@ -269,8 +309,9 @@ function admin_transaction(
     }
 }
 
+
 /* ==================================================
-   13. PENANGANAN EXCEPTION
+   15. PENANGANAN EXCEPTION
 ================================================== */
 
 function admin_exception(
