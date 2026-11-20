@@ -1,4 +1,3 @@
-
 (() => {
   "use strict";
 
@@ -196,7 +195,6 @@
         report.waktu_selesai_penanganan ||
         report.completedAt;
 
-      // Laporan yang ditolak tidak masuk antrean penanganan.
       if (
         verification.includes("tidak valid") ||
         verification.includes("ditolak") ||
@@ -208,7 +206,6 @@
         return "invalid";
       }
 
-      // Status selesai memiliki prioritas klasifikasi tertinggi.
       if (
         completedTime ||
         handling.includes("selesai") ||
@@ -217,7 +214,6 @@
         return "completed";
       }
 
-      // Laporan yang sudah valid masuk proses penanganan.
       if (
         verification === "valid" ||
         verification.includes("terverifikasi") ||
@@ -229,7 +225,6 @@
         return "handling";
       }
 
-      // Laporan yang belum diverifikasi tetap menunggu verifikasi.
       return "pending";
     }
 
@@ -424,6 +419,7 @@
         cell.colSpan = 6;
         cell.className = "empty-row";
         cell.style.textAlign = "center";
+
         cell.textContent =
           "Tidak ada laporan yang menunggu verifikasi.";
 
@@ -521,7 +517,6 @@
       ).toUpperCase();
     }
 
-    // Mengarahkan path foto relatif ke root proyek SIPFAS.
     function resolvePhotoUrl(path) {
       const value = String(path ?? "").trim();
 
@@ -614,6 +609,103 @@
       avatarEl.style.overflow = "hidden";
     }
 
+    // ==================================================
+    // NOTIFIKASI SAMBUTAN SETELAH LOGIN (TENGAH ATAS)
+    // ==================================================
+
+    const WELCOME_NOTICE_KEY = "sipfas_petugas_welcome_shown";
+
+    function showWelcomeNotification(name) {
+      document.getElementById("sipfasDashboardWelcome")?.remove();
+
+      const toast = document.createElement("div");
+
+      toast.id = "sipfasDashboardWelcome";
+      toast.setAttribute("role", "status");
+      toast.setAttribute("aria-live", "polite");
+
+      Object.assign(toast.style, {
+        position: "fixed",
+        top: "20px",
+        left: "50%",
+        transform: "translate(-50%, -10px)",
+        width: "min(92vw, 520px)",
+        boxSizing: "border-box",
+        zIndex: "9999",
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "12px",
+        padding: "14px 18px",
+        background: "#ffffff",
+        color: "#1f2937",
+        border: "1px solid #e2e8f0",
+        borderLeft: "4px solid #16a34a",
+        borderRadius: "10px",
+        boxShadow: "0 10px 25px rgba(15, 23, 42, 0.14)",
+        fontFamily: "inherit",
+        opacity: "0",
+        visibility: "hidden",
+        transition: "opacity .25s ease, transform .25s ease, visibility .25s ease"
+      });
+
+      const icon = document.createElement("span");
+      icon.textContent = "✓";
+
+      Object.assign(icon.style, {
+        display: "grid",
+        placeItems: "center",
+        width: "26px",
+        height: "26px",
+        flex: "0 0 26px",
+        borderRadius: "50%",
+        background: "#dcfce7",
+        color: "#15803d",
+        fontWeight: "700",
+        fontSize: "15px",
+        marginTop: "1px"
+      });
+
+      const content = document.createElement("div");
+      content.style.flex = "1";
+
+      const heading = document.createElement("div");
+      heading.textContent = "Selamat Datang di Dashboard SIPFAS!";
+
+      Object.assign(heading.style, {
+        fontSize: "14px",
+        fontWeight: "700",
+        marginBottom: "2px"
+      });
+
+      const message = document.createElement("div");
+      message.textContent =
+        `Selamat beraktivitas, ${name}. Semoga aktivitas Anda hari ini berjalan lancar.`;
+
+      Object.assign(message.style, {
+        fontSize: "13px",
+        lineHeight: "1.45",
+        color: "#64748b"
+      });
+
+      content.append(heading, message);
+      toast.append(icon, content);
+      document.body.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.style.opacity = "1";
+        toast.style.visibility = "visible";
+        toast.style.transform = "translate(-50%, 0)";
+      });
+
+      window.setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.visibility = "hidden";
+        toast.style.transform = "translate(-50%, -10px)";
+
+        window.setTimeout(() => toast.remove(), 300);
+      }, 5000);
+    }
+
     async function displayActiveUser() {
       try {
         const payload = await fetchJson(API.profile);
@@ -668,6 +760,18 @@
             initials
           );
         });
+
+        try {
+          if (sessionStorage.getItem(WELCOME_NOTICE_KEY) !== "shown") {
+            sessionStorage.setItem(WELCOME_NOTICE_KEY, "shown");
+            showWelcomeNotification(name);
+          }
+        } catch (storageError) {
+          console.warn(
+            "[SIPFAS] Session storage tidak tersedia:",
+            storageError
+          );
+        }
 
       } catch (error) {
         console.error(
@@ -729,6 +833,8 @@
         }
 
         try {
+          sessionStorage.removeItem(WELCOME_NOTICE_KEY);
+
           await fetch(
             new URL(API.logout, window.location.href).href,
             {
@@ -737,8 +843,10 @@
               cache: "no-store"
             }
           );
+
         } catch (error) {
           console.error("[SIPFAS] Logout error:", error);
+
         } finally {
           window.location.replace(
             new URL(LOGIN_URL, window.location.href).href
@@ -747,7 +855,6 @@
       });
     }
 
-    // Memperbarui dashboard ketika ada aktivitas laporan.
     window.addEventListener(
       "sipfas:report-submitted",
       refreshDashboard
@@ -768,21 +875,17 @@
       displayActiveUser
     );
 
-    // Memuat ulang data ketika pengguna kembali ke halaman dashboard.
     window.addEventListener("pageshow", () => {
       displayActiveUser();
       refreshDashboard();
     });
 
-    // Memperbarui data berkala agar laporan dari sesi Pelapor
-    // dapat muncul tanpa pengguna harus memuat ulang halaman.
     refreshTimer = window.setInterval(() => {
       if (!document.hidden) {
         refreshDashboard();
       }
     }, 15000);
 
-    // Menghentikan timer ketika halaman ditinggalkan.
     window.addEventListener("pagehide", () => {
       if (refreshTimer !== null) {
         clearInterval(refreshTimer);
@@ -793,4 +896,5 @@
     displayActiveUser();
     refreshDashboard();
   }
+
 })();
