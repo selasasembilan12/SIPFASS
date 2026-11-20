@@ -13,10 +13,13 @@ declare(strict_types=1);
    fasilitas.id_pencatat -> pengguna.id_pengguna
 
    JUMLAH UNIT:
-   kategori_fasilitas.jumlah_unit
+   fasilitas.jumlah_unit
 
    LOKASI:
    lokasi_ruangan.nama_lokasi
+
+   AKSES:
+   ADMIN ONLY
 ================================================== */
 
 require_once __DIR__ . '/_admin-common.php';
@@ -52,7 +55,10 @@ function admin_fasilitas_status(array $input): string
     );
 
     if (!in_array($status, ['Aktif', 'Nonaktif'], true)) {
-        admin_fail('Status fasilitas tidak valid.', 422);
+        admin_fail(
+            'Status fasilitas tidak valid.',
+            422
+        );
     }
 
     return $status;
@@ -73,15 +79,64 @@ function admin_fasilitas_positive_id(
         FILTER_VALIDATE_INT
     );
 
-    if ($value === false || $value === null || $value <= 0) {
-        admin_fail($label . ' wajib dipilih.', 422);
+    if (
+        $value === false ||
+        $value === null ||
+        $value <= 0
+    ) {
+        admin_fail(
+            $label . ' wajib dipilih.',
+            422
+        );
     }
 
     return (int)$value;
 }
 
 /* ==================================================
-   04. MEMERIKSA KATEGORI
+   04. VALIDASI JUMLAH UNIT
+
+   NULL = Belum diketahui.
+   0    = Sudah diperiksa, tidak ada unit.
+   > 0  = Jumlah unit sebenarnya.
+
+   Jika field tidak dikirim saat PUT,
+   nilai lama dipertahankan.
+================================================== */
+
+function admin_fasilitas_quantity(
+    array $input,
+    ?int $currentValue = null
+): ?int {
+
+    if (!array_key_exists('jumlah_unit', $input)) {
+        return $currentValue;
+    }
+
+    if (
+        $input['jumlah_unit'] === null ||
+        $input['jumlah_unit'] === ''
+    ) {
+        return null;
+    }
+
+    $value = filter_var(
+        $input['jumlah_unit'],
+        FILTER_VALIDATE_INT
+    );
+
+    if ($value === false || $value < 0) {
+        admin_fail(
+            'Jumlah unit harus berupa bilangan bulat nol atau lebih.',
+            422
+        );
+    }
+
+    return (int)$value;
+}
+
+/* ==================================================
+   05. MEMERIKSA KATEGORI
 ================================================== */
 
 function admin_fasilitas_check_category(
@@ -110,7 +165,7 @@ function admin_fasilitas_check_category(
 }
 
 /* ==================================================
-   05. MEMERIKSA LOKASI
+   06. MEMERIKSA LOKASI
 ================================================== */
 
 function admin_fasilitas_check_location(
@@ -139,7 +194,7 @@ function admin_fasilitas_check_location(
 }
 
 /* ==================================================
-   06. MENCARI ID LOKASI
+   07. MENCARI ID LOKASI
 
    Mendukung:
    - id_lokasi
@@ -163,8 +218,14 @@ function admin_fasilitas_resolve_location(
             FILTER_VALIDATE_INT
         );
 
-        if ($idLokasi === false || $idLokasi <= 0) {
-            admin_fail('Pilihan lokasi tidak valid.', 422);
+        if (
+            $idLokasi === false ||
+            $idLokasi <= 0
+        ) {
+            admin_fail(
+                'Pilihan lokasi tidak valid.',
+                422
+            );
         }
 
         admin_fasilitas_check_location(
@@ -186,7 +247,10 @@ function admin_fasilitas_resolve_location(
     );
 
     if ($namaLokasi === '') {
-        admin_fail('Lokasi/ruangan wajib dipilih.', 422);
+        admin_fail(
+            'Lokasi/ruangan wajib dipilih.',
+            422
+        );
     }
 
     $stmt = $pdo->prepare("
@@ -214,7 +278,7 @@ function admin_fasilitas_resolve_location(
 }
 
 /* ==================================================
-   07. MEMERIKSA KEBERADAAN FASILITAS
+   08. MEMERIKSA KEBERADAAN FASILITAS
 ================================================== */
 
 function admin_fasilitas_exists(
@@ -233,11 +297,11 @@ function admin_fasilitas_exists(
         ':id' => $id
     ]);
 
-    return (bool)$stmt->fetchColumn();
+    return $stmt->fetchColumn() !== false;
 }
 
 /* ==================================================
-   08. PROSES API
+   09. PROSES API
 ================================================== */
 
 try {
@@ -258,6 +322,7 @@ try {
         [$page, $limit, $offset] = admin_page();
 
         $where = [];
+
         $params = [];
 
         /* PENCARIAN */
@@ -267,7 +332,8 @@ try {
             trim((string)$_GET['search']) !== ''
         ) {
 
-            $search = '%' . trim((string)$_GET['search']) . '%';
+            $search =
+                '%' . trim((string)$_GET['search']) . '%';
 
             $where[] = "(
                 f.kode_fasilitas LIKE :search1
@@ -290,13 +356,25 @@ try {
             $_GET['status'] !== 'semua'
         ) {
 
-            $status = trim((string)$_GET['status']);
+            $status = trim(
+                (string)$_GET['status']
+            );
 
-            if (!in_array($status, ['Aktif', 'Nonaktif'], true)) {
-                admin_fail('Filter status tidak valid.', 422);
+            if (
+                !in_array(
+                    $status,
+                    ['Aktif', 'Nonaktif'],
+                    true
+                )
+            ) {
+                admin_fail(
+                    'Filter status tidak valid.',
+                    422
+                );
             }
 
-            $where[] = 'f.status_fasilitas = :status';
+            $where[] =
+                'f.status_fasilitas = :status';
 
             $params[':status'] = $status;
         }
@@ -314,8 +392,14 @@ try {
                 FILTER_VALIDATE_INT
             );
 
-            if ($kategori === false || $kategori <= 0) {
-                admin_fail('Filter kategori tidak valid.', 422);
+            if (
+                $kategori === false ||
+                $kategori <= 0
+            ) {
+                admin_fail(
+                    'Filter kategori tidak valid.',
+                    422
+                );
             }
 
             $where[] = 'f.id_kategori = :kategori';
@@ -336,8 +420,14 @@ try {
                 FILTER_VALIDATE_INT
             );
 
-            if ($lokasi === false || $lokasi <= 0) {
-                admin_fail('Filter lokasi tidak valid.', 422);
+            if (
+                $lokasi === false ||
+                $lokasi <= 0
+            ) {
+                admin_fail(
+                    'Filter lokasi tidak valid.',
+                    422
+                );
             }
 
             $where[] = 'f.id_lokasi = :lokasi';
@@ -376,6 +466,7 @@ try {
                 f.id_fasilitas,
                 f.kode_fasilitas,
                 f.nama_fasilitas,
+                f.jumlah_unit,
                 f.id_kategori,
                 f.id_lokasi,
                 f.frekuensi_penggunaan,
@@ -386,7 +477,6 @@ try {
 
                 k.kode_kategori,
                 k.nama_kategori,
-                k.jumlah_unit,
 
                 l.kode_lokasi,
                 l.nama_lokasi,
@@ -430,7 +520,9 @@ try {
 
         $stmt->execute();
 
-        $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $items = $stmt->fetchAll(
+            PDO::FETCH_ASSOC
+        );
 
         admin_ok(
             'Data fasilitas berhasil dimuat.',
@@ -441,7 +533,9 @@ try {
                     'page' => $page,
                     'limit' => $limit,
                     'total' => $total,
-                    'total_pages' => (int)ceil($total / $limit)
+                    'total_pages' => (int)ceil(
+                        $total / $limit
+                    )
                 ]
             ]
         );
@@ -482,9 +576,14 @@ try {
             $input
         );
 
-        $frekuensi = admin_fasilitas_frequency($input);
+        $frekuensi =
+            admin_fasilitas_frequency($input);
 
-        $status = admin_fasilitas_status($input);
+        $status =
+            admin_fasilitas_status($input);
+
+        $jumlahUnit =
+            admin_fasilitas_quantity($input);
 
         admin_fasilitas_check_category(
             $pdo,
@@ -504,6 +603,7 @@ try {
             INSERT INTO fasilitas (
                 kode_fasilitas,
                 nama_fasilitas,
+                jumlah_unit,
                 id_kategori,
                 id_lokasi,
                 frekuensi_penggunaan,
@@ -512,6 +612,7 @@ try {
             ) VALUES (
                 :kode,
                 :nama,
+                :jumlah_unit,
                 :kategori,
                 :lokasi,
                 :frekuensi,
@@ -523,6 +624,7 @@ try {
         $stmt->execute([
             ':kode' => $kode,
             ':nama' => $nama,
+            ':jumlah_unit' => $jumlahUnit,
             ':kategori' => $idKategori,
             ':lokasi' => $idLokasi,
             ':frekuensi' => $frekuensi,
@@ -533,7 +635,8 @@ try {
         admin_ok(
             'Fasilitas berhasil ditambahkan.',
             [
-                'id_fasilitas' => (int)$pdo->lastInsertId()
+                'id_fasilitas' =>
+                    (int)$pdo->lastInsertId()
             ],
             201
         );
@@ -584,20 +687,53 @@ try {
             $input
         );
 
-        $frekuensi = admin_fasilitas_frequency($input);
+        $frekuensi =
+            admin_fasilitas_frequency($input);
 
-        $status = admin_fasilitas_status($input);
+        $status =
+            admin_fasilitas_status($input);
 
         admin_fasilitas_check_category(
             $pdo,
             $idKategori
         );
 
+        /* AMBIL JUMLAH UNIT LAMA */
+
+        $stmtCurrent = $pdo->prepare("
+            SELECT jumlah_unit
+            FROM fasilitas
+            WHERE id_fasilitas = :id
+            LIMIT 1
+        ");
+
+        $stmtCurrent->execute([
+            ':id' => $id
+        ]);
+
+        $currentUnit = $stmtCurrent->fetchColumn();
+
+        if ($currentUnit !== false && $currentUnit !== null) {
+            $currentUnit = (int)$currentUnit;
+        } else {
+            $currentUnit = null;
+        }
+
+        /* VALIDASI JUMLAH UNIT */
+
+        $jumlahUnit = admin_fasilitas_quantity(
+            $input,
+            $currentUnit
+        );
+
+        /* UPDATE DATA */
+
         $stmt = $pdo->prepare("
             UPDATE fasilitas
             SET
                 kode_fasilitas = :kode,
                 nama_fasilitas = :nama,
+                jumlah_unit = :jumlah_unit,
                 id_kategori = :kategori,
                 id_lokasi = :lokasi,
                 frekuensi_penggunaan = :frekuensi,
@@ -609,6 +745,7 @@ try {
         $stmt->execute([
             ':kode' => $kode,
             ':nama' => $nama,
+            ':jumlah_unit' => $jumlahUnit,
             ':kategori' => $idKategori,
             ':lokasi' => $idLokasi,
             ':frekuensi' => $frekuensi,

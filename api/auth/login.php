@@ -1,52 +1,41 @@
-
 <?php
+declare(strict_types=1);
 
 /**
- * =========================================================
- * SIPFAS - LOGIN DENGAN VERIFIKASI OTP
- * =========================================================
+ * SIPFAS - LOGIN API
+ * Backend: PHP PDO + MariaDB
+ * Autentikasi: Password + OTP
  *
- * Fungsi:
- * 1. Memeriksa username/email dan password.
- * 2. Memeriksa status akun dan role pengguna.
- * 3. Membuat OTP enam digit.
- * 4. Menyimpan OTP ke database.
- * 5. Mengirim OTP melalui Gmail SMTP.
- * 6. Menyiapkan session sementara untuk verifikasi OTP.
- *
- * =========================================================
+ * Keamanan:
+ * 1. Maksimal 5 kali login gagal.
+ * 2. Pemblokiran akun selama 15 menit.
+ * 3. Penghitung kegagalan tersimpan di database.
+ * 4. Pemeriksaan pemblokiran dilakukan di server.
+ * 5. Session sementara digunakan untuk proses OTP.
  */
 
+ob_start();
 
-// =========================================================
-// 1. MEMANGGIL KONFIGURASI DAN SERVICE
-// =========================================================
-
-// Memuat bootstrap untuk session dan koneksi PDO.
-require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
-
-// Memuat fungsi respons JSON.
-require_once dirname(__DIR__, 2) . '/config/response.php';
-
-// Memuat service pengelolaan OTP.
-require_once dirname(__DIR__, 2) . '/services/OtpService.php';
-
-// Memuat service pengiriman email.
-require_once dirname(__DIR__, 2) . '/services/MailService.php';
-
-
-// =========================================================
-// 2. KONFIGURASI RESPONS JSON
-// =========================================================
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+error_reporting(E_ALL);
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');
 
+$responseSent = false;
 
-// =========================================================
-// 3. FUNGSI RESPONS API
-// =========================================================
+/* =========================================================
+   01. KONSTANTA KEAMANAN
+========================================================= */
+
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOGIN_BLOCK_MINUTES = 15;
+
+/* =========================================================
+   02. RESPONS JSON
+========================================================= */
 
 function jsonResponse(
     bool $success,
@@ -55,24 +44,78 @@ function jsonResponse(
     int $status = 200
 ): never {
 
+    global $responseSent;
+
+    $responseSent = true;
+
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+
     http_response_code($status);
 
     echo json_encode([
         'success' => $success,
         'message' => $message,
         'data' => $data
-    ], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+    ], JSON_UNESCAPED_UNICODE |
+       JSON_UNESCAPED_SLASHES |
+       JSON_INVALID_UTF8_SUBSTITUTE);
 
     exit;
 }
 
+/* =========================================================
+   03. PENANGANAN FATAL ERROR
+========================================================= */
 
-// =========================================================
-// 4. MEMERIKSA METODE REQUEST
-// =========================================================
+register_shutdown_function(function () use (&$responseSent) {
 
-// Login hanya menerima metode POST.
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $error = error_get_last();
+
+    $fatalTypes = [
+        E_ERROR,
+        E_PARSE,
+        E_CORE_ERROR,
+        E_COMPILE_ERROR,
+        E_USER_ERROR
+    ];
+
+    if (
+        !$responseSent &&
+        $error &&
+        in_array($error['type'], $fatalTypes, true)
+    ) {
+
+        error_log(
+            '[SIPFAS LOGIN FATAL] ' .
+            $error['message'] . ' | ' .
+            $error['file'] . ':' .
+            $error['line']
+        );
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        if (!headers_sent()) {
+            http_response_code(500);
+            header('Content-Type: application/json; charset=utf-8');
+        }
+
+        echo json_encode([
+            'success' => false,
+            'message' => 'Terjadi kesalahan internal server SIPFAS.',
+            'data' => []
+        ], JSON_UNESCAPED_UNICODE);
+    }
+});
+
+/* =========================================================
+   04. MEMERIKSA METODE REQUEST
+========================================================= */
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
 
     header('Allow: POST');
 
@@ -84,128 +127,120 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     );
 }
 
-
-// =========================================================
-// 5. MEMBACA INPUT PENGGUNA
-// =========================================================
-
-// Membaca input JSON dari frontend.
-$rawInput = file_get_contents('php://input');
-
-$input = json_decode($rawInput, true);
-
-// Mendukung pengiriman melalui form-data.
-if (!is_array($input)) {
-    $input = $_POST;
-}
-
-// Mengambil identitas pengguna.
-$identifier = strtolower(trim(
-    (string) (
-        $input['identifier']
-        ?? $input['email']
-        ?? $input['username']
-        ?? ''
-    )
-));
-
-// Mengambil password.
-$passwordInput = (string) ($input['password'] ?? '');
-
-// Mengambil jenis pengguna.
-$roleInput = strtolower(trim(
-    (string) (
-        $input['role']
-        ?? $input['jenisPengguna']
-        ?? ''
-    )
-));
-
-
-// =========================================================
-// 6. VALIDASI INPUT
-// =========================================================
-
-if (
-    $identifier === '' ||
-    $passwordInput === '' ||
-    $roleInput === ''
-) {
-
-    jsonResponse(
-        false,
-        'Username/email, password, dan jenis pengguna wajib diisi.',
-        [],
-        422
-    );
-}
-
-// Membatasi panjang identitas pengguna.
-if (strlen($identifier) > 150) {
-
-    jsonResponse(
-        false,
-        'Username atau email terlalu panjang.',
-        [],
-        422
-    );
-}
-
-// Membatasi ukuran password.
-if (strlen($passwordInput) > 4096) {
-
-    jsonResponse(
-        false,
-        'Password tidak valid.',
-        [],
-        422
-    );
-}
-
-
-// =========================================================
-// 7. MENYESUAIKAN ROLE PENGGUNA
-// =========================================================
-
-$roleMap = [
-
-    'admin' => 'Administrator',
-    'administrator' => 'Administrator',
-
-    'petugas' => 'Petugas Sarpras',
-    'petugas sarpras' => 'Petugas Sarpras',
-
-    'pelapor' => 'Pelapor',
-    'user' => 'Pelapor'
-
-];
-
-// Memastikan role termasuk dalam daftar yang diizinkan.
-if (!isset($roleMap[$roleInput])) {
-
-    jsonResponse(
-        false,
-        'Jenis pengguna tidak valid.',
-        [],
-        422
-    );
-}
-
-$role = $roleMap[$roleInput];
-
-
-// =========================================================
-// 8. MEMPROSES LOGIN DAN PENGIRIMAN OTP
-// =========================================================
+/* =========================================================
+   05. MEMUAT KONFIGURASI DAN SERVICE
+========================================================= */
 
 try {
 
-    // -----------------------------------------------------
-    // A. MENCARI AKUN PENGGUNA
-    // -----------------------------------------------------
+    require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
 
-    $sql = "
+    require_once dirname(__DIR__, 2) . '/services/OtpService.php';
 
+    require_once dirname(__DIR__, 2) . '/services/MailService.php';
+
+    if (!isset($pdo) || !($pdo instanceof PDO)) {
+        throw new RuntimeException('Koneksi PDO tidak tersedia.');
+    }
+
+    /* =====================================================
+       06. MEMBACA INPUT LOGIN
+    ===================================================== */
+
+    $rawInput = file_get_contents('php://input');
+
+    $input = json_decode($rawInput, true);
+
+    if (!is_array($input)) {
+        $input = $_POST;
+    }
+
+    $identifier = strtolower(trim(
+        (string) (
+            $input['identifier'] ??
+            $input['email'] ??
+            $input['username'] ??
+            ''
+        )
+    ));
+
+    $passwordInput = (string) (
+        $input['password'] ?? ''
+    );
+
+    $roleInput = strtolower(trim(
+        (string) (
+            $input['role'] ??
+            $input['jenisPengguna'] ??
+            ''
+        )
+    ));
+
+    /* =====================================================
+       07. VALIDASI INPUT
+    ===================================================== */
+
+    if (
+        $identifier === '' ||
+        $passwordInput === '' ||
+        $roleInput === ''
+    ) {
+
+        jsonResponse(
+            false,
+            'Username/email, password, dan jenis pengguna wajib diisi.',
+            [],
+            422
+        );
+    }
+
+    if (
+        strlen($identifier) > 150 ||
+        strlen($passwordInput) > 4096
+    ) {
+
+        jsonResponse(
+            false,
+            'Data login tidak valid.',
+            [],
+            422
+        );
+    }
+
+    /* =====================================================
+       08. NORMALISASI ROLE
+    ===================================================== */
+
+    $roleMap = [
+        'admin' => 'Administrator',
+        'administrator' => 'Administrator',
+
+        'petugas' => 'Petugas Sarpras',
+        'petugas sarpras' => 'Petugas Sarpras',
+
+        'pelapor' => 'Pelapor',
+        'user' => 'Pelapor'
+    ];
+
+    if (!isset($roleMap[$roleInput])) {
+
+        jsonResponse(
+            false,
+            'Jenis pengguna tidak valid.',
+            [],
+            422
+        );
+    }
+
+    $role = $roleMap[$roleInput];
+
+    /* =====================================================
+       09. MENCARI DAN MENGUNCI DATA PENGGUNA
+    ===================================================== */
+
+    $pdo->beginTransaction();
+
+    $stmt = $pdo->prepare("
         SELECT
             u.id_pengguna,
             u.id_peran,
@@ -215,6 +250,11 @@ try {
             u.kata_sandi,
             u.status_akun,
             u.email_terverifikasi_pada,
+            COALESCE(u.jumlah_login_gagal, 0)
+                AS jumlah_login_gagal,
+            u.login_diblokir_sampai,
+            UNIX_TIMESTAMP(u.login_diblokir_sampai)
+                AS blocked_until,
             p.nama_peran
 
         FROM pengguna u
@@ -222,44 +262,29 @@ try {
         INNER JOIN peran p
             ON p.id_peran = u.id_peran
 
-        WHERE (
+        WHERE
             u.email = :identifier_email
             OR u.nama_pengguna = :identifier_username
-        )
-
-        AND p.nama_peran = :role
 
         LIMIT 1
 
-    ";
+        FOR UPDATE
+    ");
 
-    // Menyiapkan query database.
-    $stmt = $pdo->prepare($sql);
-
-    // Menjalankan query.
     $stmt->execute([
-
         ':identifier_email' => $identifier,
-        ':identifier_username' => $identifier,
-        ':role' => $role
-
+        ':identifier_username' => $identifier
     ]);
 
-    // Mengambil data pengguna.
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    /* =====================================================
+       10. MEMERIKSA KEBERADAAN AKUN
+    ===================================================== */
 
-    // -----------------------------------------------------
-    // B. MEMERIKSA PASSWORD
-    // -----------------------------------------------------
+    if (!$user) {
 
-    if (
-        !$user ||
-        !password_verify(
-            $passwordInput,
-            (string) $user['kata_sandi']
-        )
-    ) {
+        $pdo->commit();
 
         jsonResponse(
             false,
@@ -269,10 +294,170 @@ try {
         );
     }
 
+    $idPengguna = (int) $user['id_pengguna'];
 
-    // -----------------------------------------------------
-    // C. MEMERIKSA STATUS AKUN
-    // -----------------------------------------------------
+    $failedAttempts = (int) $user['jumlah_login_gagal'];
+
+    $blockedUntil = (int) ($user['blocked_until'] ?? 0);
+
+    /* =====================================================
+       11. MEMERIKSA MASA PEMBLOKIRAN
+    ===================================================== */
+
+    if (
+        $blockedUntil > 0 &&
+        $blockedUntil <= time()
+    ) {
+
+        // Masa pemblokiran telah selesai.
+        // Mengembalikan penghitung ke nol.
+
+        $reset = $pdo->prepare("
+            UPDATE pengguna
+            SET
+                jumlah_login_gagal = 0,
+                login_diblokir_sampai = NULL
+            WHERE id_pengguna = :id_pengguna
+        ");
+
+        $reset->execute([
+            ':id_pengguna' => $idPengguna
+        ]);
+
+        $failedAttempts = 0;
+        $blockedUntil = 0;
+    }
+
+    /* =====================================================
+       12. MENOLAK AKUN YANG MASIH DIBLOKIR
+    ===================================================== */
+
+    if (
+        $blockedUntil > time() &&
+        $user['login_diblokir_sampai'] !== null
+    ) {
+
+        $pdo->commit();
+
+        jsonResponse(
+            false,
+            'Akun Anda sementara diblokir karena terlalu banyak percobaan login gagal.',
+            [
+                'blocked' => true,
+                'blocked_until' => $blockedUntil,
+                'remaining_seconds' => max(
+                    0,
+                    $blockedUntil - time()
+                )
+            ],
+            429
+        );
+    }
+
+    /* =====================================================
+       13. MEMERIKSA PASSWORD DAN ROLE
+    ===================================================== */
+
+    $passwordValid = password_verify(
+        $passwordInput,
+        (string) $user['kata_sandi']
+    );
+
+    $roleValid = (
+        strcasecmp(
+            trim((string) $user['nama_peran']),
+            $role
+        ) === 0
+    );
+
+    if (!$passwordValid || !$roleValid) {
+
+        $failedAttempts++;
+
+        $isBlocked = (
+            $failedAttempts >= MAX_LOGIN_ATTEMPTS
+        );
+
+        // Memperbarui jumlah login gagal.
+        // Percobaan kelima akan memblokir akun 15 menit.
+
+        $update = $pdo->prepare("
+            UPDATE pengguna
+            SET
+                jumlah_login_gagal = :jumlah,
+                login_diblokir_sampai =
+                    CASE
+                        WHEN :jumlah_blokir >= :maksimal
+                        THEN DATE_ADD(
+                            NOW(),
+                            INTERVAL 15 MINUTE
+                        )
+                        ELSE NULL
+                    END
+            WHERE id_pengguna = :id_pengguna
+        ");
+
+        $update->execute([
+            ':jumlah' => $failedAttempts,
+            ':jumlah_blokir' => $failedAttempts,
+            ':maksimal' => MAX_LOGIN_ATTEMPTS,
+            ':id_pengguna' => $idPengguna
+        ]);
+
+        $blockedUntil = 0;
+
+        if ($isBlocked) {
+
+            $timeQuery = $pdo->prepare("
+                SELECT UNIX_TIMESTAMP(login_diblokir_sampai)
+                FROM pengguna
+                WHERE id_pengguna = :id_pengguna
+            ");
+
+            $timeQuery->execute([
+                ':id_pengguna' => $idPengguna
+            ]);
+
+            $blockedUntil = (int) $timeQuery->fetchColumn();
+        }
+
+        $pdo->commit();
+
+        if ($isBlocked) {
+
+            jsonResponse(
+                false,
+                'Login gagal 5 kali. Akun Anda diblokir selama 15 menit.',
+                [
+                    'blocked' => true,
+                    'blocked_until' => $blockedUntil,
+                    'remaining_attempts' => 0,
+                    'remaining_seconds' => max(
+                        0,
+                        $blockedUntil - time()
+                    )
+                ],
+                429
+            );
+        }
+
+        jsonResponse(
+            false,
+            'Username/email, password, atau jenis pengguna salah.',
+            [
+                'blocked' => false,
+                'remaining_attempts' => (
+                    MAX_LOGIN_ATTEMPTS - $failedAttempts
+                ),
+                'failed_attempts' => $failedAttempts
+            ],
+            401
+        );
+    }
+
+    /* =====================================================
+       14. MEMERIKSA STATUS AKUN
+    ===================================================== */
 
     if (
         strcasecmp(
@@ -280,6 +465,8 @@ try {
             'Aktif'
         ) !== 0
     ) {
+
+        $pdo->commit();
 
         jsonResponse(
             false,
@@ -289,15 +476,19 @@ try {
         );
     }
 
-
-    // -----------------------------------------------------
-    // D. MEMERIKSA EMAIL PENGGUNA
-    // -----------------------------------------------------
+    /* =====================================================
+       15. MEMERIKSA EMAIL
+    ===================================================== */
 
     if (
         empty($user['email']) ||
-        !filter_var($user['email'], FILTER_VALIDATE_EMAIL)
+        !filter_var(
+            $user['email'],
+            FILTER_VALIDATE_EMAIL
+        )
     ) {
+
+        $pdo->commit();
 
         jsonResponse(
             false,
@@ -307,10 +498,11 @@ try {
         );
     }
 
+    $pdo->commit();
 
-    // -----------------------------------------------------
-    // E. MEMBERSIHKAN SESSION LOGIN SEBELUMNYA
-    // -----------------------------------------------------
+    /* =====================================================
+       16. MEMBERSIHKAN SESSION LOGIN SEBELUMNYA
+    ===================================================== */
 
     unset(
         $_SESSION['user'],
@@ -319,30 +511,77 @@ try {
         $_SESSION['nama_peran'],
         $_SESSION['nama_lengkap'],
         $_SESSION['sipfas_user'],
+        $_SESSION['login_terverifikasi'],
         $_SESSION['pending_login'],
-        $_SESSION['pending_login_expires']
+        $_SESSION['pending_login_expires'],
+        $_SESSION['login_id_otp']
     );
 
-    // Mengganti ID session untuk mencegah session fixation.
-    session_regenerate_id(true);
+    if (!session_regenerate_id(true)) {
 
+        jsonResponse(
+            false,
+            'Gagal membuat sesi login.',
+            [],
+            500
+        );
+    }
 
-    // -----------------------------------------------------
-    // F. MEMBUAT OTP BARU
-    // -----------------------------------------------------
+    /* =====================================================
+       17. MEMBUAT OTP
+    ===================================================== */
 
-    // Membuat OTP enam digit dan menyimpan hash-nya
-    // ke tabel otp_verifikasi.
     $otp = OtpService::create(
         $pdo,
-        (int) $user['id_pengguna'],
+        $idPengguna,
         'Login'
     );
 
+    /* =====================================================
+       18. MENGAMBIL ID OTP
+    ===================================================== */
 
-    // -----------------------------------------------------
-    // G. MENGIRIM OTP MELALUI EMAIL
-    // -----------------------------------------------------
+    $otpQuery = $pdo->prepare("
+        SELECT
+            id_otp,
+            UNIX_TIMESTAMP(berlaku_sampai) AS expires_at
+
+        FROM otp_verifikasi
+
+        WHERE id_pengguna = :id_pengguna
+        AND tujuan = 'Login'
+        AND digunakan_pada IS NULL
+        AND dibatalkan_pada IS NULL
+
+        ORDER BY id_otp DESC
+        LIMIT 1
+    ");
+
+    $otpQuery->execute([
+        ':id_pengguna' => $idPengguna
+    ]);
+
+    $otpRecord = $otpQuery->fetch(PDO::FETCH_ASSOC);
+
+    if (!$otpRecord) {
+
+        OtpService::cancel(
+            $pdo,
+            $idPengguna,
+            'Login'
+        );
+
+        jsonResponse(
+            false,
+            'Gagal menyiapkan kode verifikasi.',
+            [],
+            500
+        );
+    }
+
+    /* =====================================================
+       19. MENGIRIM OTP MELALUI EMAIL
+    ===================================================== */
 
     $emailSent = MailService::sendOtp(
         (string) $user['email'],
@@ -350,46 +589,42 @@ try {
         'Login'
     );
 
-
-    // -----------------------------------------------------
-    // H. MEMBATALKAN OTP JIKA EMAIL GAGAL DIKIRIM
-    // -----------------------------------------------------
-
     if (!$emailSent) {
 
-        // Membatalkan OTP yang gagal dikirim.
         OtpService::cancel(
             $pdo,
-            (int) $user['id_pengguna'],
+            $idPengguna,
             'Login'
         );
 
         jsonResponse(
             false,
-            'Gagal mengirim kode OTP. Silakan coba kembali.',
+            'Gagal mengirim OTP. Periksa konfigurasi SMTP.',
             [],
             500
         );
     }
 
+    /* =====================================================
+       20. MENYIMPAN SESSION LOGIN SEMENTARA
+    ===================================================== */
 
-// Menyimpan identitas pengguna sementara.
-$_SESSION['pending_login'] = [
-    'id_pengguna' => (int) $user['id_pengguna'],
-    'id_peran' => (int) $user['id_peran'],
-    'nama_lengkap' => $user['nama_lengkap'],
-    'nama_pengguna' => $user['nama_pengguna'],
-    'email' => $user['email'],
-    'nama_peran' => $user['nama_peran']
-];
+    $_SESSION['pending_login'] = [
+        'id_pengguna' => $idPengguna,
+        'id_peran' => (int) $user['id_peran'],
+        'nama_lengkap' => $user['nama_lengkap'],
+        'nama_pengguna' => $user['nama_pengguna'],
+        'email' => $user['email'],
+        'nama_peran' => $user['nama_peran']
+    ];
 
-// Masa berlaku verifikasi OTP 2 menit.
-$_SESSION['pending_login_expires'] = time() + 120;
+    $_SESSION['login_id_otp'] = (string) $otpRecord['id_otp'];
 
+    $_SESSION['pending_login_expires'] = time() + 900;
 
-    // -----------------------------------------------------
-    // J. MENYAMARKAN EMAIL PENGGUNA
-    // -----------------------------------------------------
+    /* =====================================================
+       21. MENYAMARKAN EMAIL
+    ===================================================== */
 
     $emailParts = explode(
         '@',
@@ -397,8 +632,7 @@ $_SESSION['pending_login_expires'] = time() + 120;
         2
     );
 
-    $emailPrefix = $emailParts[0];
-
+    $emailPrefix = $emailParts[0] ?? '';
     $emailDomain = $emailParts[1] ?? '';
 
     $maskedEmail =
@@ -410,45 +644,52 @@ $_SESSION['pending_login_expires'] = time() + 120;
         '@' .
         $emailDomain;
 
+    /* =====================================================
+       22. MENYIMPAN SESSION
+    ===================================================== */
 
-    // -----------------------------------------------------
-    // K. MENGIRIM RESPONS KEBERHASILAN
-    // -----------------------------------------------------
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+    }
+
+    /* =====================================================
+       23. RESPONS LOGIN BERHASIL
+    ===================================================== */
 
     jsonResponse(
-
         true,
-
         'Kode OTP berhasil dikirim ke email Anda.',
-
         [
-
             'requires_otp' => true,
-
             'email' => $maskedEmail,
-
             'role' => $user['nama_peran'],
-
-            'redirect' => 'verifikasi-otp.html'
-
+            'redirect' => 'verifikasi.html',
+            'expires_at' => (int) $otpRecord['expires_at']
         ],
-
         200
-
     );
-
 
 } catch (Throwable $e) {
 
-    // Mencatat kesalahan ke log server.
+    if (
+        isset($pdo) &&
+        $pdo instanceof PDO &&
+        $pdo->inTransaction()
+    ) {
+        $pdo->rollBack();
+    }
+
     error_log(
-        '[SIPFAS LOGIN ERROR] ' . $e->getMessage()
+        '[SIPFAS LOGIN ERROR] ' .
+        get_class($e) . ': ' .
+        $e->getMessage() . ' | ' .
+        $e->getFile() . ':' .
+        $e->getLine()
     );
 
-    // Mengirim respons kegagalan.
     jsonResponse(
         false,
-        'Terjadi kesalahan saat memproses login.',
+        'Terjadi kesalahan server saat memproses login.',
         [],
         500
     );

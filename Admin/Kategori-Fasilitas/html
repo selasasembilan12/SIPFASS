@@ -1,0 +1,917 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kategori Fasilitas | SIPFAS</title>
+
+    <!-- FONT INTER -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- CSS GLOBAL -->
+    <link rel="stylesheet" href="../../assets/css/logo.css" />
+
+    <!-- CSS HALAMAN -->
+    <link rel="stylesheet" href="kategori-fasilitas.css" />
+  </head>
+
+  <body>
+    <!-- KONTROL MODAL HTML + CSS -->
+    <input type="checkbox" id="edit-category-modal" class="modal-toggle" />
+    <input type="checkbox" id="delete-category-modal" class="modal-toggle" />
+
+    <div class="app-layout">
+      <!-- ======================================
+           SIDEBAR
+      ======================================= -->
+      <aside class="sidebar">
+        <!-- LOGO -->
+        <a href="../Dashboard/Dashboard.html" class="sidebar-logo">
+          <img src="../../assets/images/logo-sipfas.png" alt="Logo SIPFAS" />
+
+          <div class="sidebar-brand">
+            <strong>SIPFAS</strong>
+            <span>Informatika UNKHAIR</span>
+          </div>
+        </a>
+
+        <div class="sidebar-brand-divider"></div>
+
+        <!-- NAVIGASI -->
+        <nav class="sidebar-nav">
+          <!-- MENU UTAMA -->
+          <div class="nav-group">
+            <p class="nav-title">MENU UTAMA</p>
+
+            <a href="../Dashboard/Dashboard.html" class="nav-link">
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+              </span>
+              <span>Dashboard</span>
+            </a>
+          </div>
+
+          <!-- MANAJEMEN DATA -->
+          <div class="nav-group">
+            <p class="nav-title">MANAJEMEN DATA</p>
+
+            <a
+              href="../Manajemen-Pengguna/Manajemen-Pengguna.html"
+              class="nav-link"
+            >
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+                  <circle cx="9.5" cy="7" r="3.5" />
+                  <path d="M17 11a3.5 3.5 0 0 0 0-7" />
+                  <path d="M21 21v-2a4 4 0 0 0-3-3.87" />
+                </svg>
+              </span>
+              <span>Manajemen Pengguna</span>
+            </a>
+
+            <a href="kategori-fasilitas.html" class="nav-link active">
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 3L20 10H4L12 3Z" />
+                  <rect x="3" y="14" width="6" height="6" />
+                  <circle cx="17" cy="17" r="3" />
+                </svg>
+              </span>
+              <span>Kategori Fasilitas</span>
+            </a>
+
+            <a href="../Data-Fasilitas/data-fasilitas.html" class="nav-link">
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="4" width="16" height="12" rx="1" />
+                  <path d="M2 19H15" />
+                  <rect x="15" y="12" width="7" height="9" rx="1" />
+                </svg>
+              </span>
+              <span>Data Fasilitas</span>
+            </a>
+          </div>
+
+          <!-- KLASIFIKASI C4.5 -->
+          <div class="nav-group">
+            <p class="nav-title">KLASIFIKASI C4.5</p>
+
+            <a href="../Dataset-C45/dataset-c45.html" class="nav-link">
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M3 9h18M3 15h18M9 3v18" />
+                </svg>
+              </span>
+              <span>Dataset C4.5</span>
+            </a>
+
+            <a href="../Pelatihan-C45/pelatihan-c45.html" class="nav-link">
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M9 18h6M10 21h4" />
+                  <path
+                    d="M12 2a7 7 0 0 0-5 11.9V16a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2.1A7 7 0 0 0 12 2Z"
+                  />
+                  <path d="M12 14v-5m-2.5 2.5L12 9l2.5 2.5" />
+                </svg>
+              </span>
+              <span>Pelatihan C4.5</span>
+            </a>
+
+            <a href="../Hasil-Pengujian/hasil-pengujian.html" class="nav-link">
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="18" height="18" rx="1" />
+                  <path d="M8 17V12M12 17V7M16 17V10" />
+                </svg>
+              </span>
+              <span>Hasil Pengujian</span>
+            </a>
+          </div>
+
+          <!-- LAPORAN -->
+          <div class="nav-group">
+            <p class="nav-title">LAPORAN</p>
+
+            <a
+              href="../Laporan-Pemeliharaan/laporan-pemeliharaan.html"
+              class="nav-link"
+            >
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24">
+                  <path d="M6 3H15L20 8V21H6Z" />
+                  <path d="M15 3V8H20" />
+                  <path d="M9 13H17M9 17H17" />
+                </svg>
+              </span>
+              <span>Laporan Pemeliharaan</span>
+            </a>
+          </div>
+        </nav>
+
+        <!-- MENU AKUN -->
+        <div class="sidebar-bottom">
+          <p class="nav-title">AKUN</p>
+
+          <a href="../Profil-Saya/profil-saya.html" class="nav-link">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8.5" r="3.5" />
+                <path d="M5 20c.7-3 3.2-4.5 7-4.5s6.3 1.5 7 4.5" />
+              </svg>
+            </span>
+            <span>Profil Saya</span>
+          </a>
+
+          <a href="../../auth/login.html" class="nav-link">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M10 7H6V17H10" />
+                <path d="M14 8L18 12L14 16M18 12H9" />
+              </svg>
+            </span>
+            <span>Keluar</span>
+          </a>
+        </div>
+      </aside>
+
+      <!-- ======================================
+           AREA KONTEN
+      ======================================= -->
+      <div class="main-area">
+        <!-- TOPBAR -->
+        <header class="topbar">
+          <div class="topbar-system">
+            <span class="topbar-dot"></span>
+            <span>SISTEM INFORMASI PENGELOLAAN PEMELIHARAAN FASILITAS</span>
+          </div>
+
+          <a href="../Profil-Saya/profil-saya.html" class="topbar-user">
+            <span class="topbar-user-name">Ahmad Fauzi, S.Kom.</span>
+
+            <span class="topbar-user-avatar">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="8.5" r="3.5" />
+                <path d="M5 20c.7-3 3.2-4.5 7-4.5s6.3 1.5 7 4.5" />
+              </svg>
+            </span>
+          </a>
+        </header>
+
+        <!-- KONTEN UTAMA -->
+        <main class="content">
+          <!-- HEADER HALAMAN -->
+          <section class="page-header">
+            <div>
+              <div class="breadcrumb">
+                <span>SIPFAS</span>
+                <span>›</span>
+                <span>MANAJEMEN DATA</span>
+                <span>›</span>
+                <span class="breadcrumb-active">Kategori Fasilitas</span>
+              </div>
+
+              <h1>Kategori Fasilitas</h1>
+            </div>
+          </section>
+
+          <!-- SEARCH DAN FILTER -->
+          <section class="filter-panel">
+            <label class="search-box">
+              <svg viewBox="0 0 24 24">
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="M16 16L21 21" />
+              </svg>
+
+              <input
+                type="search"
+                id="search-category"
+                placeholder="Cari nama atau kode..."
+                aria-label="Cari nama atau kode kategori"
+              />
+            </label>
+
+            <div class="filter-status">
+              <label for="status-filter">Status:</label>
+
+              <select id="status-filter">
+                <option value="all">Semua Status</option>
+                <option value="aktif">Aktif</option>
+                <option value="nonaktif">Nonaktif</option>
+              </select>
+            </div>
+          </section>
+
+          <!-- ==================================
+               TABEL KATEGORI FASILITAS
+          =================================== -->
+          <section class="category-panel">
+            <div class="table-wrap">
+              <table class="category-table">
+                <colgroup>
+                  <col class="col-no" />
+                  <col class="col-code" />
+                  <col class="col-name" />
+                  <col class="col-description" />
+                  <col class="col-total" />
+                  <col class="col-status" />
+                  <col class="col-action" />
+                </colgroup>
+
+                <thead>
+                  <tr>
+                    <th>NO</th>
+                    <th>KODE</th>
+                    <th>NAMA KATEGORI</th>
+                    <th>DESKRIPSI CAKUPAN</th>
+                    <th>JUMLAH FASILITAS</th>
+                    <th>STATUS</th>
+                    <th>AKSI</th>
+                  </tr>
+                </thead>
+
+                <tbody id="category-table-body">
+                  <!-- KATEGORI 1 -->
+                  <tr data-status="aktif">
+                    <td>1</td>
+                    <td><strong class="category-code">KTG-001</strong></td>
+                    <td><strong class="category-name">Komputer</strong></td>
+                    <td>
+                      PC desktop unit laboratorium, all-in-one dosen, dan unit
+                      server mini
+                    </td>
+                    <td>
+                      <span class="facility-count">
+                        <svg viewBox="0 0 24 24">
+                          <rect x="3" y="4" width="18" height="13" rx="1" />
+                          <path d="M8 21H16M12 17V21" />
+                        </svg>
+                        84 Unit
+                      </span>
+                    </td>
+                    <td><span class="status-badge">Aktif</span></td>
+                    <td>
+                      <div class="action-buttons">
+                        <label
+                          for="edit-category-modal"
+                          class="action-btn edit-btn"
+                          title="Edit kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"
+                            />
+                          </svg>
+                        </label>
+
+                        <label
+                          for="delete-category-modal"
+                          class="action-btn delete-btn"
+                          title="Hapus kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path d="M4 7H20" />
+                            <path d="M10 11V17M14 11V17" />
+                            <path d="M5 7L6 21H18L19 7" />
+                            <path d="M9 7V4H15V7" />
+                          </svg>
+                        </label>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- KATEGORI 2 -->
+                  <tr data-status="aktif">
+                    <td>2</td>
+                    <td><strong class="category-code">KTG-002</strong></td>
+                    <td>
+                      <strong class="category-name">TV Pembelajaran</strong>
+                    </td>
+                    <td>
+                      Smart TV presentasi, monitor display koridor, dan layar
+                      interaktif kelas
+                    </td>
+                    <td>
+                      <span class="facility-count">
+                        <svg viewBox="0 0 24 24">
+                          <rect x="3" y="4" width="18" height="13" rx="1" />
+                          <path d="M8 21H16M12 17V21" />
+                        </svg>
+                        12 Unit
+                      </span>
+                    </td>
+                    <td><span class="status-badge">Aktif</span></td>
+                    <td>
+                      <div class="action-buttons">
+                        <label
+                          for="edit-category-modal"
+                          class="action-btn edit-btn"
+                          title="Edit kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"
+                            />
+                          </svg>
+                        </label>
+                        <label
+                          for="delete-category-modal"
+                          class="action-btn delete-btn"
+                          title="Hapus kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M4 7H20M10 11V17M14 11V17M5 7L6 21H18L19 7M9 7V4H15V7"
+                            />
+                          </svg>
+                        </label>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- KATEGORI 3 -->
+                  <tr data-status="aktif">
+                    <td>3</td>
+                    <td><strong class="category-code">KTG-003</strong></td>
+                    <td><strong class="category-name">AC</strong></td>
+                    <td>
+                      Pendingin udara split wall ruang dosen, lab komputasi, dan
+                      ruang kuliah
+                    </td>
+                    <td>
+                      <span class="facility-count">
+                        <svg viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="3" />
+                          <path d="M12 2V9M12 15V22M2 12H9M15 12H22" />
+                          <path d="M5 5L9 9M15 15L19 19M19 5L15 9M9 15L5 19" />
+                        </svg>
+                        28 Unit
+                      </span>
+                    </td>
+                    <td><span class="status-badge">Aktif</span></td>
+                    <td>
+                      <div class="action-buttons">
+                        <label
+                          for="edit-category-modal"
+                          class="action-btn edit-btn"
+                          title="Edit kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"
+                            />
+                          </svg>
+                        </label>
+                        <label
+                          for="delete-category-modal"
+                          class="action-btn delete-btn"
+                          title="Hapus kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M4 7H20M10 11V17M14 11V17M5 7L6 21H18L19 7M9 7V4H15V7"
+                            />
+                          </svg>
+                        </label>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- KATEGORI 4 -->
+                  <tr data-status="aktif">
+                    <td>4</td>
+                    <td><strong class="category-code">KTG-004</strong></td>
+                    <td>
+                      <strong class="category-name">Lampu Ruangan</strong>
+                    </td>
+                    <td>
+                      Armatur lampu LED tabung dan panel ceiling penerangan
+                      utama gedung
+                    </td>
+                    <td>
+                      <span class="facility-count">
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            d="M12 3A7 7 0 0 0 8 16C9 17 9 18 9 19H15C15 18 15 17 16 16A7 7 0 0 0 12 3Z"
+                          />
+                          <path d="M9 21H15M10 19H14" />
+                        </svg>
+                        116 Titik
+                      </span>
+                    </td>
+                    <td><span class="status-badge">Aktif</span></td>
+                    <td>
+                      <div class="action-buttons">
+                        <label
+                          for="edit-category-modal"
+                          class="action-btn edit-btn"
+                          title="Edit kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"
+                            />
+                          </svg>
+                        </label>
+                        <label
+                          for="delete-category-modal"
+                          class="action-btn delete-btn"
+                          title="Hapus kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M4 7H20M10 11V17M14 11V17M5 7L6 21H18L19 7M9 7V4H15V7"
+                            />
+                          </svg>
+                        </label>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- KATEGORI 5 -->
+                  <tr data-status="aktif">
+                    <td>5</td>
+                    <td><strong class="category-code">KTG-005</strong></td>
+                    <td><strong class="category-name">Meja</strong></td>
+                    <td>
+                      Meja praktikum komputer panjang, meja seminar, dan meja
+                      kerja dosen
+                    </td>
+                    <td>
+                      <span class="facility-count">
+                        <svg viewBox="0 0 24 24">
+                          <path d="M3 8H21V12H3Z" />
+                          <path d="M5 12V20M19 12V20" />
+                          <path d="M7 8V5H17V8" />
+                        </svg>
+                        96 Unit
+                      </span>
+                    </td>
+                    <td><span class="status-badge">Aktif</span></td>
+                    <td>
+                      <div class="action-buttons">
+                        <label
+                          for="edit-category-modal"
+                          class="action-btn edit-btn"
+                          title="Edit kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"
+                            />
+                          </svg>
+                        </label>
+                        <label
+                          for="delete-category-modal"
+                          class="action-btn delete-btn"
+                          title="Hapus kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M4 7H20M10 11V17M14 11V17M5 7L6 21H18L19 7M9 7V4H15V7"
+                            />
+                          </svg>
+                        </label>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- KATEGORI 6 -->
+                  <tr data-status="aktif">
+                    <td>6</td>
+                    <td><strong class="category-code">KTG-006</strong></td>
+                    <td><strong class="category-name">Kursi</strong></td>
+                    <td>
+                      Kursi lipat mahasiswa, kursi putar teknisi lab, dan kursi
+                      rapat prodi
+                    </td>
+                    <td>
+                      <span class="facility-count">
+                        <svg viewBox="0 0 24 24">
+                          <path d="M5 11V5H19V11" />
+                          <path d="M4 11H20V15H4Z" />
+                          <path d="M6 15V21M18 15V21" />
+                          <path d="M4 11V8H20V11" />
+                        </svg>
+                        210 Unit
+                      </span>
+                    </td>
+                    <td><span class="status-badge">Aktif</span></td>
+                    <td>
+                      <div class="action-buttons">
+                        <label
+                          for="edit-category-modal"
+                          class="action-btn edit-btn"
+                          title="Edit kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"
+                            />
+                          </svg>
+                        </label>
+                        <label
+                          for="delete-category-modal"
+                          class="action-btn delete-btn"
+                          title="Hapus kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M4 7H20M10 11V17M14 11V17M5 7L6 21H18L19 7M9 7V4H15V7"
+                            />
+                          </svg>
+                        </label>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- KATEGORI 7 -->
+                  <tr data-status="aktif">
+                    <td>7</td>
+                    <td><strong class="category-code">KTG-007</strong></td>
+                    <td><strong class="category-name">Papan Tulis</strong></td>
+                    <td>
+                      Whiteboard magnetik dinding ruang kuliah dan papan
+                      pengumuman jurusan
+                    </td>
+                    <td>
+                      <span class="facility-count">
+                        <svg viewBox="0 0 24 24">
+                          <rect x="3" y="4" width="18" height="14" rx="1" />
+                          <path d="M7 21V18M17 21V18M8 8H16M8 12H16" />
+                        </svg>
+                        14 Unit
+                      </span>
+                    </td>
+                    <td><span class="status-badge">Aktif</span></td>
+                    <td>
+                      <div class="action-buttons">
+                        <label
+                          for="edit-category-modal"
+                          class="action-btn edit-btn"
+                          title="Edit kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"
+                            />
+                          </svg>
+                        </label>
+                        <label
+                          for="delete-category-modal"
+                          class="action-btn delete-btn"
+                          title="Hapus kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M4 7H20M10 11V17M14 11V17M5 7L6 21H18L19 7M9 7V4H15V7"
+                            />
+                          </svg>
+                        </label>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- KATEGORI 8 -->
+                  <tr data-status="aktif">
+                    <td>8</td>
+                    <td><strong class="category-code">KTG-008</strong></td>
+                    <td><strong class="category-name">Stop Kontak</strong></td>
+                    <td>
+                      Outlets listrik meja kerja komputer, colokan dinding, dan
+                      instalasi ground
+                    </td>
+                    <td>
+                      <span class="facility-count">
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            d="M12 22S5 14 5 9A7 7 0 0 1 19 9C19 14 12 22 12 22Z"
+                          />
+                          <circle cx="12" cy="9" r="2" />
+                        </svg>
+                        142 Titik
+                      </span>
+                    </td>
+                    <td><span class="status-badge">Aktif</span></td>
+                    <td>
+                      <div class="action-buttons">
+                        <label
+                          for="edit-category-modal"
+                          class="action-btn edit-btn"
+                          title="Edit kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"
+                            />
+                          </svg>
+                        </label>
+                        <label
+                          for="delete-category-modal"
+                          class="action-btn delete-btn"
+                          title="Hapus kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M4 7H20M10 11V17M14 11V17M5 7L6 21H18L19 7M9 7V4H15V7"
+                            />
+                          </svg>
+                        </label>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <!-- KATEGORI 9 -->
+                  <tr data-status="aktif">
+                    <td>9</td>
+                    <td><strong class="category-code">KTG-009</strong></td>
+                    <td>
+                      <strong class="category-name">Pintu Ruangan</strong>
+                    </td>
+                    <td>
+                      Pintu akses utama lab, handle kunci pintu kelas, dan pintu
+                      darurat
+                    </td>
+                    <td>
+                      <span class="facility-count">
+                        <svg viewBox="0 0 24 24">
+                          <rect x="5" y="3" width="14" height="18" rx="1" />
+                          <path d="M9 3V21M15 12H15.1" />
+                        </svg>
+                        18 Unit
+                      </span>
+                    </td>
+                    <td><span class="status-badge">Aktif</span></td>
+                    <td>
+                      <div class="action-buttons">
+                        <label
+                          for="edit-category-modal"
+                          class="action-btn edit-btn"
+                          title="Edit kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"
+                            />
+                          </svg>
+                        </label>
+                        <label
+                          for="delete-category-modal"
+                          class="action-btn delete-btn"
+                          title="Hapus kategori"
+                          role="button"
+                          tabindex="0"
+                        >
+                          <svg viewBox="0 0 24 24">
+                            <path
+                              d="M4 7H20M10 11V17M14 11V17M5 7L6 21H18L19 7M9 7V4H15V7"
+                            />
+                          </svg>
+                        </label>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- PAGINATION -->
+            <div class="panel-foot">
+              <div class="pagination">
+                <button type="button" disabled aria-label="Halaman sebelumnya">
+                  ‹
+                </button>
+
+                <button type="button" class="active">1</button>
+
+                <button type="button" disabled aria-label="Halaman berikutnya">
+                  ›
+                </button>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <!-- ======================================
+         MODAL EDIT KATEGORI
+    ======================================= -->
+    <div class="modal-overlay edit-modal-overlay">
+      <label
+        for="edit-category-modal"
+        class="modal-backdrop"
+        aria-label="Tutup modal"
+      ></label>
+
+      <section class="modal-card" role="dialog" aria-modal="true">
+        <div class="modal-header">
+          <div>
+            <h2>Edit Kategori Fasilitas</h2>
+            <p>Perbarui informasi kategori fasilitas SIPFAS.</p>
+          </div>
+
+          <label for="edit-category-modal" class="modal-close" title="Tutup">
+            &times;
+          </label>
+        </div>
+
+        <div class="modal-body">
+          <form class="category-form">
+            <div class="form-group">
+              <label for="edit-code"> Kode Kategori <span>*</span> </label>
+
+              <input type="text" id="edit-code" value="KTG-001" required />
+            </div>
+
+            <div class="form-group">
+              <label for="edit-name"> Nama Kategori <span>*</span> </label>
+
+              <input
+                type="text"
+                id="edit-name"
+                value="Komputer"
+                placeholder="Masukkan nama kategori"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="edit-description">
+                Deskripsi Cakupan <span>*</span>
+              </label>
+
+              <textarea id="edit-description" rows="3" required>
+PC desktop unit laboratorium, all-in-one dosen, dan unit server mini</textarea
+              >
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-total">Jumlah Fasilitas</label>
+
+                <input type="text" id="edit-total" value="84 Unit" readonly />
+
+                <small> Jumlah mengikuti data fasilitas yang terdaftar. </small>
+              </div>
+
+              <div class="form-group">
+                <label for="edit-status">Status Kategori</label>
+
+                <select id="edit-status">
+                  <option value="aktif" selected>Aktif</option>
+                  <option value="nonaktif">Nonaktif</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <label for="edit-category-modal" class="cancel-btn">
+                Batal
+              </label>
+
+              <button type="button" class="save-btn">Simpan Perubahan</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </div>
+
+    <!-- ======================================
+         MODAL KONFIRMASI HAPUS
+    ======================================= -->
+    <div class="modal-overlay delete-modal-overlay">
+      <label
+        for="delete-category-modal"
+        class="modal-backdrop"
+        aria-label="Tutup konfirmasi"
+      ></label>
+
+      <section
+        class="modal-card delete-confirm-card"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div class="modal-header">
+          <div>
+            <h2>Hapus Kategori?</h2>
+            <p>Konfirmasi penghapusan kategori fasilitas.</p>
+          </div>
+
+          <label for="delete-category-modal" class="modal-close" title="Tutup">
+            &times;
+          </label>
+        </div>
+
+        <div class="modal-body">
+          <p class="delete-confirm-text">
+            Apakah kamu yakin ingin menghapus kategori
+            <strong>Komputer (KTG-001)</strong>? Tindakan ini tidak dapat
+            dibatalkan.
+          </p>
+
+          <p class="delete-warning">
+            Catatan: kategori yang masih memiliki data fasilitas terkait
+            sebaiknya dinonaktifkan, bukan dihapus.
+          </p>
+
+          <div class="modal-footer">
+            <label for="delete-category-modal" class="cancel-btn">
+              Batal
+            </label>
+
+            <button type="button" class="confirm-delete-btn">Ya, Hapus</button>
+          </div>
+        </div>
+      </section>
+    </div>
+    <script src="Kategori-Fasilitas.js"></script>
+    <script src="../../assets/js/admin-profile-sync.js"></script>
+  </body>
+</html>

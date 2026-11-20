@@ -3,7 +3,8 @@
    Database : MySQL SIPFAS
    API      : PHP
    CRUD     : GET, PUT, DELETE
-   Jumlah unit: kategori_fasilitas
+   Jumlah unit: fasilitas.jumlah_unit
+
    Tampilan HTML dan CSS tetap dipertahankan.
 ================================================== */
 
@@ -54,6 +55,7 @@
 
   function getFrequencyNumber(value) {
     const match = String(value ?? "").match(/\d+/);
+
     return match ? Number(match[0]) : 0;
   }
 
@@ -88,7 +90,9 @@
   async function requestJSON(url, options = {}) {
     const headers = {
       Accept: "application/json",
+
       ...(options.body ? { "Content-Type": "application/json" } : {}),
+
       ...(options.headers || {}),
     };
 
@@ -151,7 +155,13 @@
 
       kodeLokasi: row.kode_lokasi ?? "",
 
-      jumlahUnit: Number(row.jumlah_unit ?? 0),
+      // NULL tidak boleh diubah menjadi 0.
+      jumlahUnit:
+        row.jumlah_unit === null ||
+        row.jumlah_unit === undefined ||
+        row.jumlah_unit === ""
+          ? null
+          : Number(row.jumlah_unit),
 
       frekuensi: getFrequencyNumber(row.frekuensi_penggunaan),
 
@@ -161,6 +171,7 @@
 
   /* ==================================================
      05. MEMUAT DATA DARI DATABASE
+     Mengambil seluruh halaman API.
   ================================================== */
 
   async function loadData() {
@@ -169,13 +180,28 @@
     state.loading = true;
 
     try {
-      const [facilityData, categoryData] = await Promise.all([
-        requestJSON(`${API_FASILITAS}?page=1&limit=100`),
+      const limit = 100;
+
+      const [firstPage, categoryData] = await Promise.all([
+        requestJSON(`${API_FASILITAS}?page=1&limit=${limit}`),
 
         requestJSON(`${API_KATEGORI}?page=1&limit=100&status=Aktif`),
       ]);
 
-      state.facilities = (facilityData.items ?? []).map(normalizeFacility);
+      let allFacilities = firstPage.items ?? [];
+
+      const totalPages = Number(firstPage.pagination?.total_pages ?? 1);
+
+      // Mengambil halaman kedua dan seterusnya.
+      for (let page = 2; page <= totalPages; page++) {
+        const result = await requestJSON(
+          `${API_FASILITAS}?page=${page}&limit=${limit}`,
+        );
+
+        allFacilities = allFacilities.concat(result.items ?? []);
+      }
+
+      state.facilities = allFacilities.map(normalizeFacility);
 
       state.categories = categoryData.items ?? [];
 
@@ -183,7 +209,10 @@
 
       renderTable();
 
+      console.log("Total fasilitas:", state.facilities.length);
+
       console.log("Data fasilitas:", state.facilities);
+
       console.log("Data kategori:", state.categories);
     } finally {
       state.loading = false;
@@ -196,19 +225,21 @@
 
   function populateCategoryOptions() {
     const editSelect = $("#editCategory");
+
     const filterSelect = $(".category-filter");
 
     const currentEdit = editSelect?.value ?? "";
+
     const currentFilter = filterSelect?.value ?? "semua";
 
     if (editSelect) {
       editSelect.innerHTML = state.categories
         .map(
           (category) => `
-        <option value="${Number(category.id_kategori)}">
-          ${escapeHTML(category.nama_kategori)}
-        </option>
-      `,
+            <option value="${Number(category.id_kategori)}">
+              ${escapeHTML(category.nama_kategori)}
+            </option>
+          `,
         )
         .join("");
 
@@ -222,13 +253,14 @@
     if (filterSelect) {
       filterSelect.innerHTML = `
         <option value="semua">Semua Kategori</option>
+
         ${state.categories
           .map(
             (category) => `
-          <option value="${Number(category.id_kategori)}">
-            ${escapeHTML(category.nama_kategori)}
-          </option>
-        `,
+              <option value="${Number(category.id_kategori)}">
+                ${escapeHTML(category.nama_kategori)}
+              </option>
+            `,
           )
           .join("")}
       `;
@@ -266,10 +298,12 @@
 
   /* ==================================================
      08. MENAMPILKAN TABEL
+     Struktur kolom HTML tetap.
   ================================================== */
 
   function renderTable() {
     const tbody = $(".facility-table tbody");
+
     const emptyState = $(".empty-state");
 
     if (!tbody) return;
@@ -290,77 +324,77 @@
         const days = Number(item.frekuensi);
 
         return `
-        <tr>
-          <td>${index + 1}</td>
+          <tr>
+            <td>${index + 1}</td>
 
-          <td>
-            <strong class="facility-code">
-              ${escapeHTML(item.kodeFasilitas)}
-            </strong>
-          </td>
+            <td>
+              <strong class="facility-code">
+                ${escapeHTML(item.kodeFasilitas)}
+              </strong>
+            </td>
 
-          <td>
-            <strong class="facility-name">
-              ${escapeHTML(item.namaFasilitas)}
-            </strong>
-          </td>
+            <td>
+              <strong class="facility-name">
+                ${escapeHTML(item.namaFasilitas)}
+              </strong>
+            </td>
 
-          <td>
-            <span class="category-badge ${categoryClass(item.kategori)}">
-              ${escapeHTML(item.kategori)}
-            </span>
-          </td>
+            <td>
+              <span class="category-badge ${categoryClass(item.kategori)}">
+                ${escapeHTML(item.kategori)}
+              </span>
+            </td>
 
-          <td>
-            ${escapeHTML(item.lokasi)}
-          </td>
+            <td>
+              ${escapeHTML(item.lokasi)}
+            </td>
 
-          <td>
-            <span class="frequency-badge ${frequencyClass(days)}">
-              <svg viewBox="0 0 24 24">
-                <path d="M13 2L5 13H11L10 22L19 10H13L13 2Z"/>
-              </svg>
-
-              ${days} Hari · ${frequencyLevel(days)}
-            </span>
-          </td>
-
-          <td>
-            <div class="action-buttons">
-
-              <label
-                for="editModalToggle"
-                class="action-btn edit-btn"
-                title="Edit fasilitas"
-                data-id="${item.id}"
-                tabindex="0"
-                role="button"
-              >
+            <td>
+              <span class="frequency-badge ${frequencyClass(days)}">
                 <svg viewBox="0 0 24 24">
-                  <path d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"/>
+                  <path d="M13 2L5 13H11L10 22L19 10H13L13 2Z"/>
                 </svg>
-              </label>
 
-              <label
-                for="deleteModalToggle"
-                class="action-btn delete-btn"
-                title="Hapus fasilitas"
-                data-id="${item.id}"
-                tabindex="0"
-                role="button"
-              >
-                <svg viewBox="0 0 24 24">
-                  <path d="M4 7H20"/>
-                  <path d="M10 11V17M14 11V17"/>
-                  <path d="M5 7L6 21H18L19 7"/>
-                  <path d="M9 7V4H15V7"/>
-                </svg>
-              </label>
+                ${days} Hari · ${frequencyLevel(days)}
+              </span>
+            </td>
 
-            </div>
-          </td>
-        </tr>
-      `;
+            <td>
+              <div class="action-buttons">
+
+                <label
+                  for="editModalToggle"
+                  class="action-btn edit-btn"
+                  title="Edit fasilitas"
+                  data-id="${item.id}"
+                  tabindex="0"
+                  role="button"
+                >
+                  <svg viewBox="0 0 24 24">
+                    <path d="M16.5 3.5A2.12 2.12 0 0 1 19.5 6.5L8 18L4 19L5 15Z"/>
+                  </svg>
+                </label>
+
+                <label
+                  for="deleteModalToggle"
+                  class="action-btn delete-btn"
+                  title="Hapus fasilitas"
+                  data-id="${item.id}"
+                  tabindex="0"
+                  role="button"
+                >
+                  <svg viewBox="0 0 24 24">
+                    <path d="M4 7H20"/>
+                    <path d="M10 11V17M14 11V17"/>
+                    <path d="M5 7L6 21H18L19 7"/>
+                    <path d="M9 7V4H15V7"/>
+                  </svg>
+                </label>
+
+              </div>
+            </td>
+          </tr>
+        `;
       })
       .join("");
   }
@@ -387,13 +421,32 @@
     const editCategory = $("#editCategory");
     const editFrequency = $("#editFrequency");
 
-    if (editCode) editCode.value = item.kodeFasilitas;
-    if (editName) editName.value = item.namaFasilitas;
-    if (editLocation) editLocation.value = item.lokasi;
-    if (editCategory) editCategory.value = String(item.idKategori);
+    // Opsional: jika input sudah tersedia pada HTML.
+    const editJumlahUnit = $("#editJumlahUnit");
+
+    if (editCode) {
+      editCode.value = item.kodeFasilitas;
+    }
+
+    if (editName) {
+      editName.value = item.namaFasilitas;
+    }
+
+    if (editLocation) {
+      editLocation.value = item.lokasi;
+    }
+
+    if (editCategory) {
+      editCategory.value = String(item.idKategori);
+    }
 
     if (editFrequency) {
       editFrequency.value = `${item.frekuensi} Hari`;
+    }
+
+    if (editJumlahUnit) {
+      editJumlahUnit.value =
+        item.jumlahUnit === null ? "" : String(item.jumlahUnit);
     }
   }
 
@@ -405,10 +458,17 @@
     if (state.selectedId === null) return;
 
     const code = $("#editCode")?.value.trim() ?? "";
+
     const name = $("#editName")?.value.trim() ?? "";
+
     const categoryId = Number($("#editCategory")?.value);
+
     const location = $("#editLocation")?.value.trim() ?? "";
+
     const days = getFrequencyNumber($("#editFrequency")?.value);
+
+    // Input jumlah unit opsional.
+    const quantityInput = $("#editJumlahUnit");
 
     if (!code || !name || !categoryId || !location) {
       alert("Semua kolom bertanda * wajib diisi.");
@@ -429,6 +489,39 @@
       return;
     }
 
+    let jumlahUnit = null;
+
+    if (quantityInput) {
+      const rawQuantity = quantityInput.value.trim();
+
+      if (rawQuantity !== "") {
+        jumlahUnit = Number(rawQuantity);
+
+        if (!Number.isSafeInteger(jumlahUnit) || jumlahUnit < 0) {
+          alert("Jumlah unit harus berupa bilangan bulat nol atau lebih.");
+          return;
+        }
+      }
+    }
+
+    const payload = {
+      id_fasilitas: state.selectedId,
+      kode_fasilitas: code,
+      nama_fasilitas: name,
+      id_kategori: categoryId,
+
+      // API mencari id_lokasi berdasarkan nama.
+      lokasi_ruangan: location,
+
+      frekuensi_penggunaan: days,
+      status_fasilitas: original.status,
+    };
+
+    // Kirim hanya jika input tersedia.
+    if (quantityInput) {
+      payload.jumlah_unit = jumlahUnit;
+    }
+
     const button = $(".edit-modal-overlay .btn-save");
 
     if (button) button.disabled = true;
@@ -437,18 +530,7 @@
       await requestJSON(API_FASILITAS, {
         method: "PUT",
 
-        body: JSON.stringify({
-          id_fasilitas: state.selectedId,
-          kode_fasilitas: code,
-          nama_fasilitas: name,
-          id_kategori: categoryId,
-
-          // API akan mencari id_lokasi berdasarkan nama.
-          lokasi_ruangan: location,
-
-          frekuensi_penggunaan: days,
-          status_fasilitas: original.status,
-        }),
+        body: JSON.stringify(payload),
       });
 
       $("#editModalToggle").checked = false;
@@ -460,6 +542,7 @@
       alert("Data fasilitas berhasil diperbarui.");
     } catch (error) {
       console.error("Gagal mengedit fasilitas:", error);
+
       alert(error.message || "Gagal memperbarui fasilitas.");
     } finally {
       if (button) button.disabled = false;
@@ -487,6 +570,7 @@
     if (description) {
       description.innerHTML = `
         Apakah kamu yakin ingin menghapus fasilitas
+
         <strong>
           ${escapeHTML(item.namaFasilitas)}
           (${escapeHTML(item.kodeFasilitas)})
@@ -524,6 +608,7 @@
       alert("Data fasilitas berhasil dihapus.");
     } catch (error) {
       console.error("Gagal menghapus fasilitas:", error);
+
       alert(error.message || "Gagal menghapus fasilitas.");
     } finally {
       if (button) button.disabled = false;
@@ -536,21 +621,26 @@
 
   function bindEvents() {
     const searchInput = $(".search-box input");
+
     const categoryFilter = $(".category-filter");
+
     const tbody = $(".facility-table tbody");
 
     searchInput?.addEventListener("input", (event) => {
       state.search = normalizeText(event.target.value);
+
       renderTable();
     });
 
     categoryFilter?.addEventListener("change", (event) => {
       state.category = event.target.value || "semua";
+
       renderTable();
     });
 
     tbody?.addEventListener("click", (event) => {
       const editButton = event.target.closest(".edit-btn");
+
       const deleteButton = event.target.closest(".delete-btn");
 
       if (editButton) {
@@ -563,7 +653,9 @@
     });
 
     tbody?.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" && event.key !== " ") return;
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
 
       const button = event.target.closest(".edit-btn, .delete-btn");
 
