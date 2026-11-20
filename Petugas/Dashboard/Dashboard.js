@@ -424,6 +424,7 @@
         cell.colSpan = 6;
         cell.className = "empty-row";
         cell.style.textAlign = "center";
+
         cell.textContent =
           "Tidak ada laporan yang menunggu verifikasi.";
 
@@ -614,6 +615,115 @@
       avatarEl.style.overflow = "hidden";
     }
 
+    // ==================================================
+    // NOTIFIKASI SAMBUTAN SETELAH LOGIN
+    // ==================================================
+
+    const WELCOME_NOTICE_KEY = "sipfas_petugas_welcome_shown";
+
+    function showWelcomeNotification(name) {
+      const toast = document.createElement("div");
+
+      toast.id = "sipfasDashboardWelcome";
+      toast.setAttribute("role", "status");
+      toast.setAttribute("aria-live", "polite");
+
+      Object.assign(toast.style, {
+        position: "relative",
+        width: "100%",
+        maxWidth: "100%",
+        boxSizing: "border-box",
+        margin: "0 auto 20px",
+        transform: "translateY(-8px)",
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "12px",
+        padding: "16px 20px",
+        background: "#ffffff",
+        color: "#1f2937",
+        border: "1px solid #dbeafe",
+        borderLeft: "5px solid #16a34a",
+        borderRadius: "12px",
+        boxShadow: "0 10px 30px rgba(15, 23, 42, 0.16)",
+        fontFamily: "inherit",
+        opacity: "0",
+        visibility: "hidden",
+        transition: "opacity .25s ease, transform .25s ease, visibility .25s ease"
+      });
+
+      const icon = document.createElement("span");
+      icon.textContent = "✓";
+
+      Object.assign(icon.style, {
+        display: "grid",
+        placeItems: "center",
+        width: "28px",
+        height: "28px",
+        flex: "0 0 28px",
+        borderRadius: "50%",
+        background: "#dcfce7",
+        color: "#15803d",
+        fontWeight: "700",
+        fontSize: "17px"
+      });
+
+      const content = document.createElement("div");
+
+      const heading = document.createElement("div");
+      heading.textContent = "Selamat Datang di Dashboard SIPFAS!";
+
+      Object.assign(heading.style, {
+        fontSize: "15px",
+        fontWeight: "700",
+        marginBottom: "4px"
+      });
+
+      const message = document.createElement("div");
+      message.textContent =
+        `Selamat beraktivitas, ${name}. Semoga aktivitas Anda hari ini berjalan lancar.`;
+
+      Object.assign(message.style, {
+        fontSize: "13px",
+        lineHeight: "1.5",
+        color: "#64748b"
+      });
+
+      content.append(heading, message);
+      toast.append(icon, content);
+
+      // Menempatkan notifikasi di dalam area Dashboard.
+      const dashboardContent = document.querySelector(".main-content");
+      const dashboardHeading = dashboardContent?.querySelector("h1");
+
+      if (!dashboardContent) {
+        console.error(
+          "[SIPFAS] Area konten Dashboard (.main-content) tidak ditemukan."
+        );
+        return;
+      }
+
+      // Notifikasi muncul tepat setelah judul Dashboard Petugas.
+      if (dashboardHeading) {
+        dashboardHeading.insertAdjacentElement("afterend", toast);
+      } else {
+        dashboardContent.prepend(toast);
+      }
+
+      requestAnimationFrame(() => {
+        toast.style.opacity = "1";
+        toast.style.visibility = "visible";
+        toast.style.transform = "translateY(0)";
+      });
+
+      window.setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.visibility = "hidden";
+        toast.style.transform = "translateY(-8px)";
+
+        window.setTimeout(() => toast.remove(), 300);
+      }, 5000);
+    }
+
     async function displayActiveUser() {
       try {
         const payload = await fetchJson(API.profile);
@@ -668,6 +778,19 @@
             initials
           );
         });
+
+        // Tampilkan satu kali setelah profil dan session berhasil diverifikasi.
+        try {
+          if (sessionStorage.getItem(WELCOME_NOTICE_KEY) !== "shown") {
+            sessionStorage.setItem(WELCOME_NOTICE_KEY, "shown");
+            showWelcomeNotification(name);
+          }
+        } catch (storageError) {
+          console.warn(
+            "[SIPFAS] Session storage tidak tersedia:",
+            storageError
+          );
+        }
 
       } catch (error) {
         console.error(
@@ -729,6 +852,8 @@
         }
 
         try {
+          sessionStorage.removeItem(WELCOME_NOTICE_KEY);
+
           await fetch(
             new URL(API.logout, window.location.href).href,
             {
@@ -737,8 +862,10 @@
               cache: "no-store"
             }
           );
+
         } catch (error) {
           console.error("[SIPFAS] Logout error:", error);
+
         } finally {
           window.location.replace(
             new URL(LOGIN_URL, window.location.href).href
@@ -793,4 +920,5 @@
     displayActiveUser();
     refreshDashboard();
   }
+
 })();
