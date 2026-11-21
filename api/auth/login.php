@@ -122,7 +122,8 @@ try {
 
     require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
     // Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
-require_once dirname(__DIR__, 2) . '/config/csrf.php';sipfas_csrf_require_valid();
+require_once dirname(__DIR__, 2) . '/config/csrf.php';
+sipfas_csrf_require_valid();
 
     require_once dirname(__DIR__, 2) . '/services/OtpService.php';
 
