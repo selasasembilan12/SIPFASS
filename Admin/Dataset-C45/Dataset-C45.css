@@ -1,72 +1,38 @@
-/* =========================================================
-   SIPFAS - DATASET C4.5 ADMIN
-   File: dataset-c45.css
-
-   Standar tampilan:
-   Dashboard Admin SIPFAS
-   Manajemen Pengguna
-   Kategori Fasilitas
-   Data Fasilitas
-
-   Font       : Inter
-   Sidebar    : Navy
-   Primary    : Blue
-   Background : Light Gray
-========================================================= */
-
-/* =========================================================
-   01. VARIABEL GLOBAL
-========================================================= */
+/* ============================================================
+   01. PENGATURAN DASAR
+============================================================ */
 
 :root {
   --font-main: "Inter", sans-serif;
-
   --navy: #203f65;
   --navy-dark: #193858;
-
   --primary: #0758e8;
-  --primary-hover: #064bc4;
-
+  --primary-dark: #064bc4;
+  --primary-light: #e1e7ff;
+  --background: #f4f7fb;
   --page-bg: #f4f7fb;
+  --surface: #ffffff;
   --white: #ffffff;
-
+  --text: #20262d;
   --text-main: #20262d;
   --text-secondary: #68717c;
-  --text-muted: #929ba7;
-
+  --muted: #929ba7;
   --border: #edf0f4;
   --table-head: #f0f2f5;
-  --field-bg: #f1f3f6;
-
-  --blue-soft: #e1e7ff;
-  --blue-text: #0758e8;
-
-  --red-soft: #ffe1df;
-  --red-text: #d92d35;
-
-  --green-soft: #d3f6e8;
-  --green-text: #15845b;
-
-  --purple-soft: #e0e5ff;
-
-  --orange-soft: #fff4db;
-  --orange-text: #b7791f;
-
-  --radius-card: 10px;
-  --radius-panel: 11px;
-
-  /* SAMA DENGAN DASHBOARD */
+  --red: #d92d35;
+  --red-light: #ffe1df;
+  --blue: #3478c9;
+  --blue-light: #edf5ff;
+  --green: #16845d;
+  --green-light: #eaf8f1;
+  --gray-light: #f1f5f9;
   --sidebar-width: 240px;
   --topbar-height: 54px;
+  --radius: 12px;
+  --shadow: 0 3px 12px rgba(15, 23, 42, 0.05);
 }
 
-/* =========================================================
-   02. RESET DAN PENGATURAN DASAR
-========================================================= */
-
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
@@ -75,27 +41,30 @@ html {
 }
 
 body {
-  font-family: var(--font-main);
-  background: var(--page-bg);
-  color: var(--text-main);
+  margin: 0;
 
-  font-size: 12px;
-  line-height: 1.5;
+  font-family: "Inter", Arial, sans-serif;
 
-  min-width: 320px;
+  font-size: 14px;
 
-  -webkit-font-smoothing: antialiased;
+  color: var(--text);
+
+  background: var(--background);
 }
 
 button,
 input,
-select,
-textarea {
-  font-family: inherit;
+select {
+  font: inherit;
 }
 
 button {
   cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 a {
@@ -105,194 +74,149 @@ a {
 
 svg {
   display: block;
-  width: 100%;
-  height: 100%;
-
-  fill: none;
-  stroke: currentColor;
-
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 
-/* =========================================================
-   03. LAYOUT UTAMA
-========================================================= */
+/* ============================================================
+   02. LAYOUT UTAMA
+============================================================ */
 
 .app-layout {
   display: flex;
 
-  width: 100%;
   min-height: 100vh;
 
-  overflow-x: hidden;
+  width: 100%;
 }
 
-/* =========================================================
-   04. SIDEBAR NAVIGASI
-   SAMA DENGAN DASHBOARD ADMIN
-========================================================= */
+.main-area {
+  flex: 1;
+
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+}
+
+.content {
+  width: 100%;
+
+  max-width: 1600px;
+
+  margin: 0 auto;
+
+  padding: 28px 32px 40px;
+}
+
+/* ============================================================
+   03. SIDEBAR
+   Disamakan dengan Data Fasilitas dan Pelatihan C4.5.
+   Ukuran logo mengikuti assets/css/logo.css.
+============================================================ */
 
 .sidebar {
   width: var(--sidebar-width);
   min-width: var(--sidebar-width);
-
   min-height: 100vh;
-
   display: flex;
   flex-direction: column;
-
   position: relative;
   z-index: 10;
-
   flex-shrink: 0;
-
   background: var(--navy);
   color: #dce7f5;
 }
 
-/* Garis pemisah sisi kanan sidebar */
-
 .sidebar::after {
   content: "";
-
   position: absolute;
   top: 0;
   right: 0;
-
   width: 1px;
   height: 100%;
-
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* =========================================================
-   05. LOGO DAN IDENTITAS SIPFAS
-   Menggunakan logo.css GLOBAL.
-   Jangan mengubah ukuran logo di halaman ini.
-========================================================= */
-
+/* Ukuran dan posisi logo mengikuti logo.css global. */
 .sidebar-logo {
   flex-shrink: 0;
 }
 
-/* Garis putih pemisah logo dan menu */
-
 .sidebar-brand-divider {
+  display: block;
   width: 100%;
   height: 1px;
-
+  min-height: 1px;
   flex-shrink: 0;
-
-  margin: 0 0 5px 0;
-
+  margin: 0 0 5px;
   background: rgba(255, 255, 255, 0.22);
 }
-
-/* =========================================================
-   06. NAVIGASI SIDEBAR
-   Mengikuti Dashboard.css
-========================================================= */
-
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-
-  flex: 1;
-}
-
-/* Kelompok menu */
 
 .nav-group {
   padding: 0 11px;
   margin-top: 8px;
+  margin-bottom: 0;
 }
-
-/* Judul kelompok menu */
 
 .nav-title {
+  margin: 0;
+  padding: 8px 5px 6px;
   color: #91aac7;
-
   font-size: 7px;
   font-weight: 700;
-
   letter-spacing: 0.45px;
-
-  padding: 8px 5px 6px;
 }
-
-/* Link navigasi */
 
 .nav-link {
   width: 100%;
   min-height: 26px;
-
   display: flex;
   align-items: center;
-
   gap: 8px;
-
   padding: 5px 8px;
   margin-bottom: 2px;
-
   border-radius: 6px;
-
   color: #d5e2f1;
-
   font-size: 9px;
   font-weight: 500;
-
   transition:
     background 0.18s ease,
     color 0.18s ease;
 }
-
-/* Hover navigasi */
 
 .nav-link:hover {
   background: rgba(255, 255, 255, 0.09);
   color: #ffffff;
 }
 
-/* Menu aktif */
-
 .nav-link.active {
   background: var(--primary);
   color: #ffffff;
-
   font-weight: 700;
 }
-
-/* Area ikon */
 
 .nav-icon {
   width: 13px;
   height: 13px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
-  flex-shrink: 0;
+  flex: 0 0 13px;
 }
 
 .nav-icon svg {
   width: 13px;
   height: 13px;
-
+  fill: none;
+  stroke: currentColor;
   stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
-
-/* =========================================================
-   07. MENU AKUN SIDEBAR
-========================================================= */
 
 .sidebar-bottom {
   margin-top: auto;
-
   padding: 8px 11px 9px;
-
   border-top: 1px solid rgba(255, 255, 255, 0.09);
 }
 
@@ -300,362 +224,338 @@ svg {
   padding-top: 0;
 }
 
-/* =========================================================
-   08. AREA KONTEN UTAMA
-========================================================= */
-
-.main-area {
-  flex: 1;
-  min-width: 0;
-
-  display: flex;
-  flex-direction: column;
-}
-
-/* =========================================================
-   09. TOPBAR
-   SAMA DENGAN DASHBOARD ADMIN
-========================================================= */
+/* ============================================================
+   04. TOPBAR
+============================================================ */
 
 .topbar {
-  height: 66px;
-  min-height: 64px;
+  min-height: 68px;
 
-  padding: 0 20px;
+  padding: 0 32px;
 
   display: flex;
+
   align-items: center;
+
   justify-content: space-between;
 
-  background: var(--white);
+  gap: 20px;
+
+  background: #ffffff;
+
   border-bottom: 1px solid var(--border);
-
-  flex-shrink: 0;
 }
-
-/* Identitas sistem */
 
 .topbar-system {
   display: flex;
+
   align-items: center;
 
-  gap: 8px;
+  gap: 10px;
 
-  color: #58616c;
+  font-size: 11px;
 
-  font-size: 8px;
-  font-weight: 500;
+  font-weight: 700;
 
-  letter-spacing: 0.15px;
+  color: #475569;
+
+  letter-spacing: 0.4px;
 }
 
-/* Titik biru */
-
 .topbar-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+
+  height: 8px;
 
   border-radius: 50%;
 
-  background: var(--primary);
+  background: #20a477;
 
-  flex-shrink: 0;
+  box-shadow: 0 0 0 4px #e7f7f0;
 }
-
-/* Area pengguna */
 
 .topbar-user {
   display: flex;
+
   align-items: center;
-
-  gap: 8px;
-}
-
-/* Nama pengguna */
-
-.topbar-user-name {
-  color: #25303c;
-
-  font-size: 8px;
-  font-weight: 600;
-}
-
-/* Avatar */
-
-.topbar-user-avatar {
-  width: 23px;
-  height: 23px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-
-  background: var(--primary);
-  color: #ffffff;
-
-  flex-shrink: 0;
-}
-
-.topbar-user-avatar svg {
-  width: 13px;
-  height: 13px;
-
-  stroke-width: 1.8;
-}
-
-/* =========================================================
-   10. AREA KONTEN DATASET
-========================================================= */
-
-.content {
-  flex: 1;
-  min-width: 0;
-
-  padding: 17px 20px 25px;
-}
-
-/* =========================================================
-   11. HEADER HALAMAN
-========================================================= */
-
-.page-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
 
   gap: 12px;
 
-  margin-bottom: 15px;
+  color: var(--text);
+
+  font-size: 12px;
+
+  font-weight: 600;
 }
 
-/* Breadcrumb */
+.topbar-user-avatar {
+  width: 36px;
+
+  height: 36px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 50%;
+
+  background: var(--primary-light);
+
+  color: var(--primary);
+}
+
+.topbar-user-avatar svg {
+  width: 22px;
+
+  height: 22px;
+
+  fill: none;
+
+  stroke: currentColor;
+
+  stroke-width: 1.7;
+}
+
+/* ============================================================
+   05. HEADER HALAMAN
+============================================================ */
+
+.page-header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-bottom: 24px;
+}
 
 .breadcrumb {
   display: flex;
+
   align-items: center;
 
-  gap: 5px;
+  flex-wrap: wrap;
 
-  margin-bottom: 3px;
+  gap: 9px;
 
-  color: #7b8591;
+  margin-bottom: 10px;
 
-  font-size: 7px;
-  font-weight: 400;
+  color: var(--muted);
+
+  font-size: 12px;
 }
 
 .breadcrumb-active {
   color: var(--primary);
+
   font-weight: 600;
 }
 
-/* Judul halaman */
-
 .page-header h1 {
-  color: #152f4b;
+  margin: 0;
 
-  font-size: 17px;
-  font-weight: 700;
+  font-size: 23px;
 
-  line-height: 1.3;
-  letter-spacing: -0.35px;
+  font-weight: 750;
+
+  color: var(--navy);
 }
 
-/* =========================================================
-   12. TOMBOL TAMBAH DATA SIMULASI
-========================================================= */
+/* ============================================================
+   06. TOMBOL UTAMA
+============================================================ */
 
 .add-btn {
-  min-height: 32px;
-
   display: inline-flex;
+
   align-items: center;
+
   justify-content: center;
 
-  gap: 7px;
+  gap: 9px;
 
-  padding: 0 12px;
+  padding: 12px 17px;
 
-  border: 1px solid var(--primary);
-  border-radius: 6px;
+  border: 0;
+
+  border-radius: 8px;
 
   background: var(--primary);
+
   color: #ffffff;
 
-  font-size: 8px;
-  font-weight: 650;
+  font-size: 12px;
 
-  white-space: nowrap;
+  font-weight: 600;
 
-  transition:
-    background 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .add-btn:hover {
-  background: var(--primary-hover);
-
-  box-shadow: 0 3px 8px rgba(7, 88, 232, 0.16);
+  background: var(--primary-dark);
 }
 
 .add-btn svg {
-  width: 13px;
-  height: 13px;
+  width: 17px;
 
-  stroke-width: 2;
+  height: 17px;
+
+  fill: none;
+
+  stroke: currentColor;
+
+  stroke-width: 1.8;
+
+  stroke-linecap: round;
 }
 
-/* =========================================================
-   13. GRID KARTU STATISTIK
-========================================================= */
+/* ============================================================
+   07. KARTU STATISTIK
+============================================================ */
 
 .summary-grid {
   display: grid;
 
   grid-template-columns: repeat(4, minmax(0, 1fr));
 
-  gap: 12px;
+  gap: 17px;
 
-  margin-bottom: 15px;
+  margin-bottom: 24px;
 }
-
-/* =========================================================
-   14. KARTU STATISTIK
-========================================================= */
 
 .summary-card {
   min-width: 0;
-  min-height: 105px;
 
-  padding: 14px 15px;
+  padding: 19px;
 
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  background: var(--surface);
 
-  background: var(--white);
+  border: 1px solid var(--border);
 
-  border: 1px solid #eef1f5;
-  border-radius: var(--radius-card);
+  border-radius: var(--radius);
 
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.summary-card:hover {
-  transform: translateY(-2px);
-
-  box-shadow: 0 5px 15px rgba(25, 56, 88, 0.06);
+  box-shadow: var(--shadow);
 }
 
 .summary-card-top {
   display: flex;
-  align-items: flex-start;
+
+  align-items: center;
+
   justify-content: space-between;
 
-  gap: 8px;
+  gap: 10px;
+
+  margin-bottom: 17px;
 }
 
 .summary-card-top p {
-  padding-top: 2px;
+  margin: 0;
 
-  color: #515b67;
+  font-size: 12px;
 
-  font-size: 8px;
   font-weight: 600;
+
+  color: var(--text-secondary);
 }
 
-.summary-card-top p.title-red {
-  color: var(--red-text);
+.title-red {
+  color: var(--red) !important;
 }
 
-.summary-card-top p.title-blue {
-  color: var(--primary);
+.title-blue {
+  color: var(--blue) !important;
 }
-
-/* Ikon statistik */
 
 .summary-card-icon {
-  width: 27px;
-  height: 27px;
+  width: 37px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 37px;
 
-  border-radius: 6px;
+  display: grid;
 
-  flex-shrink: 0;
+  place-items: center;
+
+  border-radius: 10px;
 }
 
 .summary-card-icon svg {
-  width: 15px;
-  height: 15px;
-}
+  width: 20px;
 
-/* Warna ikon */
+  height: 20px;
 
-.summary-blue {
-  background: #dce5ff;
-  color: #1457e9;
-}
+  fill: none;
 
-.summary-red {
-  background: #ffe1e1;
-  color: #e34a53;
+  stroke: currentColor;
+
+  stroke-width: 1.8;
+
+  stroke-linecap: round;
+
+  stroke-linejoin: round;
 }
 
 .summary-purple {
-  background: #dce2ff;
-  color: #203f75;
+  color: #7555bc;
+
+  background: #f2edff;
 }
 
-/* Angka statistik */
+.summary-red {
+  color: var(--red);
+
+  background: var(--red-light);
+}
+
+.summary-blue {
+  color: var(--blue);
+
+  background: var(--blue-light);
+}
 
 .summary-number {
   display: flex;
+
   align-items: baseline;
 
-  gap: 6px;
+  flex-wrap: wrap;
 
-  color: #20262d;
+  gap: 7px;
 
-  font-size: 20px;
+  font-size: 27px;
+
   font-weight: 750;
 
-  line-height: 1.15;
-  letter-spacing: -0.4px;
+  color: var(--navy);
 }
 
 .summary-number small {
-  color: #69727d;
+  font-size: 10px;
 
-  font-size: 8px;
-  font-weight: 400;
+  font-weight: 500;
 
-  letter-spacing: 0;
+  color: var(--text-secondary);
 }
 
-.summary-number.number-red {
-  color: var(--red-text);
+.number-red {
+  color: var(--red);
 }
-
-/* =========================================================
-   15. PROGRESS BAR
-========================================================= */
 
 .progress {
   width: 100%;
-  height: 4px;
 
-  border-radius: 4px;
+  height: 6px;
 
-  background: #e7eaee;
+  margin-top: 17px;
 
   overflow: hidden;
+
+  background: #edf1f6;
+
+  border-radius: 10px;
 }
 
 .progress-bar {
@@ -663,546 +563,393 @@ svg {
 
   height: 100%;
 
-  border-radius: 4px;
+  width: 0;
+
+  border-radius: 10px;
+
+  transition: width 0.4s ease;
 }
 
 .bar-navy {
-  background: #152f4b;
+  background: #022448;
 }
 
 .bar-red {
-  background: var(--red-text);
+  background: var(--red);
 }
 
 .bar-blue {
-  background: var(--primary);
+  background: var(--blue);
 }
 
 .bar-gray {
-  background: #6f7782;
+  background: #94a3b8;
 }
 
-/* Lebar progress */
-
-.bar-w100 {
-  width: 100%;
-}
-
-.bar-w32 {
-  width: 32%;
-}
-
-.bar-w45 {
-  width: 45%;
-}
-
-.bar-w23 {
-  width: 23%;
-}
-
-/* =========================================================
-   16. PANEL PEDOMAN PEMBOBOTAN MATEMATIS
-========================================================= */
+/* ============================================================
+   08. PEDOMAN PEMBOBOTAN MATEMATIS
+============================================================ */
 
 .guide-panel {
-  width: 100%;
+  margin-bottom: 24px;
 
-  margin-bottom: 15px;
+  padding: 22px;
 
-  padding: 14px;
+  background: #ffffff;
 
-  background: #e9eefb;
+  border: 1px solid var(--border);
 
-  border: 1px solid #dde5f6;
-  border-radius: var(--radius-panel);
+  border-radius: var(--radius);
+
+  box-shadow: var(--shadow);
 }
-
-/* =========================================================
-   17. HEADER PEDOMAN
-========================================================= */
 
 .guide-head {
   display: flex;
-  align-items: flex-start;
+
+  align-items: center;
+
   justify-content: space-between;
 
-  gap: 12px;
+  gap: 15px;
 
-  margin-bottom: 11px;
+  margin-bottom: 22px;
 }
 
 .guide-title {
   display: flex;
+
   align-items: center;
 
-  gap: 9px;
+  gap: 13px;
 }
-
-/* Ikon sigma */
 
 .guide-icon {
-  width: 26px;
-  height: 26px;
+  width: 39px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 39px;
 
-  border-radius: 6px;
+  display: grid;
 
-  background: #152f4b;
-  color: #ffffff;
-
-  font-size: 14px;
-  font-weight: 700;
+  place-items: center;
 
   flex-shrink: 0;
+
+  border-radius: 10px;
+
+  background: var(--primary-light);
+
+  color: var(--primary);
+
+  font-size: 23px;
+
+  font-weight: 700;
 }
 
-/* Judul pedoman */
-
 .guide-title h2 {
-  color: #152f4b;
+  margin: 0 0 6px;
 
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 15px;
 
-  line-height: 1.4;
-  letter-spacing: -0.2px;
+  color: var(--navy);
 }
 
 .guide-title p {
-  margin-top: 2px;
+  margin: 0;
 
-  color: #5f6b79;
+  color: var(--text-secondary);
 
-  font-size: 7px;
-  line-height: 1.5;
-}
-
-/* Tombol dataset penelitian */
-
-.guide-btn {
-  min-height: 25px;
-
-  padding: 0 10px;
-
-  border: 1px solid #e0e6f3;
-  border-radius: 4px;
-
-  background: #ffffff;
-  color: #3b4450;
-
-  font-size: 7px;
-  font-weight: 600;
-
-  white-space: nowrap;
-}
-
-.guide-btn:hover {
-  background: #f4f7fd;
-}
-
-/* =========================================================
-   18. GRID PEDOMAN
-========================================================= */
-
-.guide-grid {
-  display: grid;
-
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-
-  gap: 11px;
-}
-
-.guide-card {
-  min-width: 0;
-  min-height: 92px;
-
-  padding: 12px 14px;
-
-  background: #ffffff;
-
-  border: 1px solid #e3e9f6;
-  border-radius: 6px;
-}
-
-/* =========================================================
-   19. HEADER KARTU PEDOMAN
-========================================================= */
-
-.guide-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 8px;
-
-  margin-bottom: 8px;
-
-  color: #3d4652;
-
-  font-size: 7px;
-  font-weight: 700;
-
-  letter-spacing: 0.2px;
-}
-
-.guide-card-icon {
-  width: 13px;
-  height: 13px;
-
-  display: flex;
-
-  color: var(--primary);
-}
-
-.guide-card-icon svg {
-  width: 13px;
-  height: 13px;
-}
-
-/* =========================================================
-   20. FORMULA MATEMATIS
-========================================================= */
-
-.formula {
-  margin-bottom: 12px;
-
-  color: #20262d;
-
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 11px;
 
   line-height: 1.6;
 }
 
-.formula-note {
-  color: #7b8591;
+.guide-btn {
+  padding: 9px 14px;
 
-  font-size: 7px;
-  line-height: 1.5;
+  border: 1px solid var(--border);
+
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: var(--primary);
+
+  font-size: 11px;
+
+  font-weight: 600;
 }
 
-/* =========================================================
-   21. ATURAN KLASIFIKASI
-========================================================= */
+.guide-grid {
+  display: grid;
 
-.rule-row {
-  min-height: 22px;
+  grid-template-columns: 1fr 1fr;
 
+  gap: 16px;
+}
+
+.guide-card {
+  padding: 17px;
+
+  background: #f8fafc;
+
+  border: 1px solid var(--border);
+
+  border-radius: 10px;
+}
+
+.guide-card-top {
   display: flex;
+
   align-items: center;
+
   justify-content: space-between;
 
-  gap: 8px;
+  margin-bottom: 17px;
 
-  color: #59636e;
+  color: var(--text-secondary);
 
-  font-size: 7px;
-}
+  font-size: 10px;
 
-/* =========================================================
-   22. LABEL PRIORITAS
-========================================================= */
-
-.priority {
-  min-width: 42px;
-  min-height: 19px;
-
-  padding: 3px 7px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 4px;
-
-  font-size: 7px;
   font-weight: 700;
 
-  white-space: nowrap;
+  letter-spacing: 0.6px;
 }
 
-.priority-high {
-  background: var(--red-soft);
-  color: var(--red-text);
+.guide-card-icon {
+  color: var(--primary);
 }
 
-.priority-medium {
-  background: var(--blue-soft);
-  color: #244fc5;
+.guide-card-icon svg {
+  width: 20px;
+
+  height: 20px;
+
+  fill: none;
+
+  stroke: currentColor;
+
+  stroke-width: 1.7;
 }
 
-.priority-low {
-  background: var(--green-soft);
-  color: var(--green-text);
+.formula {
+  margin: 0 0 10px;
+
+  color: var(--primary-dark);
+
+  font-size: 17px;
+
+  font-weight: 700;
+
+  line-height: 1.7;
 }
 
-/* =========================================================
-   23. PANEL TABEL DATASET
-========================================================= */
+.formula-note {
+  margin: 0;
 
-.panel {
-  width: 100%;
+  color: var(--text-secondary);
 
-  padding: 13px 14px 12px;
-
-  background: var(--white);
-
-  border: 1px solid #edf0f4;
-  border-radius: var(--radius-panel);
-
-  overflow: hidden;
-
-  box-shadow: 0 1px 2px rgba(24, 39, 75, 0.02);
+  font-size: 11px;
 }
 
-/* =========================================================
-   24. TOOLBAR SEARCH DAN FILTER
-========================================================= */
-
-.toolbar {
+.rule-row {
   display: flex;
+
   align-items: center;
+
   justify-content: space-between;
 
   gap: 12px;
 
-  margin-bottom: 12px;
+  padding: 9px 0;
+
+  border-bottom: 1px solid var(--border);
+
+  font-size: 12px;
 }
 
-/* Search box */
+.rule-row:last-child {
+  border-bottom: 0;
+}
 
-.search-box {
-  width: 330px;
-  max-width: 100%;
-  height: 33px;
+/* ============================================================
+   09. PANEL TABEL
+============================================================ */
 
+.panel {
+  padding: 21px;
+
+  background: #ffffff;
+
+  border: 1px solid var(--border);
+
+  border-radius: var(--radius);
+
+  box-shadow: var(--shadow);
+}
+
+/* ============================================================
+   10. PENCARIAN DAN FILTER
+============================================================ */
+
+.toolbar {
   display: flex;
+
   align-items: center;
 
-  gap: 8px;
+  justify-content: space-between;
 
-  padding: 0 10px;
+  gap: 14px;
 
-  border: 1px solid #eef0f3;
-  border-radius: 6px;
+  margin-bottom: 19px;
+}
 
-  background: var(--field-bg);
+.search-box {
+  width: 100%;
 
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  max-width: 360px;
+
+  min-height: 41px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 0 12px;
+
+  background: #ffffff;
+
+  border: 1px solid var(--border);
+
+  border-radius: 8px;
+}
+
+.search-box svg {
+  width: 17px;
+
+  height: 17px;
+
+  flex-shrink: 0;
+
+  fill: none;
+
+  stroke: var(--muted);
+
+  stroke-width: 1.8;
+}
+
+.search-box input {
+  width: 100%;
+
+  min-width: 0;
+
+  border: 0;
+
+  outline: 0;
+
+  background: transparent;
+
+  color: var(--text);
+
+  font-size: 11px;
+}
+
+.search-box input::placeholder {
+  color: var(--muted);
 }
 
 .search-box:focus-within {
   border-color: var(--primary);
 
-  box-shadow: 0 0 0 2px rgba(7, 88, 232, 0.08);
+  box-shadow: 0 0 0 3px rgba(23, 79, 145, 0.08);
 }
-
-.search-box svg {
-  width: 13px;
-  height: 13px;
-
-  color: #89939f;
-
-  flex-shrink: 0;
-}
-
-.search-box input {
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-
-  border: none;
-  outline: none;
-
-  background: transparent;
-
-  color: #354153;
-
-  font-size: 8px;
-}
-
-.search-box input::placeholder {
-  color: #929ba7;
-}
-
-/* =========================================================
-   25. FILTER DATASET
-========================================================= */
 
 .filter-group {
   display: flex;
+
   align-items: center;
 
-  gap: 7px;
+  flex-wrap: wrap;
+
+  gap: 8px;
 }
 
 .dataset-filter {
-  width: 146px;
-  height: 33px;
+  min-height: 39px;
 
   padding: 0 10px;
 
-  border: 1px solid #e5e9ef;
-  border-radius: 6px;
+  border: 1px solid var(--border);
+
+  border-radius: 7px;
 
   outline: none;
 
-  background: var(--field-bg);
+  background: #ffffff;
 
-  color: #515b67;
+  color: var(--text-secondary);
 
-  font-size: 8px;
-  font-weight: 500;
-
-  cursor: pointer;
-
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.dataset-filter:hover {
-  background: #e9edf3;
+  font-size: 10px;
 }
 
 .dataset-filter:focus {
   border-color: var(--primary);
-
-  box-shadow: 0 0 0 2px rgba(7, 88, 232, 0.08);
 }
 
-/* =========================================================
-   26. PEMBUNGKUS TABEL
-========================================================= */
+/* ============================================================
+   11. TABEL DATASET
+============================================================ */
 
 .table-wrap {
   width: 100%;
 
   overflow-x: auto;
 
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f4f7fb;
-}
+  border: 1px solid var(--border);
 
-.table-wrap::-webkit-scrollbar {
-  height: 6px;
+  border-radius: 9px;
 }
-
-.table-wrap::-webkit-scrollbar-track {
-  background: #f4f7fb;
-}
-
-.table-wrap::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-}
-
-/* =========================================================
-   27. TABEL DATASET
-========================================================= */
 
 .dataset-table {
   width: 100%;
-  min-width: 950px;
+
+  min-width: 900px;
 
   border-collapse: collapse;
-  table-layout: fixed;
 
   text-align: left;
-  white-space: nowrap;
-
-  background: #ffffff;
 }
-
-/* =========================================================
-   28. LEBAR KOLOM TABEL
-========================================================= */
-
-.dataset-table th:nth-child(1) {
-  width: 7%;
-}
-
-.dataset-table th:nth-child(2) {
-  width: 23%;
-}
-
-.dataset-table th:nth-child(3) {
-  width: 12%;
-}
-
-.dataset-table th:nth-child(4) {
-  width: 10%;
-}
-
-.dataset-table th:nth-child(5) {
-  width: 12%;
-}
-
-.dataset-table th:nth-child(6) {
-  width: 12%;
-}
-
-.dataset-table th:nth-child(7) {
-  width: 14%;
-}
-
-.dataset-table th:nth-child(8) {
-  width: 10%;
-}
-
-/* =========================================================
-   29. HEADER TABEL
-========================================================= */
 
 .dataset-table thead {
-  background: var(--table-head);
+  background: #f6f8fc;
 }
 
 .dataset-table th {
-  height: 36px;
+  padding: 14px 12px;
 
-  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
 
-  color: #58616b;
+  color: #64748b;
 
-  font-size: 7px;
-  font-weight: 750;
+  font-size: 10px;
 
-  letter-spacing: 0.1px;
+  font-weight: 700;
 
-  text-align: left;
+  white-space: nowrap;
 
-  border-bottom: 1px solid #e9edf2;
+  letter-spacing: 0.3px;
 }
-
-/* Header kolom tengah */
-
-.dataset-table th:nth-child(n + 3),
-.dataset-table th:first-child,
-.dataset-table th:last-child {
-  text-align: center;
-}
-
-/* =========================================================
-   30. ISI TABEL
-========================================================= */
 
 .dataset-table td {
-  height: 45px;
+  padding: 13px 12px;
 
-  padding: 8px 10px;
+  border-bottom: 1px solid #edf1f5;
 
-  border-bottom: 1px solid #f0f2f6;
+  color: var(--text);
 
-  color: #59636e;
-
-  font-size: 8px;
-  font-weight: 400;
+  font-size: 11px;
 
   vertical-align: middle;
 }
@@ -1212,255 +959,648 @@ svg {
 }
 
 .dataset-table tbody tr:hover {
-  background: #fafbfd;
+  background: #f8fafc;
 }
 
 .dataset-table tbody tr:last-child td {
-  border-bottom: none;
+  border-bottom: 0;
 }
 
-/* Perataan tengah */
-
-.dataset-table td.center {
+.dataset-table .center {
   text-align: center;
 }
 
-.dataset-table td:first-child,
-.dataset-table td:last-child {
-  text-align: center;
-}
+.dataset-table .facility {
+  min-width: 180px;
 
-/* =========================================================
-   31. ID KASUS
-========================================================= */
+  max-width: 260px;
 
-.case-id {
-  color: var(--primary);
-
-  font-family: "Courier New", monospace;
-  font-size: 8px;
-  font-weight: 700;
-
-  letter-spacing: 0.1px;
-}
-
-/* =========================================================
-   32. NAMA FASILITAS
-========================================================= */
-
-.dataset-table td.facility {
-  color: #303740;
-
-  font-size: 8px;
   font-weight: 600;
 
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.5;
 }
 
-/* =========================================================
-   33. CHIP ATRIBUT DATASET
-========================================================= */
+.case-id {
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: var(--primary);
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.case-id:hover {
+  text-decoration: underline;
+}
 
 .chip {
-  min-height: 19px;
-
-  padding: 3px 8px;
-
   display: inline-flex;
+
   align-items: center;
+
   justify-content: center;
 
-  border-radius: 4px;
+  padding: 6px 9px;
 
-  background: #eceef1;
-  color: #3e4650;
+  border-radius: 6px;
 
-  font-size: 7px;
+  background: #f1f5f9;
+
+  color: #475569;
+
+  font-size: 10px;
+
   font-weight: 600;
 
   white-space: nowrap;
 }
 
-/* =========================================================
-   34. SKOR MATEMATIS
-========================================================= */
-
 .score {
-  color: #20262d;
+  color: var(--navy);
 
-  font-family: "Courier New", monospace;
-  font-size: 8px;
+  font-size: 12px;
+
   font-weight: 700;
 }
 
-/* =========================================================
-   35. TOMBOL AKSI
-========================================================= */
+/* ============================================================
+   12. LABEL PRIORITAS
+============================================================ */
+
+.priority {
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-width: 66px;
+
+  padding: 6px 10px;
+
+  border-radius: 20px;
+
+  font-size: 10px;
+
+  font-weight: 700;
+}
+
+.priority-high {
+  color: #c73535;
+
+  background: #ffeded;
+}
+
+.priority-medium {
+  color: #b7791f;
+
+  background: #fff6df;
+}
+
+.priority-low {
+  color: #16845d;
+
+  background: #e8f7ef;
+}
+
+/* ============================================================
+   13. TOMBOL AKSI TABEL
+============================================================ */
 
 .action-group {
   display: inline-flex;
+
   align-items: center;
+
   justify-content: center;
 
-  gap: 8px;
+  gap: 6px;
 }
 
 .eye-btn,
 .trash-btn {
-  width: 23px;
-  height: 23px;
+  width: 29px;
 
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  height: 29px;
 
-  border: 1px solid transparent;
-  border-radius: 5px;
+  display: inline-grid;
 
-  background: transparent;
-  color: #64748b;
+  place-items: center;
+
+  padding: 5px;
+
+  border: 1px solid var(--border);
+
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  color: var(--primary);
 
   transition:
-    background 0.18s ease,
-    color 0.18s ease,
-    border-color 0.18s ease;
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .eye-btn svg,
 .trash-btn svg {
-  width: 13px;
-  height: 13px;
+  width: 16px;
 
-  stroke-width: 1.9;
+  height: 16px;
+
+  fill: none;
+
+  stroke: currentColor;
+
+  stroke-width: 1.7;
+
+  stroke-linecap: round;
+
+  stroke-linejoin: round;
 }
 
 .eye-btn:hover {
-  background: #edf3ff;
-  border-color: #d4e1ff;
+  background: var(--primary-light);
+}
 
-  color: var(--primary);
+.trash-btn {
+  color: var(--red);
 }
 
 .trash-btn:hover {
-  background: #fff0ef;
-  border-color: #ffd4d1;
+  background: var(--red-light);
 
-  color: var(--red-text);
+  border-color: #ffd5d5;
 }
 
-/* =========================================================
-   36. PAGINATION
-========================================================= */
+.edit-dataset-btn {
+  min-height: 29px;
+
+  padding: 0 9px;
+
+  border: 1px solid #d7e6fa;
+
+  border-radius: 6px;
+
+  background: var(--primary-light);
+
+  color: var(--primary);
+
+  font-size: 10px;
+
+  font-weight: 600;
+}
+
+.edit-dataset-btn:hover {
+  background: #dceafd;
+}
+
+/* ============================================================
+   14. PAGINATION
+============================================================ */
 
 .panel-foot {
-  min-height: 43px;
-
-  padding: 10px 0 0;
-
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
 
-  border-top: 1px solid #edf0f4;
+  align-items: center;
+
+  justify-content: flex-end;
+
+  padding-top: 18px;
 }
 
 .pagination {
   display: flex;
+
   align-items: center;
 
-  gap: 4px;
+  gap: 6px;
 }
 
 .pagination button {
-  width: 25px;
-  height: 25px;
+  min-width: 30px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 30px;
 
-  border: 1px solid #e9edf2;
-  border-radius: 5px;
+  padding: 0 8px;
+
+  border: 1px solid var(--border);
+
+  border-radius: 6px;
 
   background: #ffffff;
-  color: #66717c;
 
-  font-size: 8px;
-  font-weight: 500;
+  color: var(--text-secondary);
 
-  transition:
-    background 0.18s ease,
-    color 0.18s ease;
+  font-size: 11px;
 }
 
 .pagination button:hover:not(:disabled) {
-  background: #e3eaf7;
+  color: var(--primary);
+
+  border-color: var(--primary);
 }
 
 .pagination button.active {
   background: var(--primary);
-  border-color: var(--primary);
 
   color: #ffffff;
-  font-weight: 700;
+
+  border-color: var(--primary);
 }
 
 .pagination button:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
+}
+
+.pagination-dots {
+  padding: 0 3px;
+
+  color: var(--muted);
+}
+
+/* ============================================================
+   15. MODAL TAMBAH DAN EDIT
+============================================================ */
+
+.dataset-modal {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 9999;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 20px;
+}
+
+.dataset-modal[hidden] {
+  display: none !important;
+}
+
+.dataset-modal-overlay {
+  position: absolute;
+
+  inset: 0;
+
+  background: rgba(15, 23, 42, 0.55);
+
+  backdrop-filter: blur(3px);
+}
+
+.dataset-modal-content {
+  position: relative;
+
+  z-index: 1;
+
+  width: 100%;
+
+  max-width: 520px;
+
+  max-height: calc(100vh - 40px);
+
+  overflow-y: auto;
+
+  background: #ffffff;
+
+  border-radius: 13px;
+
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2);
+
+  animation: modalEnter 0.2s ease;
+}
+
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+.dataset-modal-header {
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 15px;
+
+  padding: 21px 23px;
+
+  border-bottom: 1px solid var(--border);
+}
+
+.dataset-modal-header h2 {
+  margin: 0 0 6px;
+
+  color: var(--navy);
+
+  font-size: 17px;
+
+  font-weight: 700;
+}
+
+.dataset-modal-header p {
+  margin: 0;
+
+  color: var(--text-secondary);
+
+  font-size: 11px;
+}
+
+.modal-close-btn {
+  width: 31px;
+
+  height: 31px;
+
+  display: grid;
+
+  place-items: center;
+
+  flex-shrink: 0;
+
+  border: 0;
+
+  border-radius: 7px;
+
+  background: #f1f5f9;
+
+  color: #64748b;
+
+  font-size: 22px;
+
+  line-height: 1;
+}
+
+.modal-close-btn:hover {
+  background: #e2e8f0;
+}
+
+.dataset-modal-body {
+  padding: 22px 23px;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: var(--text);
+
+  font-size: 11px;
+
+  font-weight: 700;
+}
+
+.form-group select,
+.form-group input {
+  width: 100%;
+
+  min-height: 42px;
+
+  padding: 0 12px;
+
+  border: 1px solid var(--border);
+
+  border-radius: 7px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: var(--text);
+
+  font-size: 12px;
+}
+
+.form-group select:focus,
+.form-group input:focus {
+  border-color: var(--primary);
+
+  box-shadow: 0 0 0 3px rgba(23, 79, 145, 0.08);
+}
+
+.form-group select:disabled,
+.form-group input:disabled {
+  background: #f1f5f9;
+
   cursor: not-allowed;
 }
 
-.pagination span {
-  padding: 0 3px;
+.facility-information {
+  display: grid;
 
-  color: #89939f;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 
-  font-size: 9px;
+  gap: 10px;
+
+  margin-bottom: 21px;
+
+  padding: 14px;
+
+  background: #f5f8fd;
+
+  border: 1px solid #e4ebf5;
+
+  border-radius: 8px;
 }
 
-/* =========================================================
-   37. RESPONSIVE TABLET
-   SIDEBAR SAMA DENGAN HALAMAN ADMIN LAIN
-========================================================= */
+.facility-information div {
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+.facility-information span {
+  color: var(--text-secondary);
+
+  font-size: 10px;
+}
+
+.facility-information strong {
+  overflow-wrap: anywhere;
+
+  color: var(--primary-dark);
+
+  font-size: 11px;
+}
+
+.dataset-modal-note {
+  margin: 0;
+
+  padding: 11px 12px;
+
+  background: #f1f6fd;
+
+  border-radius: 7px;
+
+  color: #536a88;
+
+  font-size: 10px;
+
+  line-height: 1.6;
+}
+
+.dataset-modal-footer {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: flex-end;
+
+  gap: 9px;
+
+  padding: 16px 23px;
+
+  border-top: 1px solid var(--border);
+}
+
+.modal-cancel-btn,
+.modal-save-btn {
+  min-height: 38px;
+
+  padding: 0 16px;
+
+  border-radius: 7px;
+
+  font-size: 11px;
+
+  font-weight: 600;
+}
+
+.modal-cancel-btn {
+  border: 1px solid var(--border);
+
+  background: #ffffff;
+
+  color: var(--text-secondary);
+}
+
+.modal-cancel-btn:hover {
+  background: #f8fafc;
+}
+
+.modal-save-btn {
+  border: 0;
+
+  background: var(--primary);
+
+  color: #ffffff;
+}
+
+.modal-save-btn:hover {
+  background: var(--primary-dark);
+}
+
+/* ============================================================
+   16. NOTIFIKASI
+============================================================ */
+
+.dataset-notification {
+  position: fixed;
+
+  top: 85px;
+
+  right: 24px;
+
+  z-index: 10000;
+
+  width: min(380px, calc(100vw - 32px));
+
+  padding: 14px 17px;
+
+  border: 1px solid var(--border);
+
+  border-left: 4px solid var(--green);
+
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: var(--text);
+
+  font-size: 12px;
+
+  line-height: 1.5;
+
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.12);
+}
+
+.dataset-notification.success {
+  border-left-color: var(--green);
+}
+
+.dataset-notification.error {
+  border-left-color: var(--red);
+
+  background: #fffafa;
+}
+
+.dataset-notification[hidden] {
+  display: none;
+}
+
+/* ============================================================
+   17. RESPONSIVE TABLET
+============================================================ */
 
 @media (max-width: 1100px) {
-  .sidebar {
-    width: 185px;
-    min-width: 185px;
+  :root {
+    --sidebar-width: 225px;
   }
 
   .content {
-    padding: 15px;
+    padding: 24px 20px 35px;
+  }
+
+  .topbar {
+    padding: 0 20px;
   }
 
   .summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    gap: 10px;
-  }
-
-  .dataset-table {
-    min-width: 950px;
-  }
-}
-
-/* =========================================================
-   38. RESPONSIVE LAYAR MENENGAH
-========================================================= */
-
-@media (max-width: 850px) {
-  .page-header {
-    align-items: flex-start;
   }
 
   .toolbar {
+    align-items: flex-start;
+
     flex-direction: column;
-    align-items: stretch;
   }
 
   .search-box {
-    width: 100%;
+    max-width: 100%;
   }
 
   .filter-group {
@@ -1469,48 +1609,54 @@ svg {
 
   .dataset-filter {
     flex: 1;
-    min-width: 0;
-  }
 
-  .guide-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-width: 130px;
   }
 }
 
-/* =========================================================
-   39. RESPONSIVE MOBILE
-========================================================= */
+/* ============================================================
+   18. RESPONSIVE MOBILE
+============================================================ */
 
 @media (max-width: 700px) {
   .app-layout {
-    flex-direction: column;
-    overflow: visible;
+    display: block;
   }
 
   .sidebar {
     width: 100%;
     min-width: 0;
     min-height: auto;
+    padding: 0;
   }
 
   .sidebar-logo {
-    height: 50px;
+    width: 100%;
   }
 
-  .sidebar-nav,
+  .sidebar-brand-divider {
+    margin-bottom: 5px;
+  }
+
+  .nav-group {
+    margin-top: 8px;
+    margin-bottom: 0;
+  }
+
   .sidebar-bottom {
-    display: none;
+    margin-top: 10px;
   }
 
   .topbar {
-    height: 48px;
-    min-height: 48px;
+    min-height: 58px;
 
-    padding: 0 12px;
+    padding: 0 15px;
   }
 
   .topbar-system {
-    font-size: 7px;
+    font-size: 9px;
+
+    line-height: 1.5;
   }
 
   .topbar-user-name {
@@ -1518,110 +1664,564 @@ svg {
   }
 
   .content {
-    padding: 14px 12px 20px;
+    padding: 20px 14px 30px;
   }
 
   .page-header {
     align-items: flex-start;
+
     flex-direction: column;
-
-    gap: 10px;
-
-    margin-bottom: 14px;
   }
 
   .page-header h1 {
-    font-size: 16px;
+    font-size: 19px;
+  }
+
+  .add-btn {
+    width: 100%;
   }
 
   .summary-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
 
-    gap: 9px;
+    gap: 10px;
   }
 
   .summary-card {
-    min-height: 100px;
+    padding: 13px;
+  }
+
+  .summary-card-top {
+    align-items: flex-start;
+  }
+
+  .summary-card-top p {
+    font-size: 10px;
+  }
+
+  .summary-number {
+    font-size: 22px;
+  }
+
+  .summary-number small {
+    font-size: 9px;
+  }
+
+  .summary-card-icon {
+    width: 31px;
+
+    height: 31px;
   }
 
   .guide-panel {
-    padding: 12px;
+    padding: 15px;
   }
 
   .guide-head {
     align-items: flex-start;
+
     flex-direction: column;
+  }
+
+  .guide-title h2 {
+    font-size: 13px;
   }
 
   .guide-grid {
     grid-template-columns: 1fr;
   }
 
-  .guide-card {
-    min-height: 85px;
+  .formula {
+    font-size: 14px;
   }
 
-  .toolbar {
-    flex-direction: column;
+  .panel {
+    padding: 13px;
   }
 
   .filter-group {
-    flex-direction: column;
-    align-items: stretch;
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
   }
 
   .dataset-filter {
     width: 100%;
-    min-height: 33px;
+
+    min-width: 0;
   }
 
-  .table-wrap {
-    overflow-x: auto;
+  .dataset-modal {
+    padding: 12px;
   }
 
-  .dataset-table {
-    min-width: 950px;
+  .dataset-modal-content {
+    max-height: calc(100vh - 24px);
   }
 
-  .panel-foot {
-    justify-content: center;
+  .dataset-modal-header,
+  .dataset-modal-body,
+  .dataset-modal-footer {
+    padding-left: 16px;
+
+    padding-right: 16px;
+  }
+
+  .facility-information {
+    grid-template-columns: 1fr;
+  }
+
+  .dataset-notification {
+    top: 15px;
+
+    right: 16px;
   }
 }
 
-/* =========================================================
-   40. RESPONSIVE LAYAR SANGAT KECIL
-========================================================= */
+/* ============================================================
+   19. RESPONSIVE MOBILE KECIL
+============================================================ */
 
 @media (max-width: 380px) {
-  .breadcrumb {
-    font-size: 6px;
+  .summary-grid {
+    grid-template-columns: 1fr;
   }
 
-  .topbar-system {
-    font-size: 6px;
+  .filter-group {
+    grid-template-columns: 1fr;
   }
 
-  .page-header h1 {
+  .pagination {
+    gap: 3px;
+  }
+
+  .pagination button {
+    min-width: 27px;
+
+    height: 27px;
+
+    padding: 0 6px;
+  }
+
+  .dataset-modal-header h2 {
     font-size: 15px;
   }
 
-  .summary-number {
-    font-size: 18px;
+  .modal-cancel-btn,
+  .modal-save-btn {
+    padding: 0 11px;
+  }
+}
+
+/* ============================================================
+   19. PENYELARASAN TABEL DATASET DAN FOTO PROFIL TOPBAR
+   Perubahan terbatas:
+   - Header kolom X1 sampai Aksi rata dengan isi kolom.
+   - Lebar kolom dibuat konsisten.
+   - Foto profil tepat di tengah topbar.
+============================================================ */
+
+/* Menjaga foto profil berada tepat di tengah secara vertikal. */
+.topbar {
+  align-items: center;
+}
+
+.topbar-user {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.topbar-user-name {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.topbar-user-avatar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  line-height: 0;
+  vertical-align: middle;
+}
+
+.topbar-user-avatar > svg {
+  display: block;
+  flex: 0 0 22px;
+  margin: 0;
+}
+
+.topbar-user-avatar .admin-header-photo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 50%;
+}
+
+/* Ukuran tabel tetap responsif, tetapi posisi tiap kolom konsisten. */
+.dataset-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.dataset-table th,
+.dataset-table td {
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+/* Lebar kolom agar X1, X2, X3, skor, label, dan aksi sejajar. */
+.dataset-table th:nth-child(1),
+.dataset-table td:nth-child(1) {
+  width: 9%;
+  text-align: left;
+}
+
+.dataset-table th:nth-child(2),
+.dataset-table td:nth-child(2) {
+  width: 23%;
+  text-align: left;
+}
+
+.dataset-table th:nth-child(3),
+.dataset-table td:nth-child(3) {
+  width: 11%;
+  text-align: center;
+}
+
+.dataset-table th:nth-child(4),
+.dataset-table td:nth-child(4) {
+  width: 11%;
+  text-align: center;
+}
+
+.dataset-table th:nth-child(5),
+.dataset-table td:nth-child(5) {
+  width: 11%;
+  text-align: center;
+}
+
+.dataset-table th:nth-child(6),
+.dataset-table td:nth-child(6) {
+  width: 11%;
+  text-align: center;
+}
+
+.dataset-table th:nth-child(7),
+.dataset-table td:nth-child(7) {
+  width: 12%;
+  text-align: center;
+}
+
+.dataset-table th:nth-child(8),
+.dataset-table td:nth-child(8) {
+  width: 12%;
+  text-align: center;
+}
+
+/* Konten aksi hanya berisi tombol lihat dan hapus. */
+.dataset-table td:last-child .action-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 29px;
+}
+
+.dataset-table .eye-btn,
+.dataset-table .trash-btn {
+  flex: 0 0 29px;
+}
+
+/* Hindari teks fasilitas mendorong kolom lain. */
+.dataset-table td.facility {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* Pada layar kecil, tabel tetap dapat digeser secara horizontal. */
+@media (max-width: 700px) {
+  .topbar-user {
+    min-height: 32px;
   }
 
-  .add-btn {
-    min-height: 30px;
+  .topbar-user-avatar {
+    flex-basis: 32px;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+  }
 
-    padding: 0 10px;
+  .dataset-table {
+    min-width: 900px;
+    table-layout: fixed;
+  }
+}
 
+/* ============================================================
+   20. PENYELARASAN TOPBAR, PROFIL, DAN IKON TOTAL DATA
+   Mengikuti standar tampilan halaman Data Fasilitas.
+   Perubahan hanya pada tampilan CSS, tanpa mengubah HTML/JS.
+============================================================ */
+
+/* Topbar mengikuti tinggi, jarak, dan padding Data Fasilitas. */
+.topbar {
+  height: 66px;
+  min-height: 64px;
+  padding: 0 20px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Indikator sistem informasi menggunakan biru utama SIPFAS. */
+.topbar-system {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #58616c;
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.15px;
+}
+
+.topbar-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: none;
+}
+
+/* Nama administrator dan foto profil mengikuti Data Fasilitas. */
+.topbar-user {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 23px;
+  margin: 0;
+  padding: 0;
+  color: #25303c;
+  font-size: 8px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.topbar-user-name {
+  display: inline-flex;
+  align-items: center;
+  color: #25303c;
+  font-size: 8px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.topbar-user-avatar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 23px;
+  width: 23px;
+  height: 23px;
+  min-width: 23px;
+  min-height: 23px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #ffffff;
+  box-sizing: border-box;
+  line-height: 0;
+}
+
+.topbar-user-avatar svg {
+  display: block;
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  margin: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+}
+
+/* Foto profil yang disediakan oleh halaman tetap tampil bulat dan tidak terpotong. */
+.topbar-user-avatar img,
+.topbar-user-avatar .admin-header-photo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Ikon pada kartu Total Data Kasus mengikuti aksen biru Data Fasilitas. */
+.summary-purple {
+  color: var(--primary);
+  background: #e9efff;
+}
+
+/* Ukuran topbar dan avatar tetap konsisten pada layar mobile. */
+@media (max-width: 700px) {
+  .topbar {
+    height: 48px;
+    min-height: 48px;
+    padding: 0 12px;
+  }
+
+  .topbar-system {
     font-size: 7px;
   }
 
-  .guide-title h2 {
-    font-size: 10px;
+  .topbar-user {
+    min-height: 23px;
   }
 
-  .formula {
-    font-size: 9px;
+  .topbar-user-name {
+    display: none;
   }
+
+  .topbar-user-avatar {
+    flex-basis: 23px;
+    width: 23px;
+    height: 23px;
+    min-width: 23px;
+    min-height: 23px;
+  }
+}
+
+/* ============================================================
+   20. PENYELARASAN BARIS DATASET BARU DAN LAMA
+   - Kolom ID diperlebar agar ID kasus baru tidak membungkus.
+   - Semua kolom memakai pembagian lebar yang tetap.
+   - Baris data baru memiliki tinggi yang konsisten dengan data lama.
+============================================================ */
+
+.dataset-table {
+  width: 100%;
+  min-width: 1000px;
+  table-layout: fixed;
+}
+
+/* ID Kasus: ruang lebih lebar untuk kode otomatis yang lebih panjang. */
+.dataset-table th:nth-child(1),
+.dataset-table td:nth-child(1) {
+  width: 14%;
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Nama fasilitas tetap mendapat ruang yang cukup. */
+.dataset-table th:nth-child(2),
+.dataset-table td:nth-child(2) {
+  width: 18%;
+  text-align: left;
+}
+
+/* Kolom atribut dan hasil klasifikasi disejajarkan di tengah. */
+.dataset-table th:nth-child(3),
+.dataset-table td:nth-child(3),
+.dataset-table th:nth-child(4),
+.dataset-table td:nth-child(4),
+.dataset-table th:nth-child(5),
+.dataset-table td:nth-child(5) {
+  width: 10%;
+  text-align: center;
+}
+
+.dataset-table th:nth-child(6),
+.dataset-table td:nth-child(6) {
+  width: 11%;
+  text-align: center;
+}
+
+.dataset-table th:nth-child(7),
+.dataset-table td:nth-child(7) {
+  width: 13%;
+  text-align: center;
+}
+
+.dataset-table th:nth-child(8),
+.dataset-table td:nth-child(8) {
+  width: 14%;
+  text-align: center;
+}
+
+/* Kode ID tidak boleh terpecah menjadi dua baris. */
+.dataset-table .case-id {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  font-size: 10px;
+  line-height: 1.3;
+  vertical-align: middle;
+}
+
+/* Pastikan isi setiap sel berada di tengah secara vertikal. */
+.dataset-table th,
+.dataset-table td {
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+.dataset-table tbody tr td {
+  height: 44px;
+}
+
+/* Nama fasilitas boleh membungkus jika memang sangat panjang,
+   tanpa mendorong atau menggeser kolom lainnya. */
+.dataset-table td.facility {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* Tabel tetap dapat digeser pada layar yang lebih kecil. */
+@media (max-width: 700px) {
+  .dataset-table {
+    min-width: 1000px;
+    table-layout: fixed;
+  }
+}
+
+/* Menyamakan warna angka dan garis Total Data Kasus */
+.summary-card:first-child .summary-number {
+  color: #022448;
+}
+
+.summary-card:first-child .bar-navy {
+  background-color: #022448;
 }

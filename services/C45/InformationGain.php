@@ -1,5 +1,5 @@
 <?php
-
+// Information Gain: Mengukur seberapa besar suatu atribut mengurangi ketidakpastian data.
 namespace SIPFAS\Services\C45;
 
 class InformationGain

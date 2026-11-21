@@ -1,5 +1,5 @@
 <?php
-
+// C45Service.php menghubungkan proses pengambilan dataset, pelatihan, pembentukan pohon, dan prediksi.
 namespace SIPFAS\Services\C45;
 
 require_once __DIR__ . '/Entropy.php';
@@ -31,9 +31,35 @@ class C45Service
         'Tinggi'
     ];
 
-    /**
-     * Mengambil dataset langsung dari database SIPFAS.
-     */
+
+
+//  * Konversi frekuensi penggunaan fasilitas ke kategori X3.
+
+public static function mapFrekuensiPenggunaan(int $frekuensi): int
+{
+    // Validasi jumlah hari penggunaan.
+    if ($frekuensi < 0 || $frekuensi > 7) {
+        throw new \InvalidArgumentException(
+            'Frekuensi penggunaan fasilitas harus antara 0 sampai 7 hari.'
+        );
+    }
+
+    // 0-2 hari = Jarang.
+    if ($frekuensi <= 2) {
+        return 1;
+    }
+
+    // 3-4 hari = Sedang.
+    if ($frekuensi <= 4) {
+        return 2;
+    }
+
+    // 5-7 hari = Sering.
+    return 3;
+}
+
+    //  * Mengambil dataset langsung dari database SIPFAS.
+
     public function getDataset(PDO $pdo): array
     {
         $sql = "
@@ -184,6 +210,9 @@ class C45Service
             'training_count' => count($training),
 
             'testing_count' => count($testing),
+
+            // Dibutuhkan API untuk menyimpan jejak data latih ke detail_pelatihan_c45.
+            'training_data' => $training,
 
             'training_percentage' => $trainPercent,
 

@@ -1,13 +1,3 @@
-/* ==================================================
-   SIPFAS - ADMIN DATA FASILITAS
-   Database : MySQL SIPFAS
-   API      : PHP
-   CRUD     : GET, PUT, DELETE
-   Jumlah unit: fasilitas.jumlah_unit
-
-   Tampilan HTML dan CSS tetap dipertahankan.
-================================================== */
-
 (() => {
   "use strict";
 

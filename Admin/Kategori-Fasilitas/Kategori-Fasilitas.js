@@ -1,9 +1,3 @@
-/* =========================================================
-   SIPFAS - ADMIN KATEGORI FASILITAS
-   Integrasi API PHP: api/admin/kategori-fasilitas.php
-   Tampilan HTML/CSS dipertahankan.
-========================================================= */
-
 (() => {
   "use strict";
 

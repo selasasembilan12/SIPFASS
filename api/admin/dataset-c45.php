@@ -1,284 +1,574 @@
 <?php
 declare(strict_types=1);
 
-/**
- * SIPFAS - ADMIN DATASET C4.5 API
- *
- * Fitur:
- * - GET    : Membaca dataset, pencarian, filter, pagination.
- * - POST   : Menambahkan dataset manual.
- * - PUT    : Memperbarui dataset.
- * - DELETE : Menghapus dataset.
- * - IMPORT : Menggabungkan beberapa CSV ke dataset utama.
- *
- * Database:
- * - dataset_c45
- * - pengguna
- *
- * Label Y wajib berasal dari data aktual/verifikasi.
- * Tidak dibuat otomatis dari skor pembobotan.
- */
+
 
 require_once __DIR__ . '/_admin-common.php';
+require_once dirname(__DIR__, 2) . '/services/C45/C45Service.php';
+// Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
+require_once dirname(_DIR_, 2) . '/config/csrf.php';
+sipfas_csrf_require_valid();
 
-/* =========================================================
-   01. KONFIGURASI
-========================================================= */
+use SIPFAS\Services\C45\C45Service;
 
-const C45_CLASSES = ['Rendah', 'Sedang', 'Tinggi'];
-const C45_MAX_IMPORT_ROWS = 5000;
+try {
+    global $pdo;
 
-/* =========================================================
-   02. VALIDASI DATASET
-========================================================= */
+    // ========================================================
+    // 01. VALIDASI METODE DAN ADMIN
+    // ========================================================
 
-function c45_dataset_payload(array $input): array
-{
-    $kode = admin_text($input, 'kode_data', 30);
-    $nama = admin_text($input, 'nama_fasilitas', 150);
+    $method = admin_method('GET', 'POST', 'PUT', 'DELETE');
+    $adminId = admin_user_id();
 
-    $sumber = admin_text(
-        $input,
-        'sumber_data',
-        50,
-        false
-    ) ?? 'Input Manual';
+    if ($adminId < 1) {
+        admin_fail('Sesi Administrator tidak valid.', 401);
+    }
 
-    $label = admin_text(
-        $input,
-        'label_prioritas',
-        20
-    );
+    if (!$pdo instanceof PDO) {
+        throw new RuntimeException('Koneksi database tidak tersedia.');
+    }
 
-    $attributes = [
-        'tingkat_kerusakan_x1',
-        'dampak_akademik_x2',
-        'frekuensi_penggunaan_x3'
-    ];
+    // ========================================================
+    // 02. KONVERSI X3
+    // ========================================================
 
-    $values = [];
+    $konversiX3 = static function (int $frekuensi): int {
+        return C45Service::mapFrekuensiPenggunaan($frekuensi);
+    };
 
-    foreach ($attributes as $field) {
-        $value = filter_var(
-            $input[$field] ?? null,
+    // ========================================================
+    // 03. PERHITUNGAN SKOR DAN LABEL Y
+    // ========================================================
+
+    $hitungSkor = static function (
+        int $x1,
+        int $x2,
+        int $x3
+    ): float {
+        return (0.4 * $x1) +
+               (0.4 * $x2) +
+               (0.2 * $x3);
+    };
+
+    $hitungLabel = static function (float $skor): string {
+
+        if ($skor < 1.7) {
+            return 'Rendah';
+        }
+
+        if ($skor < 2.4) {
+            return 'Sedang';
+        }
+
+        return 'Tinggi';
+    };
+
+    // ========================================================
+    // 04. VALIDASI ATRIBUT X1 DAN X2
+    // ========================================================
+
+    $validasiAtribut = static function (array $input): array {
+
+        $x1 = filter_var(
+            $input['tingkat_kerusakan_x1'] ?? null,
             FILTER_VALIDATE_INT
         );
 
-        if (!in_array($value, [1, 2, 3], true)) {
+        $x2 = filter_var(
+            $input['dampak_akademik_x2'] ?? null,
+            FILTER_VALIDATE_INT
+        );
+
+        if (
+            $x1 === false ||
+            $x1 === null ||
+            $x1 < 1 ||
+            $x1 > 3
+        ) {
             admin_fail(
-                "Nilai {$field} harus 1, 2, atau 3.",
+                'X1 harus bernilai 1 (Ringan), 2 (Sedang), atau 3 (Berat).',
                 422
             );
         }
 
-        $values[$field] = $value;
-    }
-
-    if (!in_array($label, C45_CLASSES, true)) {
-        admin_fail(
-            'Label prioritas harus Rendah, Sedang, atau Tinggi.',
-            422
-        );
-    }
-
-    return [
-        'kode' => $kode,
-        'nama' => $nama,
-        'x1' => $values['tingkat_kerusakan_x1'],
-        'x2' => $values['dampak_akademik_x2'],
-        'x3' => $values['frekuensi_penggunaan_x3'],
-        'label' => $label,
-        'sumber' => $sumber
-    ];
-}
-
-/* =========================================================
-   03. NORMALISASI HEADER CSV
-========================================================= */
-
-function c45_normalize_header(string $value): string
-{
-    $value = preg_replace('/^\xEF\xBB\xBF/', '', $value);
-    $value = strtolower(trim($value));
-
-    $value = preg_replace('/[^a-z0-9]+/', '_', $value);
-
-    return trim($value, '_');
-}
-
-/* =========================================================
-   04. MEMBACA NILAI CSV
-========================================================= */
-
-function c45_csv_value(array $row, array $headers, array $aliases): string
-{
-    foreach ($aliases as $alias) {
-        $alias = c45_normalize_header($alias);
-
-        $index = array_search($alias, $headers, true);
-
-        if ($index !== false) {
-            return trim((string)($row[$index] ?? ''));
-        }
-    }
-
-    return '';
-}
-
-/* =========================================================
-   05. KONVERSI NILAI ATRIBUT
-========================================================= */
-
-function c45_csv_level(string $value, string $attribute): int
-{
-    $value = strtolower(trim($value));
-
-    $mapping = [
-        'x1' => [
-            '1' => 1,
-            'ringan' => 1,
-            '2' => 2,
-            'sedang' => 2,
-            '3' => 3,
-            'berat' => 3
-        ],
-
-        'x2' => [
-            '1' => 1,
-            'rendah' => 1,
-            '2' => 2,
-            'sedang' => 2,
-            '3' => 3,
-            'tinggi' => 3
-        ],
-
-        'x3' => [
-            '1' => 1,
-            'jarang' => 1,
-            '2' => 2,
-            'sedang' => 2,
-            '3' => 3,
-            'sering' => 3
-        ]
-    ];
-
-    if (!isset($mapping[$attribute][$value])) {
-        throw new RuntimeException(
-            "Nilai {$attribute} tidak valid: {$value}"
-        );
-    }
-
-    return $mapping[$attribute][$value];
-}
-
-/* =========================================================
-   06. IMPORT DAN PENGGABUNGAN CSV
-========================================================= */
-
-function c45_import_csv(PDO $pdo): never
-{
-    if (!isset($_FILES['file_dataset'])) {
-        admin_fail(
-            'File CSV belum dipilih.',
-            422
-        );
-    }
-
-    $file = $_FILES['file_dataset'];
-
-    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-        admin_fail(
-            'File gagal diunggah. Periksa ukuran dan file yang dipilih.',
-            400
-        );
-    }
-
-    if (($file['size'] ?? 0) > 5 * 1024 * 1024) {
-        admin_fail(
-            'Ukuran file maksimal 5 MB.',
-            422
-        );
-    }
-
-    $extension = strtolower(
-        pathinfo($file['name'], PATHINFO_EXTENSION)
-    );
-
-    if ($extension !== 'csv') {
-        admin_fail(
-            'Format yang diterima adalah CSV. Simpan Excel sebagai CSV UTF-8 terlebih dahulu.',
-            422
-        );
-    }
-
-    $handle = fopen($file['tmp_name'], 'rb');
-
-    if (!$handle) {
-        admin_fail(
-            'File CSV tidak dapat dibaca.',
-            400
-        );
-    }
-
-    try {
-        $firstLine = fgets($handle);
-
-        if ($firstLine === false) {
-            admin_fail('File CSV kosong.', 422);
-        }
-
-        $delimiters = [
-            ',' => substr_count($firstLine, ','),
-            ';' => substr_count($firstLine, ';'),
-            "\t" => substr_count($firstLine, "\t")
-        ];
-
-        arsort($delimiters);
-
-        $delimiter = (string)array_key_first($delimiters);
-
-        rewind($handle);
-
-        $rawHeaders = fgetcsv(
-            $handle,
-            0,
-            $delimiter,
-            '"',
-            '\\'
-        );
-
-        if (!$rawHeaders) {
+        if (
+            $x2 === false ||
+            $x2 === null ||
+            $x2 < 1 ||
+            $x2 > 3
+        ) {
             admin_fail(
-                'Header CSV tidak ditemukan.',
+                'X2 harus bernilai 1 (Rendah), 2 (Sedang), atau 3 (Tinggi).',
                 422
             );
         }
 
-        $headers = array_map(
-            'c45_normalize_header',
-            $rawHeaders
+        return [
+            'x1' => (int)$x1,
+            'x2' => (int)$x2
+        ];
+    };
+
+    // ========================================================
+    // 05. MENGAMBIL FASILITAS DARI DATABASE
+    // ========================================================
+
+    $ambilFasilitas = static function (
+        int $idFasilitas
+    ) use ($pdo): array {
+
+        $stmt = $pdo->prepare("
+            SELECT
+                f.id_fasilitas,
+                f.kode_fasilitas,
+                f.nama_fasilitas,
+                f.frekuensi_penggunaan,
+                f.status_fasilitas,
+                k.nama_kategori
+
+            FROM fasilitas f
+
+            INNER JOIN kategori_fasilitas k
+                ON k.id_kategori = f.id_kategori
+
+            WHERE f.id_fasilitas = :id
+
+            LIMIT 1
+        ");
+
+        $stmt->execute([
+            ':id' => $idFasilitas
+        ]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            admin_fail('Fasilitas tidak ditemukan.', 404);
+        }
+
+        if ($row['status_fasilitas'] !== 'Aktif') {
+            admin_fail('Fasilitas tidak aktif.', 422);
+        }
+
+        return $row;
+    };
+
+    // ========================================================
+    // 06. MEMBUAT KODE DATASET OTOMATIS
+    // ========================================================
+
+    $buatKode = static function () use ($pdo): string {
+
+        do {
+
+            $kode = 'DS-' .
+                date('ymd') . '-' .
+                strtoupper(bin2hex(random_bytes(4)));
+
+            $stmt = $pdo->prepare("
+                SELECT 1
+                FROM dataset_c45
+                WHERE kode_data = :kode
+                LIMIT 1
+            ");
+
+            $stmt->execute([
+                ':kode' => $kode
+            ]);
+
+            $exists = $stmt->fetchColumn();
+
+        } while ($exists);
+
+        return $kode;
+    };
+
+    // ========================================================
+    // 07. GET - MENGAMBIL DATASET
+    // ========================================================
+
+    if ($method === 'GET') {
+
+        [$page, $limit, $offset] = admin_page();
+
+        $search = trim(
+            (string)($_GET['search'] ?? '')
         );
 
-        $required = [
-            'kode_data',
-            'nama_fasilitas',
-            'label_prioritas'
+        $where = [];
+        $params = [];
+
+        // -------------------------------
+        // PENCARIAN DATASET
+        // -------------------------------
+
+        if ($search !== '') {
+
+            $where[] = "(
+                d.kode_data LIKE :s1
+                OR f.nama_fasilitas LIKE :s2
+                OR d.nama_fasilitas LIKE :s3
+                OR k.nama_kategori LIKE :s4
+            )";
+
+            $keyword = '%' . $search . '%';
+
+            $params[':s1'] = $keyword;
+            $params[':s2'] = $keyword;
+            $params[':s3'] = $keyword;
+            $params[':s4'] = $keyword;
+        }
+
+        // -------------------------------
+        // FILTER X1, X2, DAN X3
+        // -------------------------------
+
+        $filterColumns = [
+            'x1' => 'd.tingkat_kerusakan_x1',
+            'x2' => 'd.dampak_akademik_x2',
+            'x3' => 'd.frekuensi_penggunaan_x3'
         ];
 
-        foreach ($required as $column) {
-            if (!in_array($column, $headers, true)) {
+        foreach ($filterColumns as $key => $column) {
+
+            $value = $_GET[$key] ?? '';
+
+            if ($value === '') {
+                continue;
+            }
+
+            $number = filter_var(
+                $value,
+                FILTER_VALIDATE_INT
+            );
+
+            if (
+                $number === false ||
+                $number < 1 ||
+                $number > 3
+            ) {
                 admin_fail(
-                    "Kolom wajib {$column} tidak ditemukan dalam CSV.",
+                    "Filter {$key} tidak valid.",
                     422
                 );
             }
+
+            $where[] = "{$column} = :{$key}";
+
+            $params[":{$key}"] = (int)$number;
         }
 
-        $pdo->beginTransaction();
+        // -------------------------------
+        // FILTER LABEL Y
+        // -------------------------------
 
-        $insert = $pdo->prepare(
-            "INSERT INTO dataset_c45
-            (
+        $label = trim(
+            (string)($_GET['label'] ?? '')
+        );
+
+        if ($label !== '') {
+
+            if (!in_array(
+                $label,
+                ['Rendah', 'Sedang', 'Tinggi'],
+                true
+            )) {
+                admin_fail('Label tidak valid.', 422);
+            }
+
+            $where[] = 'd.label_prioritas = :label';
+
+            $params[':label'] = $label;
+        }
+
+        // -------------------------------
+        // KONSTRUKSI WHERE
+        // -------------------------------
+
+        $whereSQL = $where
+            ? 'WHERE ' . implode(' AND ', $where)
+            : '';
+
+        $joinSQL = "
+            FROM dataset_c45 d
+
+            LEFT JOIN fasilitas f
+                ON f.id_fasilitas = d.id_fasilitas
+
+            LEFT JOIN kategori_fasilitas k
+                ON k.id_kategori = f.id_kategori
+        ";
+
+        // -------------------------------
+        // TOTAL DATA SESUAI FILTER
+        // -------------------------------
+
+        $count = $pdo->prepare("
+            SELECT COUNT(*)
+            {$joinSQL}
+            {$whereSQL}
+        ");
+
+        $count->execute($params);
+
+        $totalFiltered = (int)$count->fetchColumn();
+
+        // -------------------------------
+        // MENGAMBIL DATASET
+        // -------------------------------
+
+        $sql = "
+            SELECT
+                d.id_data,
+                d.id_fasilitas,
+                d.kode_data,
+
+                COALESCE(
+                    NULLIF(d.nama_fasilitas, ''),
+                    f.nama_fasilitas,
+                    '-'
+                ) AS nama_fasilitas,
+
+                COALESCE(
+                    f.kode_fasilitas,
+                    '-'
+                ) AS kode_fasilitas,
+
+                COALESCE(
+                    k.nama_kategori,
+                    '-'
+                ) AS nama_kategori,
+
+                f.frekuensi_penggunaan AS frekuensi_hari,
+
+                d.tingkat_kerusakan_x1,
+                d.dampak_akademik_x2,
+                d.frekuensi_penggunaan_x3,
+
+                d.label_prioritas,
+                d.sumber_data,
+                d.id_penginput,
+                d.tanggal_dibuat
+
+            {$joinSQL}
+
+            {$whereSQL}
+
+            ORDER BY d.id_data DESC
+
+            LIMIT :limit OFFSET :offset
+        ";
+
+        $stmt = $pdo->prepare($sql);
+
+        foreach ($params as $key => $value) {
+
+            $stmt->bindValue(
+                $key,
+                $value
+            );
+        }
+
+        $stmt->bindValue(
+            ':limit',
+            $limit,
+            PDO::PARAM_INT
+        );
+
+        $stmt->bindValue(
+            ':offset',
+            $offset,
+            PDO::PARAM_INT
+        );
+
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // -------------------------------
+        // NORMALISASI DATA DAN SKOR
+        // -------------------------------
+
+        foreach ($rows as &$row) {
+
+            $x1 = (int)$row['tingkat_kerusakan_x1'];
+            $x2 = (int)$row['dampak_akademik_x2'];
+            $x3 = (int)$row['frekuensi_penggunaan_x3'];
+
+            $skor = $hitungSkor(
+                $x1,
+                $x2,
+                $x3
+            );
+
+            $row['id_data'] = (int)$row['id_data'];
+
+            $row['id_fasilitas'] = $row['id_fasilitas'] !== null
+                ? (int)$row['id_fasilitas']
+                : null;
+
+            $row['tingkat_kerusakan_x1'] = $x1;
+
+            $row['dampak_akademik_x2'] = $x2;
+
+            $row['frekuensi_penggunaan_x3'] = $x3;
+
+            $row['skor'] = round($skor, 2);
+
+            $row['label_hasil'] = $hitungLabel($skor);
+        }
+
+        unset($row);
+
+        // -------------------------------
+        // STATISTIK DATASET
+        // -------------------------------
+
+        $stats = $pdo->query("
+            SELECT
+                COUNT(*) AS total,
+
+                COALESCE(
+                    SUM(label_prioritas = 'Tinggi'),
+                    0
+                ) AS tinggi,
+
+                COALESCE(
+                    SUM(label_prioritas = 'Sedang'),
+                    0
+                ) AS sedang,
+
+                COALESCE(
+                    SUM(label_prioritas = 'Rendah'),
+                    0
+                ) AS rendah
+
+            FROM dataset_c45
+        ")->fetch(PDO::FETCH_ASSOC);
+
+        // -------------------------------
+        // DAFTAR FASILITAS AKTIF
+        // -------------------------------
+
+        $stmtFasilitas = $pdo->query("
+            SELECT
+                f.id_fasilitas,
+                f.kode_fasilitas,
+                f.nama_fasilitas,
+                f.frekuensi_penggunaan,
+                k.nama_kategori
+
+            FROM fasilitas f
+
+            INNER JOIN kategori_fasilitas k
+                ON k.id_kategori = f.id_kategori
+
+            WHERE f.status_fasilitas = 'Aktif'
+
+            ORDER BY f.nama_fasilitas ASC
+        ");
+
+        $daftarFasilitas = $stmtFasilitas->fetchAll(
+            PDO::FETCH_ASSOC
+        );
+
+        foreach ($daftarFasilitas as &$facility) {
+
+            $facility['id_fasilitas'] =
+                (int)$facility['id_fasilitas'];
+
+            $facility['frekuensi_penggunaan'] =
+                (int)$facility['frekuensi_penggunaan'];
+        }
+
+        unset($facility);
+
+        $total = (int)$stats['total'];
+
+        // -------------------------------
+        // RESPONSE
+        // -------------------------------
+
+        admin_ok(
+            'Dataset berhasil dimuat.',
+            [
+                'items' => $rows,
+
+                'statistics' => [
+                    'total' => $total,
+                    'tinggi' => (int)$stats['tinggi'],
+                    'sedang' => (int)$stats['sedang'],
+                    'rendah' => (int)$stats['rendah']
+                ],
+
+                'pagination' => [
+                    'page' => $page,
+                    'limit' => $limit,
+                    'total' => $totalFiltered,
+
+                    'total_pages' => max(
+                        1,
+                        (int)ceil($totalFiltered / $limit)
+                    )
+                ],
+
+                'facilities' => $daftarFasilitas,
+
+                'csrf_token' => sipfas_csrf_token()
+            ]
+        );
+    }
+
+    // ========================================================
+    // 08. POST - MENAMBAH DATASET
+    // ========================================================
+
+    if ($method === 'POST') {
+
+        $input = admin_input();
+
+        $idFasilitas = filter_var(
+            $input['id_fasilitas'] ?? null,
+            FILTER_VALIDATE_INT
+        );
+
+        if (
+            $idFasilitas === false ||
+            $idFasilitas === null ||
+            $idFasilitas < 1
+        ) {
+            admin_fail('Silakan pilih fasilitas.', 422);
+        }
+
+        // Ambil fasilitas asli dari database.
+        $fasilitas = $ambilFasilitas(
+            (int)$idFasilitas
+        );
+
+        // Validasi atribut.
+        $atribut = $validasiAtribut($input);
+
+        // X3 tidak diambil dari browser.
+        $frekuensi = (int)$fasilitas['frekuensi_penggunaan'];
+
+        $x3 = $konversiX3($frekuensi);
+
+        // Hitung skor dan label.
+        $skor = $hitungSkor(
+            $atribut['x1'],
+            $atribut['x2'],
+            $x3
+        );
+
+        $label = $hitungLabel($skor);
+
+        $kode = $buatKode();
+
+        // Simpan dataset.
+        $stmt = $pdo->prepare("
+            INSERT INTO dataset_c45 (
+                id_fasilitas,
                 kode_data,
                 nama_fasilitas,
                 tingkat_kerusakan_x1,
@@ -287,461 +577,177 @@ function c45_import_csv(PDO $pdo): never
                 label_prioritas,
                 sumber_data,
                 id_penginput
-            )
-            VALUES
-            (
+            ) VALUES (
+                :id_fasilitas,
                 :kode,
                 :nama,
                 :x1,
                 :x2,
                 :x3,
                 :label,
-                :sumber,
-                :user
-            )"
-        );
+                'Input Admin',
+                :admin
+            )
+        ");
 
-        $check = $pdo->prepare(
-            "SELECT id_data
-             FROM dataset_c45
-             WHERE kode_data = :kode
-             LIMIT 1"
-        );
-
-        $seen = [];
-
-        $inserted = 0;
-        $duplicates = 0;
-        $rowNumber = 1;
-
-        $errors = [];
-
-        while (($row = fgetcsv(
-            $handle,
-            0,
-            $delimiter,
-            '"',
-            '\\'
-        )) !== false) {
-
-            $rowNumber++;
-
-            if (
-                count($row) === 1 &&
-                trim((string)$row[0]) === ''
-            ) {
-                continue;
-            }
-
-            if ($rowNumber > C45_MAX_IMPORT_ROWS + 1) {
-                throw new RuntimeException(
-                    'Jumlah data melebihi batas 5.000 baris.'
-                );
-            }
-
-            try {
-                $kode = c45_csv_value(
-                    $row,
-                    $headers,
-                    ['kode_data', 'kode', 'id_dataset']
-                );
-
-                $nama = c45_csv_value(
-                    $row,
-                    $headers,
-                    ['nama_fasilitas', 'fasilitas', 'nama']
-                );
-
-                $x1raw = c45_csv_value(
-                    $row,
-                    $headers,
-                    [
-                        'tingkat_kerusakan_x1',
-                        'x1',
-                        'tingkat_kerusakan'
-                    ]
-                );
-
-                $x2raw = c45_csv_value(
-                    $row,
-                    $headers,
-                    [
-                        'dampak_akademik_x2',
-                        'x2',
-                        'dampak_akademik'
-                    ]
-                );
-
-                $x3raw = c45_csv_value(
-                    $row,
-                    $headers,
-                    [
-                        'frekuensi_penggunaan_x3',
-                        'x3',
-                        'frekuensi_penggunaan'
-                    ]
-                );
-
-                $label = c45_csv_value(
-                    $row,
-                    $headers,
-                    [
-                        'label_prioritas',
-                        'label',
-                        'y',
-                        'kelas'
-                    ]
-                );
-
-                if (
-                    $kode === '' ||
-                    $nama === '' ||
-                    $label === ''
-                ) {
-                    throw new RuntimeException(
-                        'Kode, nama fasilitas, dan label Y wajib diisi.'
-                    );
-                }
-
-                if (!in_array($label, C45_CLASSES, true)) {
-                    throw new RuntimeException(
-                        'Label Y harus Rendah, Sedang, atau Tinggi.'
-                    );
-                }
-
-                $x1 = c45_csv_level($x1raw, 'x1');
-                $x2 = c45_csv_level($x2raw, 'x2');
-                $x3 = c45_csv_level($x3raw, 'x3');
-
-                if (isset($seen[$kode])) {
-                    $duplicates++;
-                    continue;
-                }
-
-                $check->execute([':kode' => $kode]);
-
-                if ($check->fetchColumn()) {
-                    $duplicates++;
-                    $seen[$kode] = true;
-                    continue;
-                }
-
-                $insert->execute([
-                    ':kode' => $kode,
-                    ':nama' => $nama,
-                    ':x1' => $x1,
-                    ':x2' => $x2,
-                    ':x3' => $x3,
-                    ':label' => $label,
-                    ':sumber' => 'Import CSV',
-                    ':user' => admin_user_id()
-                ]);
-
-                $seen[$kode] = true;
-                $inserted++;
-
-            } catch (Throwable $e) {
-                $errors[] = [
-                    'baris' => $rowNumber,
-                    'pesan' => $e->getMessage()
-                ];
-
-                if (count($errors) >= 20) {
-                    break;
-                }
-            }
-        }
-
-        if ($errors) {
-            $pdo->rollBack();
-
-            admin_json([
-                'success' => false,
-                'message' => 'Import dibatalkan karena terdapat data tidak valid. Perbaiki baris yang ditampilkan lalu unggah kembali.',
-                'data' => [
-                    'baris_bermasalah' => $errors
-                ],
-                'errors' => $errors
-            ], 422);
-        }
-
-        if ($inserted === 0) {
-            $pdo->rollBack();
-
-            admin_fail(
-                'Tidak ada data baru untuk dimasukkan. Seluruh kode dataset mungkin sudah tersedia.',
-                409
-            );
-        }
-
-        $pdo->commit();
+        $stmt->execute([
+            ':id_fasilitas' => (int)$idFasilitas,
+            ':kode' => $kode,
+            ':nama' => $fasilitas['nama_fasilitas'],
+            ':x1' => $atribut['x1'],
+            ':x2' => $atribut['x2'],
+            ':x3' => $x3,
+            ':label' => $label,
+            ':admin' => $adminId
+        ]);
 
         admin_ok(
-            'Import berhasil. Dataset baru telah digabungkan ke dataset utama.',
+            'Dataset berhasil ditambahkan.',
             [
-                'jumlah_ditambahkan' => $inserted,
-                'jumlah_duplikat_dilewati' => $duplicates,
-                'nama_file' => $file['name']
+                'id_data' => (int)$pdo->lastInsertId(),
+
+                'id_fasilitas' => (int)$idFasilitas,
+
+                'kode_data' => $kode,
+
+                'nama_fasilitas' =>
+                    $fasilitas['nama_fasilitas'],
+
+                'nama_kategori' =>
+                    $fasilitas['nama_kategori'],
+
+                'frekuensi_hari' => $frekuensi,
+
+                'x1' => $atribut['x1'],
+
+                'x2' => $atribut['x2'],
+
+                'x3' => $x3,
+
+                'skor' => round($skor, 2),
+
+                'label_prioritas' => $label
             ],
             201
         );
-
-    } catch (Throwable $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
-
-        throw $e;
-
-    } finally {
-        fclose($handle);
-    }
-}
-
-/* =========================================================
-   07. ROUTER API
-========================================================= */
-
-try {
-
-    $method = admin_method(
-        'GET',
-        'POST',
-        'PUT',
-        'DELETE'
-    );
-
-    /* -----------------------------------------------------
-       IMPORT CSV
-    ----------------------------------------------------- */
-
-    if (
-        $method === 'POST' &&
-        ($_GET['action'] ?? '') === 'import'
-    ) {
-        c45_import_csv($pdo);
     }
 
-    /* -----------------------------------------------------
-       GET DATASET
-    ----------------------------------------------------- */
+    // ========================================================
+    // 09. PUT - MEMPERBARUI DATASET
+    // ========================================================
 
-    if ($method === 'GET') {
+    if ($method === 'PUT') {
 
-        [$page, $limit, $offset] = admin_page();
+        $input = admin_input();
 
-        $where = [];
-        $params = [];
+        $id = admin_id($input, 'id_data');
 
-        if (!empty($_GET['search'])) {
+        // Pastikan dataset benar-benar tersedia.
+        $check = $pdo->prepare("
+            SELECT id_data
+            FROM dataset_c45
+            WHERE id_data = :id
+            LIMIT 1
+        ");
 
-            $where[] = '
-                (
-                    d.kode_data LIKE :q1
-                    OR d.nama_fasilitas LIKE :q2
-                )
-            ';
+        $check->execute([
+            ':id' => $id
+        ]);
 
-            $keyword = '%' . trim((string)$_GET['search']) . '%';
-
-            $params[':q1'] = $keyword;
-            $params[':q2'] = $keyword;
+        if (!$check->fetchColumn()) {
+            admin_fail('Dataset tidak ditemukan.', 404);
         }
 
-        $filters = [
-            'x1' => 'tingkat_kerusakan_x1',
-            'x2' => 'dampak_akademik_x2',
-            'x3' => 'frekuensi_penggunaan_x3',
-            'label' => 'label_prioritas'
-        ];
+        $idFasilitas = filter_var(
+            $input['id_fasilitas'] ?? null,
+            FILTER_VALIDATE_INT
+        );
 
-        foreach ($filters as $key => $column) {
-
-            if (
-                isset($_GET[$key]) &&
-                $_GET[$key] !== '' &&
-                $_GET[$key] !== 'semua'
-            ) {
-
-                $where[] = "d.{$column} = :f_{$key}";
-
-                $params[":f_{$key}"] = $_GET[$key];
-            }
+        if (
+            $idFasilitas === false ||
+            $idFasilitas === null ||
+            $idFasilitas < 1
+        ) {
+            admin_fail('Silakan pilih fasilitas.', 422);
         }
 
-        $clause = $where
-            ? 'WHERE ' . implode(' AND ', $where)
-            : '';
-
-        $count = $pdo->prepare(
-            "SELECT COUNT(*)
-             FROM dataset_c45 d
-             {$clause}"
+        $fasilitas = $ambilFasilitas(
+            (int)$idFasilitas
         );
 
-        $count->execute($params);
+        $atribut = $validasiAtribut($input);
 
-        $total = (int)$count->fetchColumn();
+        // Hitung ulang X3 berdasarkan fasilitas terbaru.
+        $frekuensi = (int)$fasilitas['frekuensi_penggunaan'];
 
-        $stmt = $pdo->prepare(
-            "SELECT
-                d.*,
-                u.nama_lengkap AS nama_penginput
-             FROM dataset_c45 d
-             LEFT JOIN pengguna u
-                ON u.id_pengguna = d.id_penginput
-             {$clause}
-             ORDER BY d.id_data DESC
-             LIMIT :lim OFFSET :off"
+        $x3 = $konversiX3($frekuensi);
+
+        // Hitung ulang skor dan label Y.
+        $skor = $hitungSkor(
+            $atribut['x1'],
+            $atribut['x2'],
+            $x3
         );
 
-        foreach ($params as $key => $value) {
-            $stmt->bindValue($key, $value);
-        }
+        $label = $hitungLabel($skor);
 
-        $stmt->bindValue(
-            ':lim',
-            $limit,
-            PDO::PARAM_INT
-        );
+        $stmt = $pdo->prepare("
+            UPDATE dataset_c45
 
-        $stmt->bindValue(
-            ':off',
-            $offset,
-            PDO::PARAM_INT
-        );
+            SET
+                id_fasilitas = :id_fasilitas,
 
-        $stmt->execute();
+                nama_fasilitas = :nama,
 
-        $statistics = $pdo->query(
-            "SELECT
-                COUNT(*) AS total,
-                COALESCE(SUM(label_prioritas='Rendah'),0) AS rendah,
-                COALESCE(SUM(label_prioritas='Sedang'),0) AS sedang,
-                COALESCE(SUM(label_prioritas='Tinggi'),0) AS tinggi
-             FROM dataset_c45"
-        )->fetch(PDO::FETCH_ASSOC);
+                tingkat_kerusakan_x1 = :x1,
+
+                dampak_akademik_x2 = :x2,
+
+                frekuensi_penggunaan_x3 = :x3,
+
+                label_prioritas = :label
+
+            WHERE id_data = :id
+        ");
+
+        $stmt->execute([
+            ':id_fasilitas' => (int)$idFasilitas,
+            ':nama' => $fasilitas['nama_fasilitas'],
+            ':x1' => $atribut['x1'],
+            ':x2' => $atribut['x2'],
+            ':x3' => $x3,
+            ':label' => $label,
+            ':id' => $id
+        ]);
 
         admin_ok(
-            'Dataset C4.5 berhasil dimuat.',
+            'Dataset berhasil diperbarui.',
             [
-                'items' => $stmt->fetchAll(PDO::FETCH_ASSOC),
-                'statistics' => $statistics,
-                'pagination' => [
-                    'page' => $page,
-                    'limit' => $limit,
-                    'total' => $total,
-                    'total_pages' => (int)ceil($total / $limit)
-                ]
+                'id_data' => $id,
+
+                'id_fasilitas' => (int)$idFasilitas,
+
+                'nama_fasilitas' =>
+                    $fasilitas['nama_fasilitas'],
+
+                'frekuensi_hari' => $frekuensi,
+
+                'x1' => $atribut['x1'],
+
+                'x2' => $atribut['x2'],
+
+                'x3' => $x3,
+
+                'skor' => round($skor, 2),
+
+                'label_prioritas' => $label
             ]
         );
     }
 
-    /* -----------------------------------------------------
-       POST / PUT
-    ----------------------------------------------------- */
-
-    if ($method === 'POST' || $method === 'PUT') {
-
-        $input = admin_input();
-
-        $data = c45_dataset_payload($input);
-
-        if ($method === 'POST') {
-
-            $stmt = $pdo->prepare(
-                "INSERT INTO dataset_c45
-                (
-                    kode_data,
-                    nama_fasilitas,
-                    tingkat_kerusakan_x1,
-                    dampak_akademik_x2,
-                    frekuensi_penggunaan_x3,
-                    label_prioritas,
-                    sumber_data,
-                    id_penginput
-                )
-                VALUES
-                (
-                    :kode,
-                    :nama,
-                    :x1,
-                    :x2,
-                    :x3,
-                    :label,
-                    :sumber,
-                    :user
-                )"
-            );
-
-            $stmt->execute([
-                ':kode' => $data['kode'],
-                ':nama' => $data['nama'],
-                ':x1' => $data['x1'],
-                ':x2' => $data['x2'],
-                ':x3' => $data['x3'],
-                ':label' => $data['label'],
-                ':sumber' => $data['sumber'],
-                ':user' => admin_user_id()
-            ]);
-
-            admin_ok(
-                'Dataset berhasil ditambahkan.',
-                [
-                    'id_data' => (int)$pdo->lastInsertId()
-                ],
-                201
-            );
-        }
-
-        $id = admin_id($input, 'id_data');
-
-        $stmt = $pdo->prepare(
-            "UPDATE dataset_c45 SET
-                kode_data = :kode,
-                nama_fasilitas = :nama,
-                tingkat_kerusakan_x1 = :x1,
-                dampak_akademik_x2 = :x2,
-                frekuensi_penggunaan_x3 = :x3,
-                label_prioritas = :label,
-                sumber_data = :sumber
-             WHERE id_data = :id"
-        );
-
-        $stmt->execute([
-            ':kode' => $data['kode'],
-            ':nama' => $data['nama'],
-            ':x1' => $data['x1'],
-            ':x2' => $data['x2'],
-            ':x3' => $data['x3'],
-            ':label' => $data['label'],
-            ':sumber' => $data['sumber'],
-            ':id' => $id
-        ]);
-
-        $check = $pdo->prepare(
-            "SELECT id_data
-             FROM dataset_c45
-             WHERE id_data = :id"
-        );
-
-        $check->execute([':id' => $id]);
-
-        if (!$check->fetchColumn()) {
-            admin_fail(
-                'Dataset tidak ditemukan.',
-                404
-            );
-        }
-
-        admin_ok(
-            'Dataset berhasil diperbarui.'
-        );
-    }
-
-    /* -----------------------------------------------------
-       DELETE
-    ----------------------------------------------------- */
+    // ========================================================
+    // 10. DELETE - MENGHAPUS DATASET
+    // ========================================================
 
     if ($method === 'DELETE') {
 
@@ -749,18 +755,17 @@ try {
 
         $id = admin_id($input, 'id_data');
 
-        $stmt = $pdo->prepare(
-            "DELETE FROM dataset_c45
-             WHERE id_data = :id"
-        );
+        $stmt = $pdo->prepare("
+            DELETE FROM dataset_c45
+            WHERE id_data = :id
+        ");
 
-        $stmt->execute([':id' => $id]);
+        $stmt->execute([
+            ':id' => $id
+        ]);
 
         if ($stmt->rowCount() < 1) {
-            admin_fail(
-                'Dataset tidak ditemukan.',
-                404
-            );
+            admin_fail('Dataset tidak ditemukan.', 404);
         }
 
         admin_ok(
@@ -770,17 +775,17 @@ try {
 
 } catch (PDOException $e) {
 
-    if ((string)$e->getCode() === '23000') {
-
-        admin_fail(
-            'Kode dataset sudah digunakan atau data sudah terhubung dengan riwayat pelatihan. Periksa kembali data tersebut.',
-            409
-        );
-    }
+    error_log(
+        '[SIPFAS DATASET C45] ' . $e->getMessage()
+    );
 
     admin_exception($e);
 
 } catch (Throwable $e) {
+
+    error_log(
+        '[SIPFAS DATASET C45] ' . $e->getMessage()
+    );
 
     admin_exception($e);
 }

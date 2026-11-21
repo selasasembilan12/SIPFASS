@@ -1,20 +1,15 @@
 <?php
 declare(strict_types=1);
 
-/**
- * SIPFAS - VERIFIKASI OTP LOGIN
- *
- * 1. OTP 8 digit.
- * 2. Masa berlaku 2 menit.
- * 3. Maksimal 3 percobaan.
- * 4. Setelah 3 kali salah, tunggu hingga OTP kedaluwarsa.
- * 5. Pengiriman ulang dilakukan secara manual.
- * 6. Session login resmi dibuat setelah OTP benar.
- */
+
 
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
 require_once dirname(__DIR__, 2) . '/services/OtpService.php';
 require_once dirname(__DIR__, 2) . '/services/MailService.php';
+require_once __DIR__ . '/riwayat-login-helper.php';
+// Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
+require_once dirname(_DIR_, 2) . '/config/csrf.php';
+sipfas_csrf_require_valid();
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
@@ -745,6 +740,24 @@ if (
     $_SESSION['nama_lengkap'] = $user['nama_lengkap'];
     $_SESSION['sipfas_user'] = $authenticatedUser;
     $_SESSION['login_terverifikasi'] = true;
+
+
+// --------------------------------------------------------
+// MENCATAT RIWAYAT LOGIN KE DATABASE.
+// Berlaku untuk Administrator, Petugas, dan Pelapor.
+// --------------------------------------------------------
+
+$riwayatLoginTersimpan = catatRiwayatLogin(
+    $pdo,
+    $user
+);
+
+if (!$riwayatLoginTersimpan) {
+    error_log(
+        '[SIPFAS] Login berhasil, tetapi riwayat login gagal disimpan. ' .
+        'ID Pengguna: ' . (int) $user['id_pengguna']
+    );
+}
 
     // --------------------------------------------------------
     // N. MENGHAPUS SESSION LOGIN SEMENTARA

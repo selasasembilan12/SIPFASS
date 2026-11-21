@@ -1,5 +1,5 @@
 <?php
-
+// Pembentukan Decision Tree: Membentuk pohon keputusan secara bertahap sampai menghasilkan klasifikasi.
 namespace SIPFAS\Services\C45;
 
 class DecisionTree

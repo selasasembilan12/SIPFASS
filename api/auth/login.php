@@ -1,19 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/**
- * SIPFAS - LOGIN API
- * Backend: PHP PDO + MariaDB
- * Autentikasi: Password + OTP
- *
- * Keamanan:
- * 1. Maksimal 5 kali login gagal.
- * 2. Pemblokiran akun selama 15 menit.
- * 3. Penghitung kegagalan tersimpan di database.
- * 4. Pemeriksaan pemblokiran dilakukan di server.
- * 5. Session sementara digunakan untuk proses OTP.
- */
-
 ob_start();
 
 ini_set('display_errors', '0');
@@ -134,6 +121,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
 try {
 
     require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
+    // Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
+require_once dirname(_DIR_, 2) . '/config/csrf.php';
+sipfas_csrf_require_valid();
 
     require_once dirname(__DIR__, 2) . '/services/OtpService.php';
 

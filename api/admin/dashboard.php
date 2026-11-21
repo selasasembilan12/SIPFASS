@@ -6,17 +6,14 @@ declare(strict_types=1);
 // ============================================================
 
 require_once __DIR__ . '/_admin-common.php';
+// Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
+require_once dirname(_DIR_, 2) . '/config/csrf.php';
+sipfas_csrf_require_valid();
 
 // ============================================================
 // 02. FUNGSI MEMERIKSA KOLOM DATABASE
 // ============================================================
 
-/**
- * Mengambil daftar kolom suatu tabel.
- *
- * Pemeriksaan ini membantu mencegah penggunaan nama kolom
- * yang tidak tersedia pada database.
- */
 function dashboard_columns(PDO $pdo, string $table): array
 {
     $allowedTables = [

@@ -1,11 +1,3 @@
-
-/* =========================================================
-   SIPFAS - PROFIL SAYA
-   FINAL CSS
-   Referensi Sidebar: Dashboard.css
-   Referensi Logo: logo.css
-========================================================= */
-
 /* =========================================================
    01. VARIABEL GLOBAL
 ========================================================= */
@@ -394,11 +386,7 @@ svg {
   gap: 24px;
   margin-bottom: 32px;
 
-  background: linear-gradient(
-    110deg,
-    #f8f9fb 0%,
-    #ffffff 100%
-  );
+  background: linear-gradient(110deg, #f8f9fb 0%, #ffffff 100%);
 
   border-radius: 9px;
 }
@@ -998,7 +986,6 @@ svg {
     padding: 12px;
   }
 }
-
 
 /* =========================================================
    FOTO PROFIL ADMINISTRATOR - TOMBOL EDIT SEPERTI PELAPOR

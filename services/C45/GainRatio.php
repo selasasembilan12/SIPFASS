@@ -1,5 +1,5 @@
 <?php
-
+// Gain Ratio: Digunakan untuk memilih atribut terbaik sebagai percabangan pohon keputusan.
 namespace SIPFAS\Services\C45;
 
 class GainRatio

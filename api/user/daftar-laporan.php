@@ -1,210 +1,78 @@
 <?php
-
 declare(strict_types=1);
 
-
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
+// Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
+require_once dirname(_DIR_, 2) . '/config/csrf.php';
+sipfas_csrf_require_valid();
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');
-header('X-Content-Type-Options: nosniff');
 
-
-/* ============================================================
-   01. RESPONSE
-============================================================ */
-
-function daftarLaporanResponse(
+function daftarResponse(
     bool $success,
     string $message,
     array $data = [],
     int $status = 200
 ): never {
-
     http_response_code($status);
-
-    echo json_encode(
-        [
-            'success' => $success,
-            'message' => $message,
-            'data' => $data
-        ],
-        JSON_UNESCAPED_UNICODE |
-        JSON_INVALID_UTF8_SUBSTITUTE
-    );
-
+    echo json_encode([
+        'success' => $success,
+        'message' => $message,
+        'data' => $data
+    ], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
     exit;
 }
 
-
-/* ============================================================
-   02. MEMERIKSA METHOD
-============================================================ */
-
-if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
-
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     header('Allow: GET');
-
-    daftarLaporanResponse(
-        false,
-        'Metode permintaan tidak diizinkan.',
-        [],
-        405
-    );
+    daftarResponse(false, 'Metode tidak diizinkan.', [], 405);
 }
 
-
-/* ============================================================
-   03. MEMERIKSA SESSION LOGIN
-============================================================ */
-
-$userSession = $_SESSION['user'] ?? null;
+$user = $_SESSION['user'] ?? [];
+$idPelapor = (int)($user['id_pengguna'] ?? 0);
 
 if (
     ($_SESSION['login_terverifikasi'] ?? false) !== true ||
-    !is_array($userSession)
+    $idPelapor <= 0
 ) {
-
-    daftarLaporanResponse(
-        false,
-        'Sesi login tidak ditemukan. Silakan login kembali.',
-        [],
-        401
-    );
+    daftarResponse(false, 'Sesi login tidak valid.', [], 401);
 }
-
-
-/* ============================================================
-   04. MENGAMBIL ID PENGGUNA
-============================================================ */
-
-$idPengguna = (int) (
-    $userSession['id_pengguna'] ?? 0
-);
-
-if ($idPengguna <= 0) {
-
-    daftarLaporanResponse(
-        false,
-        'Identitas pengguna tidak valid.',
-        [],
-        401
-    );
-}
-
-
-/* ============================================================
-   05. MENGAMBIL DATA DARI DATABASE
-============================================================ */
 
 try {
-
-    /*
-     * Memastikan pengguna benar-benar ada di database
-     * dan memiliki role Pelapor.
-     */
-
+    // Validasi akun dan role Pelapor.
     $stmt = $pdo->prepare("
-        SELECT
-            u.id_pengguna,
-            u.nama_lengkap,
-            u.nama_pengguna,
-            u.status_akun,
-            p.id_peran,
-            p.nama_peran
-
+        SELECT u.id_pengguna, u.nama_lengkap, u.status_akun, p.nama_peran
         FROM pengguna u
-
-        INNER JOIN peran p
-            ON p.id_peran = u.id_peran
-
-        WHERE u.id_pengguna = :id_pengguna
-
+        INNER JOIN peran p ON p.id_peran = u.id_peran
+        WHERE u.id_pengguna = :id
         LIMIT 1
     ");
 
-    $stmt->execute([
-        ':id_pengguna' => $idPengguna
-    ]);
+    $stmt->execute([':id' => $idPelapor]);
+    $pengguna = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-
-    if (!$user) {
-
-        daftarLaporanResponse(
-            false,
-            'Data pengguna tidak ditemukan.',
-            [],
-            404
-        );
+    if (!$pengguna) {
+        daftarResponse(false, 'Pengguna tidak ditemukan.', [], 404);
     }
 
-
-    /* ========================================================
-       06. STATUS AKUN
-    ======================================================== */
-
-    if (
-        strcasecmp(
-            trim((string) $user['status_akun']),
-            'Aktif'
-        ) !== 0
-    ) {
-
-        daftarLaporanResponse(
-            false,
-            'Akun tidak aktif. Hubungi Administrator.',
-            [],
-            403
-        );
+    if (strcasecmp($pengguna['status_akun'], 'Aktif') !== 0) {
+        daftarResponse(false, 'Akun tidak aktif.', [], 403);
     }
 
-
-    /* ========================================================
-       07. ROLE PELAPOR
-    ======================================================== */
-
-    if (
-        strcasecmp(
-            trim((string) $user['nama_peran']),
-            'Pelapor'
-        ) !== 0
-    ) {
-
-        daftarLaporanResponse(
-            false,
-            'Akses ditolak. API ini khusus untuk Pelapor.',
-            [],
-            403
-        );
+    if (strcasecmp($pengguna['nama_peran'], 'Pelapor') !== 0) {
+        daftarResponse(false, 'Akses khusus Pelapor.', [], 403);
     }
 
-
-    /* ========================================================
-       08. MENGAMBIL LAPORAN USER
-    ======================================================== */
-
-    /*
-     * PENTING:
-     *
-     * Filter menggunakan id_pelapor.
-     *
-     * Artinya user hanya melihat laporan miliknya sendiri.
-     *
-     * Nanti API Petugas TIDAK menggunakan filter ini,
-     * sehingga Petugas dapat melihat semua laporan.
-     */
-
+    // Mengambil laporan langsung dari database.
     $stmt = $pdo->prepare("
         SELECT
-
             l.id_laporan,
             l.id_pelapor,
             l.id_fasilitas,
+            l.id_lokasi,
             l.kode_laporan,
-
             l.deskripsi_kerusakan,
 
             l.tingkat_kerusakan_x1,
@@ -213,160 +81,100 @@ try {
 
             l.tingkat_kerusakan_x1_terverifikasi,
             l.dampak_akademik_x2_terverifikasi,
-            l.frekuensi_penggunaan_x3_terverifikasi,
 
             l.prioritas_awal,
-            l.id_petugas,
             l.prioritas_prediksi,
 
             l.status_verifikasi,
             l.status_penanganan,
 
+            l.id_verifikator,
+            l.id_petugas_penanggung_jawab,
             l.catatan_verifikasi,
+            l.waktu_verifikasi,
 
-            l.waktu_dibuat,
-            l.waktu_diperbarui,
+            l.tanggal_dibuat,
+            l.tanggal_diperbarui,
 
             f.nama_fasilitas,
             f.kode_fasilitas,
-            f.lokasi
+            lr.nama_lokasi
 
         FROM laporan_kerusakan l
 
         LEFT JOIN fasilitas f
             ON f.id_fasilitas = l.id_fasilitas
 
+        LEFT JOIN lokasi_ruangan lr
+            ON lr.id_lokasi = l.id_lokasi
+
         WHERE l.id_pelapor = :id_pelapor
 
-        ORDER BY l.waktu_dibuat DESC
+        ORDER BY l.tanggal_dibuat DESC, l.id_laporan DESC
     ");
 
-    $stmt->execute([
-        ':id_pelapor' => $idPengguna
-    ]);
+    $stmt->execute([':id_pelapor' => $idPelapor]);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $laporan = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $laporan = [];
 
+    foreach ($rows as $row) {
+        $laporan[] = [
+            'id_laporan' => (int)$row['id_laporan'],
+            'id_pelapor' => (int)$row['id_pelapor'],
+            'id_fasilitas' => (int)$row['id_fasilitas'],
+            'id_lokasi' => (int)$row['id_lokasi'],
 
-    /* ========================================================
-       09. FORMAT DATA
-    ======================================================== */
+            'kode_laporan' => $row['kode_laporan'],
+            'nama_fasilitas' => $row['nama_fasilitas'] ?? '-',
+            'kode_fasilitas' => $row['kode_fasilitas'] ?? '',
+            'nama_lokasi' => $row['nama_lokasi'] ?? '-',
 
-    $hasil = [];
+            'deskripsi_kerusakan' => $row['deskripsi_kerusakan'],
 
-    foreach ($laporan as $row) {
-
-        $hasil[] = [
-
-            'id_laporan' =>
-                (int) $row['id_laporan'],
-
-            'id_pelapor' =>
-                (int) $row['id_pelapor'],
-
-            'id_fasilitas' =>
-                (int) $row['id_fasilitas'],
-
-            'kode_laporan' =>
-                (string) $row['kode_laporan'],
-
-            'nama_fasilitas' =>
-                (string) ($row['nama_fasilitas'] ?? ''),
-
-            'kode_fasilitas' =>
-                (string) ($row['kode_fasilitas'] ?? ''),
-
-            'lokasi' =>
-                (string) ($row['lokasi'] ?? ''),
-
-            'deskripsi_kerusakan' =>
-                (string) ($row['deskripsi_kerusakan'] ?? ''),
-
-            'tingkat_kerusakan_x1' =>
-                $row['tingkat_kerusakan_x1'],
-
-            'dampak_akademik_x2' =>
-                $row['dampak_akademik_x2'],
-
-            'frekuensi_penggunaan_x3' =>
-                $row['frekuensi_penggunaan_x3'],
+            'tingkat_kerusakan_x1' => (int)$row['tingkat_kerusakan_x1'],
+            'dampak_akademik_x2' => (int)$row['dampak_akademik_x2'],
+            'frekuensi_penggunaan_x3' => (int)$row['frekuensi_penggunaan_x3'],
 
             'tingkat_kerusakan_x1_terverifikasi' =>
-                $row['tingkat_kerusakan_x1_terverifikasi'],
-
-            'dampak_akademik_x2_terverifikasi' =>
-                $row['dampak_akademik_x2_terverifikasi'],
-
-            'frekuensi_penggunaan_x3_terverifikasi' =>
-                $row['frekuensi_penggunaan_x3_terverifikasi'],
-
-            'prioritas_awal' =>
-                $row['prioritas_awal'],
-
-            'id_petugas' =>
-                $row['id_petugas'] !== null
-                    ? (int) $row['id_petugas']
+                $row['tingkat_kerusakan_x1_terverifikasi'] !== null
+                    ? (int)$row['tingkat_kerusakan_x1_terverifikasi']
                     : null,
 
-            'prioritas_prediksi' =>
-                $row['prioritas_prediksi'],
+            'dampak_akademik_x2_terverifikasi' =>
+                $row['dampak_akademik_x2_terverifikasi'] !== null
+                    ? (int)$row['dampak_akademik_x2_terverifikasi']
+                    : null,
 
-            'status_verifikasi' =>
-                (string) ($row['status_verifikasi'] ?? ''),
+            'prioritas_awal' => $row['prioritas_awal'],
+            'prioritas_prediksi' => $row['prioritas_prediksi'],
 
-            'status_penanganan' =>
-                (string) ($row['status_penanganan'] ?? ''),
+            'status_verifikasi' => $row['status_verifikasi'],
+            'status_penanganan' => $row['status_penanganan'],
 
-            'catatan_verifikasi' =>
-                (string) ($row['catatan_verifikasi'] ?? ''),
+            'catatan_verifikasi' => $row['catatan_verifikasi'],
+            'waktu_verifikasi' => $row['waktu_verifikasi'],
 
-            'waktu_dibuat' =>
-                $row['waktu_dibuat'],
-
-            'waktu_diperbarui' =>
-                $row['waktu_diperbarui']
+            'tanggal_dibuat' => $row['tanggal_dibuat'],
+            'tanggal_diperbarui' => $row['tanggal_diperbarui']
         ];
     }
 
-
-    /* ========================================================
-       10. RESPONSE BERHASIL
-    ======================================================== */
-
-    daftarLaporanResponse(
-        true,
-        'Daftar laporan berhasil dimuat.',
-        [
-            'jumlah' => count($hasil),
-
-            'pengguna' => [
-                'id_pengguna' =>
-                    (int) $user['id_pengguna'],
-
-                'nama_lengkap' =>
-                    (string) $user['nama_lengkap'],
-
-                'nama_peran' =>
-                    (string) $user['nama_peran']
-            ],
-
-            'laporan' => $hasil
-        ]
-    );
-
+    daftarResponse(true, 'Daftar laporan berhasil dimuat.', [
+        'jumlah' => count($laporan),
+        'pengguna' => [
+            'id_pengguna' => (int)$pengguna['id_pengguna'],
+            'nama_lengkap' => $pengguna['nama_lengkap']
+        ],
+        'laporan' => $laporan
+    ]);
 
 } catch (Throwable $e) {
+    error_log('[SIPFAS DAFTAR LAPORAN] ' . $e->getMessage());
 
-    error_log(
-        '[SIPFAS DAFTAR LAPORAN] ' .
-        get_class($e) .
-        ': ' .
-        $e->getMessage()
-    );
-
-    daftarLaporanResponse(
+    daftarResponse(
         false,
-        'Terjadi kesalahan server saat mengambil daftar laporan.',
+        'Gagal mengambil daftar laporan dari database.',
         [],
         500
     );

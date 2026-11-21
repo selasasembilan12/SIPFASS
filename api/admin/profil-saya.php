@@ -1,5 +1,9 @@
 <?php
 require_once __DIR__ . '/_admin-common.php';
+// Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
+require_once dirname(_DIR_, 2) . '/config/csrf.php';
+sipfas_csrf_require_valid();
+
 try{
     $method=admin_method('GET','POST','PUT');
     $id=admin_user_id();if($id<1)admin_fail('Sesi Administrator tidak valid.',401);

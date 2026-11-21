@@ -1,223 +1,185 @@
-// ============================================================
-// SIPFAS - DETAIL LAPORAN.JS
-// Menampilkan detail laporan dan perkembangan penanganan.
-// Sinkronisasi otomatis dengan halaman Petugas.
-// ============================================================
+"use strict";
 
-// 01. Konfigurasi penyimpanan.
-const KUNCI_LAPORAN = "sipfasReports";
+// 01. KONFIGURASI API DAN PROFIL.
+
+const API_DETAIL_LAPORAN = "../../../api/user/detail.laporan.php";
+
 const KUNCI_PROFIL = "sipfasProfile";
 
-// Menyimpan data terakhir untuk mendeteksi perubahan.
-let dataLaporanTerakhir = null;
-let dataProfilTerakhir = null;
+let sedangMemuatDetail = false;
+let permintaanTerakhir = 0;
 
-// Menjalankan program setelah halaman selesai dimuat.
+// ============================================================
+// 02. INISIALISASI
+// ============================================================
+
 document.addEventListener("DOMContentLoaded", function () {
   tampilkanDetailLaporan();
+
   updateDetailProfile();
 
-  // Menyimpan kondisi data awal.
-  dataLaporanTerakhir = localStorage.getItem(KUNCI_LAPORAN);
-  dataProfilTerakhir = localStorage.getItem(KUNCI_PROFIL);
-
-  // Memperbarui tampilan jika data berubah dari tab lain.
   window.addEventListener("storage", function (event) {
-    if (event.key === KUNCI_LAPORAN || event.key === null) {
-      dataLaporanTerakhir = localStorage.getItem(KUNCI_LAPORAN);
-      tampilkanDetailLaporan();
-    }
-
     if (event.key === KUNCI_PROFIL || event.key === null) {
-      dataProfilTerakhir = localStorage.getItem(KUNCI_PROFIL);
       updateDetailProfile();
     }
   });
 
-  // Memeriksa perubahan data secara otomatis setiap 1 detik.
-  // Berguna ketika Petugas dan Pelapor membuka halaman
-  // pada tab browser yang berbeda.
+  // Memperbarui data dari database setiap 30 detik.
   setInterval(function () {
-    const laporanSekarang = localStorage.getItem(KUNCI_LAPORAN);
-    const profilSekarang = localStorage.getItem(KUNCI_PROFIL);
+    tampilkanDetailLaporan();
+  }, 30000);
 
-    // Memperbarui detail apabila data laporan berubah.
-    if (laporanSekarang !== dataLaporanTerakhir) {
-      dataLaporanTerakhir = laporanSekarang;
-      tampilkanDetailLaporan();
-    }
-
-    // Memperbarui nama pengguna apabila profil berubah.
-    if (profilSekarang !== dataProfilTerakhir) {
-      dataProfilTerakhir = profilSekarang;
-      updateDetailProfile();
-    }
-  }, 1000);
+  // Memperbarui data ketika halaman dibuka kembali.
+  window.addEventListener("pageshow", function () {
+    tampilkanDetailLaporan();
+    updateDetailProfile();
+  });
 });
 
-// 02. Data simulasi untuk laporan awal.
-// const dataSimulasi = [
-//   {
-//     id: "LP-2024-089",
-//     facility: "Proyektor Lab Komputer 2",
-//     location: "Laboratorium Komputer",
-//     date: "24 Okt 2024",
-//     dateTime: "24 Oktober 2024, 09:00 WIT",
-//     priority: "Tinggi",
-//     description:
-//       "Proyektor mengalami gangguan tampilan dan gambar terkadang tidak muncul saat digunakan dalam kegiatan perkuliahan.",
-//     status: "Menunggu Verifikasi",
-//     verificationStatus: "Menunggu",
-//     verificationDescription: "Laporan sedang menunggu verifikasi petugas.",
-//     handlingStatus: "Menunggu",
-//     handlingDescription: "Laporan belum masuk tahap penanganan.",
-//   },
-//   {
-//     id: "LP-2024-085",
-//     facility: "Unit AC Split 2 PK",
-//     location: "Ruang Kuliah IF-301, Gedung Informatika Lt. 3",
-//     date: "22 Okt 2024",
-//     dateTime: "22 Oktober 2024, 09:30 WIT",
-//     priority: "Tinggi",
-//     description:
-//       "AC mengeluarkan suara bising mendengung dan hembusan angin tidak dingin sama sekali sejak perkuliahan jam pertama pagi. Suhu ruangan gerah dan mengganggu kenyamanan mahasiswa.",
-//     status: "Diproses",
-//     verificationStatus: "Valid",
-//     verificationDescription: "Diverifikasi oleh Petugas Sarpras.",
-//     handlingStatus: "Diproses",
-//     handlingDescription: "Teknisi sedang melakukan perbaikan di lokasi.",
-//   },
-//   {
-//     id: "LP-2024-081",
-//     facility: "Papan Tulis Whiteboard",
-//     location: "Ruang Kuliah",
-//     date: "18 Okt 2024",
-//     dateTime: "18 Oktober 2024, 10:00 WIT",
-//     priority: "Sedang",
-//     description:
-//       "Permukaan papan tulis mengalami kerusakan sehingga tulisan sulit dibersihkan dan mengganggu kegiatan pembelajaran.",
-//     status: "Selesai",
-//     verificationStatus: "Valid",
-//     verificationDescription: "Laporan telah diverifikasi oleh Petugas Sarpras.",
-//     handlingStatus: "Selesai",
-//     handlingDescription: "Perbaikan fasilitas telah selesai dilakukan.",
-//   },
-//   {
-//     id: "LP-2024-076",
-//     facility: "Stop Kontak Meja 04",
-//     location: "Gedung Informatika Lantai 1",
-//     date: "15 Okt 2024",
-//     dateTime: "15 Oktober 2024, 11:00 WIT",
-//     priority: "Rendah",
-//     description:
-//       "Stop kontak pada meja mengalami gangguan dan tidak dapat digunakan untuk menghubungkan perangkat elektronik.",
-//     status: "Selesai",
-//     verificationStatus: "Valid",
-//     verificationDescription: "Laporan telah diverifikasi oleh Petugas Sarpras.",
-//     handlingStatus: "Selesai",
-//     handlingDescription:
-//       "Stop kontak telah diperbaiki dan dapat digunakan kembali.",
-//   },
-//   {
-//     id: "LP-2024-072",
-//     facility: "Kipas Angin Dinding",
-//     location: "Ruang Kuliah",
-//     date: "12 Okt 2024",
-//     dateTime: "12 Oktober 2024, 09:00 WIT",
-//     priority: "Rendah",
-//     description:
-//       "Kipas angin dinding dilaporkan mengalami gangguan putaran dan mengeluarkan suara tidak normal.",
-//     status: "Tidak Valid",
-//     verificationStatus: "Tidak Valid",
-//     verificationDescription: "Laporan tidak memenuhi persyaratan verifikasi.",
-//     handlingStatus: "Tidak Diproses",
-//     handlingDescription: "Laporan tidak dilanjutkan ke tahap penanganan.",
-//   },
-//   {
-//     id: "LP-2024-070",
-//     facility: "Kursi Kuliah Lipat",
-//     location: "Gedung Informatika Lantai 2",
-//     date: "10 Okt 2024",
-//     dateTime: "10 Oktober 2024, 08:30 WIT",
-//     priority: "Rendah",
-//     description:
-//       "Kursi kuliah lipat mengalami kerusakan pada bagian sambungan sehingga kurang nyaman digunakan.",
-//     status: "Selesai",
-//     verificationStatus: "Valid",
-//     verificationDescription: "Laporan telah diverifikasi oleh Petugas Sarpras.",
-//     handlingStatus: "Selesai",
-//     handlingDescription: "Kursi telah diperbaiki dan dapat digunakan kembali.",
-//   },
-// ];
+// ============================================================
+// 03. MENGAMBIL ID ATAU KODE LAPORAN DARI URL
+// ============================================================
 
-// 03. Mengambil ID laporan dari URL.
 function ambilIdLaporan() {
   const parameterURL = new URLSearchParams(window.location.search);
-  return parameterURL.get("id");
+
+  return String(parameterURL.get("id") || "").trim();
 }
 
-// 04. Mengambil seluruh laporan dari LocalStorage.
-function ambilSemuaLaporan() {
-  const dataTersimpan = localStorage.getItem(KUNCI_LAPORAN);
+// ============================================================
+// 04. MENGAMBIL DATA DARI DATABASE
+// ============================================================
 
-  if (!dataTersimpan) {
-    return [];
+async function cariLaporan(identitasLaporan) {
+  if (!identitasLaporan) {
+    throw new Error("Identitas laporan tidak ditemukan.");
   }
 
-  const daftarLaporan = JSON.parse(dataTersimpan);
+  const url =
+    API_DETAIL_LAPORAN +
+    "?id=" +
+    encodeURIComponent(identitasLaporan) +
+    "&_=" +
+    Date.now();
 
-  if (!Array.isArray(daftarLaporan)) {
-    throw new Error("Format data laporan tidak valid.");
-  }
+  const response = await fetch(url, {
+    method: "GET",
 
-  return daftarLaporan;
-}
+    credentials: "same-origin",
 
-// 05. Mencari laporan berdasarkan ID.
-function cariLaporan(idLaporan) {
+    cache: "no-store",
+
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  const rawText = await response.text();
+
+  let result;
+
   try {
-    const daftarLaporan = ambilSemuaLaporan();
-
-    const laporanTersimpan = daftarLaporan.find(function (laporan) {
-      return String(laporan.id) === String(idLaporan);
-    });
-
-    const laporanContoh = dataSimulasi.find(function (laporan) {
-      return String(laporan.id) === String(idLaporan);
-    });
-
-    // Mengutamakan data terbaru dari LocalStorage.
-    if (laporanTersimpan) {
-      return {
-        ...(laporanContoh || {}),
-        ...laporanTersimpan,
-      };
-    }
-
-    // Menggunakan data simulasi jika tersedia.
-    if (laporanContoh) {
-      return laporanContoh;
-    }
-
-    // Memeriksa data laporan terakhir dari sesi.
-    const dataSesi = sessionStorage.getItem("laporanTerakhir");
-
-    if (dataSesi) {
-      const laporanSesi = JSON.parse(dataSesi);
-
-      if (String(laporanSesi.id) === String(idLaporan)) {
-        return laporanSesi;
-      }
-    }
-
-    return null;
+    result = JSON.parse(rawText);
   } catch (error) {
-    console.error("Gagal mengambil detail laporan:", error);
-    return null;
+    console.error("[SIPFAS] Respons API bukan JSON:", rawText);
+
+    throw new Error("Respons server tidak valid. Periksa file API PHP.");
   }
+
+  if (!response.ok || result.success !== true) {
+    throw new Error(
+      result.message || "Gagal mengambil detail laporan dari database.",
+    );
+  }
+
+  const data = result.data;
+
+  if (!data || !data.id_laporan) {
+    throw new Error("Data detail laporan tidak ditemukan.");
+  }
+
+  return ubahFormatDataDatabase(data);
 }
 
-// 06. Menampilkan pesan jika laporan tidak ditemukan.
+// ============================================================
+// 05. MENGUBAH DATA DATABASE MENJADI FORMAT TAMPILAN
+// ============================================================
+
+function ubahFormatDataDatabase(data) {
+  const statusVerifikasi = data.status_verifikasi || "Menunggu";
+
+  const statusPenanganan = data.status_penanganan || "Menunggu";
+
+  const statusUtama = tentukanStatusDetail(statusVerifikasi, statusPenanganan);
+
+  const tanggalDibuat = data.tanggal_dibuat || "";
+
+  return {
+    id: String(data.id_laporan),
+
+    idLaporan: data.id_laporan,
+
+    kodeLaporan: data.kode_laporan || "-",
+
+    facility: data.nama_fasilitas || "-",
+
+    namaFasilitas: data.nama_fasilitas || "-",
+
+    location: data.nama_lokasi || "-",
+
+    lokasiFasilitas: data.nama_lokasi || "-",
+
+    date: formatTanggalDetail(tanggalDibuat),
+
+    dateTime: formatTanggalLengkapDetail(tanggalDibuat),
+
+    tanggalLaporan: tanggalDibuat,
+
+    priority:
+      data.prioritas_prediksi || data.prioritas_awal || "Belum Ditentukan",
+
+    prioritas:
+      data.prioritas_prediksi || data.prioritas_awal || "Belum Ditentukan",
+
+    description: data.deskripsi_kerusakan || "-",
+
+    deskripsi: data.deskripsi_kerusakan || "-",
+
+    verificationStatus: statusVerifikasi,
+
+    verificationDescription:
+      data.catatan_verifikasi || deskripsiStatusVerifikasi(statusVerifikasi),
+
+    verificationDate: data.waktu_verifikasi || "",
+
+    handlingStatus: statusPenanganan,
+
+    handlingDescription: deskripsiStatusPenanganan(statusPenanganan),
+
+    handlingDate: data.tanggal_diperbarui || "",
+
+    completedDate: apakahSelesai(statusPenanganan)
+      ? data.tanggal_diperbarui || ""
+      : "",
+
+    tingkatKerusakan: data.tingkat_kerusakan_x1,
+
+    dampakAkademik: data.dampak_akademik_x2,
+
+    frekuensiPenggunaan: data.frekuensi_penggunaan_x3,
+
+    catatanVerifikasi: data.catatan_verifikasi || "",
+
+    status: statusUtama,
+
+    mainStatus: statusUtama,
+  };
+}
+
+// ============================================================
+// 06. MENAMPILKAN PESAN ERROR
+// ============================================================
+
 function tampilkanPesanError(pesan) {
   const halamanKonten = document.querySelector(".page-content");
 
@@ -227,11 +189,15 @@ function tampilkanPesanError(pesan) {
 
   if (!pesanError) {
     pesanError = document.createElement("p");
+
     pesanError.id = "pesan-error-laporan";
 
     pesanError.style.padding = "20px";
+
     pesanError.style.color = "#dc2626";
+
     pesanError.style.background = "#fff1f0";
+
     pesanError.style.borderRadius = "8px";
 
     halamanKonten.appendChild(pesanError);
@@ -240,7 +206,10 @@ function tampilkanPesanError(pesan) {
   pesanError.textContent = pesan;
 }
 
-// 07. Mengambil nilai teks dengan beberapa alternatif properti.
+// ============================================================
+// 07. MENGAMBIL NILAI PROPERTI
+// ============================================================
+
 function ambilNilai(objek, daftarProperti, nilaiDefault = "-") {
   for (const properti of daftarProperti) {
     const nilai = objek[properti];
@@ -253,7 +222,10 @@ function ambilNilai(objek, daftarProperti, nilaiDefault = "-") {
   return nilaiDefault;
 }
 
-// 08. Menormalkan status.
+// ============================================================
+// 08. NORMALISASI STATUS
+// ============================================================
+
 function normalisasiStatus(status) {
   return String(status || "")
     .toLowerCase()
@@ -262,16 +234,22 @@ function normalisasiStatus(status) {
     .replace(/\s+/g, " ");
 }
 
-// 09. Memeriksa status valid.
+// ============================================================
+// 09. PEMERIKSAAN STATUS
+// ============================================================
+
 function apakahValid(status) {
   const nilai = normalisasiStatus(status);
 
-  return ["valid", "terverifikasi", "diverifikasi", "disetujui"].includes(
-    nilai,
-  );
+  return [
+    "valid",
+    "terverifikasi",
+    "diverifikasi",
+    "disetujui",
+    "diterima",
+  ].includes(nilai);
 }
 
-// 10. Memeriksa status tidak valid.
 function apakahTidakValid(status) {
   const nilai = normalisasiStatus(status);
 
@@ -280,32 +258,136 @@ function apakahTidakValid(status) {
   );
 }
 
-// 11. Memeriksa status selesai.
 function apakahSelesai(status) {
   const nilai = normalisasiStatus(status);
 
   return ["selesai", "completed", "berhasil", "ditangani"].includes(nilai);
 }
 
-// 12. Memeriksa status sedang diproses.
 function apakahDiproses(status) {
   const nilai = normalisasiStatus(status);
 
-  return ["diproses", "sedang diproses", "dalam proses", "processing"].includes(
-    nilai,
-  );
+  return [
+    "diproses",
+    "sedang diproses",
+    "dalam proses",
+    "processing",
+    "ditangani",
+  ].includes(nilai);
 }
 
-// 13. Memperbarui isi teks HTML.
-function ubahTeks(selector, teks) {
-  const elemen = document.querySelector(selector);
+// ============================================================
+// 10. MENENTUKAN STATUS UTAMA
+// ============================================================
 
-  if (elemen) {
-    elemen.textContent = teks;
+function tentukanStatusDetail(verifikasi, penanganan) {
+  const v = normalisasiStatus(verifikasi);
+
+  const p = normalisasiStatus(penanganan);
+
+  if (apakahTidakValid(v) || v.includes("tolak")) {
+    return "Tidak Valid";
   }
+
+  if (apakahSelesai(p)) {
+    return "Selesai";
+  }
+
+  if (apakahDiproses(p) || apakahValid(v)) {
+    return "Diproses";
+  }
+
+  return "Menunggu Verifikasi";
 }
 
-// 14. Memperbarui informasi detail laporan.
+// ============================================================
+// 11. DESKRIPSI STATUS VERIFIKASI
+// ============================================================
+
+function deskripsiStatusVerifikasi(status) {
+  const nilai = normalisasiStatus(status);
+
+  if (apakahTidakValid(nilai) || nilai.includes("tolak")) {
+    return "Laporan tidak memenuhi persyaratan verifikasi.";
+  }
+
+  if (apakahValid(nilai)) {
+    return "Laporan telah diperiksa oleh Petugas Sarpras.";
+  }
+
+  return "Laporan sedang menunggu verifikasi petugas.";
+}
+
+// ============================================================
+// 12. DESKRIPSI STATUS PENANGANAN
+// ============================================================
+
+function deskripsiStatusPenanganan(status) {
+  const nilai = normalisasiStatus(status);
+
+  if (apakahSelesai(nilai)) {
+    return "Penanganan fasilitas telah selesai dilakukan.";
+  }
+
+  if (apakahDiproses(nilai)) {
+    return "Petugas sedang melakukan perbaikan fasilitas.";
+  }
+
+  return "Laporan belum masuk tahap penanganan.";
+}
+
+// ============================================================
+// 13. FORMAT TANGGAL
+// ============================================================
+
+function formatTanggalDetail(value) {
+  if (!value) return "-";
+
+  const tanggal = new Date(String(value).replace(" ", "T"));
+
+  if (Number.isNaN(tanggal.getTime())) {
+    return String(value);
+  }
+
+  return tanggal.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+
+    timeZone: "Asia/Makassar",
+  });
+}
+
+function formatTanggalLengkapDetail(value) {
+  if (!value) return "";
+
+  const tanggal = new Date(String(value).replace(" ", "T"));
+
+  if (Number.isNaN(tanggal.getTime())) {
+    return String(value);
+  }
+
+  const tanggalFormat = tanggal.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Makassar",
+  });
+
+  const waktuFormat = tanggal.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Makassar",
+  });
+
+  return tanggalFormat + ", " + waktuFormat + " WIT";
+}
+
+// ============================================================
+// 14. MENGISI INFORMASI DETAIL LAPORAN
+// ============================================================
+
 function isiInformasiLaporan(laporan, idLaporan) {
   const judulLaporan = document.querySelector(".page-heading h1");
 
@@ -313,63 +395,48 @@ function isiInformasiLaporan(laporan, idLaporan) {
 
   const deskripsi = document.querySelector(".description-box");
 
-  const namaFasilitas = ambilNilai(laporan, ["facility", "namaFasilitas"]);
-
-  const lokasiFasilitas = ambilNilai(laporan, ["location", "lokasiFasilitas"]);
-
-  const tanggalLaporan = ambilNilai(laporan, [
-    "dateTime",
-    "date",
-    "tanggalLaporan",
-  ]);
-
-  const prioritas = ambilNilai(
-    laporan,
-    ["priority", "prioritas"],
-    "Belum Ditentukan",
-  );
-
-  const deskripsiKerusakan = ambilNilai(laporan, ["description", "deskripsi"]);
-
   if (judulLaporan) {
-    judulLaporan.textContent = "Detail Laporan #" + idLaporan;
+    judulLaporan.textContent =
+      "Detail Laporan #" + (laporan.kodeLaporan || idLaporan);
   }
 
   if (daftarField.length >= 4) {
     const nilaiFasilitas = daftarField[0].querySelector("strong");
+
     const nilaiLokasi = daftarField[1].querySelector("strong");
+
     const nilaiTanggal = daftarField[2].querySelector("strong");
+
     const badgePrioritas = daftarField[3].querySelector(".priority-badge");
 
     if (nilaiFasilitas) {
-      nilaiFasilitas.textContent = namaFasilitas;
+      nilaiFasilitas.textContent = laporan.facility;
     }
 
     if (nilaiLokasi) {
-      nilaiLokasi.textContent = lokasiFasilitas;
+      nilaiLokasi.textContent = laporan.location;
     }
 
     if (nilaiTanggal) {
-      nilaiTanggal.textContent = tanggalLaporan;
+      nilaiTanggal.textContent = laporan.dateTime;
     }
 
     if (badgePrioritas) {
-      badgePrioritas.textContent = String(prioritas).replace(
-        /^Prioritas\s+/i,
-        "",
-      );
+      const prioritas = String(laporan.priority).replace(/^Prioritas\s+/i, "");
+
+      badgePrioritas.textContent = prioritas;
 
       badgePrioritas.className = "priority-badge";
 
-      const prioritasNormal = normalisasiStatus(prioritas);
+      const normal = normalisasiStatus(prioritas);
 
-      if (prioritasNormal.includes("tinggi")) {
+      if (normal.includes("tinggi")) {
         badgePrioritas.style.background = "#fff0ef";
         badgePrioritas.style.color = "#dc2626";
-      } else if (prioritasNormal.includes("sedang")) {
+      } else if (normal.includes("sedang")) {
         badgePrioritas.style.background = "#fff5df";
         badgePrioritas.style.color = "#a56a08";
-      } else {
+      } else if (normal.includes("rendah")) {
         badgePrioritas.style.background = "#e7f2ff";
         badgePrioritas.style.color = "#2864ed";
       }
@@ -377,11 +444,14 @@ function isiInformasiLaporan(laporan, idLaporan) {
   }
 
   if (deskripsi) {
-    deskripsi.textContent = deskripsiKerusakan;
+    deskripsi.textContent = laporan.description;
   }
 }
 
-// 15. Mengubah tampilan status utama.
+// ============================================================
+// 15. STATUS UTAMA
+// ============================================================
+
 function tampilkanStatusUtama(status) {
   const elemenStatus = document.querySelector(".main-status");
 
@@ -395,26 +465,24 @@ function tampilkanStatusUtama(status) {
 
   elemenStatus.classList.remove("status-selesai", "status-invalid");
 
-  const statusNormal = normalisasiStatus(status);
+  const normal = normalisasiStatus(status);
 
-  if (statusNormal.includes("selesai") || statusNormal === "completed") {
+  if (normal.includes("selesai")) {
     elemenStatus.classList.add("status-selesai");
-  } else if (
-    statusNormal.includes("tidak valid") ||
-    statusNormal.includes("ditolak") ||
-    statusNormal === "invalid"
-  ) {
+  } else if (normal.includes("tidak valid") || normal.includes("ditolak")) {
     elemenStatus.classList.add("status-invalid");
   }
 }
 
-// 16. Mengubah kondisi setiap tahapan timeline.
+// ============================================================
+// 16. MENGATUR TAHAPAN TIMELINE
+// ============================================================
+
 function aturTahap(id, kondisi, badge, deskripsi, tanggal) {
   const elemen = document.getElementById(id);
 
   if (!elemen) return;
 
-  // Menghapus kondisi sebelumnya.
   elemen.classList.remove(
     "completed",
     "current",
@@ -423,7 +491,6 @@ function aturTahap(id, kondisi, badge, deskripsi, tanggal) {
     "skipped",
   );
 
-  // Memberikan kondisi terbaru.
   elemen.classList.add(kondisi);
 
   const teksBadge = elemen.querySelector(".timeline-badge");
@@ -442,11 +509,15 @@ function aturTahap(id, kondisi, badge, deskripsi, tanggal) {
 
   if (teksTanggal) {
     teksTanggal.textContent = tanggal || "";
+
     teksTanggal.style.display = tanggal ? "inline-block" : "none";
   }
 }
 
-// 17. Mengatur progress laporan.
+// ============================================================
+// 17. MENGATUR PROGRESS
+// ============================================================
+
 function aturProgress(persentase, keterangan) {
   const angkaProgress = document.getElementById("progress-percentage");
 
@@ -476,7 +547,10 @@ function aturProgress(persentase, keterangan) {
   }
 }
 
-// 18. Menampilkan catatan perkembangan.
+// ============================================================
+// 18. CATATAN PERKEMBANGAN
+// ============================================================
+
 function aturCatatan(teks, jenis = "") {
   const catatan = document.getElementById("tracking-note");
 
@@ -495,57 +569,36 @@ function aturCatatan(teks, jenis = "") {
   }
 }
 
-// 19. Mengatur seluruh timeline berdasarkan data laporan.
+// ============================================================
+// 19. MENAMPILKAN TIMELINE
+// ============================================================
+
 function tampilkanTimeline(laporan, statusUtama) {
-  const statusVerifikasi = ambilNilai(
-    laporan,
-    ["verificationStatus", "statusVerifikasi"],
-    "Menunggu",
-  );
+  const statusVerifikasi = laporan.verificationStatus || "Menunggu";
 
-  const statusPenanganan = ambilNilai(
-    laporan,
-    ["handlingStatus", "statusPenanganan"],
-    "Menunggu",
-  );
+  const statusPenanganan = laporan.handlingStatus || "Menunggu";
 
-  const deskripsiVerifikasi = ambilNilai(
-    laporan,
-    ["verificationDescription", "deskripsiVerifikasi"],
-    "Laporan sedang menunggu verifikasi petugas.",
-  );
+  const deskripsiVerifikasi =
+    laporan.verificationDescription ||
+    "Laporan sedang menunggu verifikasi petugas.";
 
-  const deskripsiPenanganan = ambilNilai(
-    laporan,
-    ["handlingDescription", "deskripsiPenanganan"],
-    "Laporan belum masuk tahap penanganan.",
-  );
+  const deskripsiPenanganan =
+    laporan.handlingDescription || "Laporan belum masuk tahap penanganan.";
 
-  const tanggalKirim = ambilNilai(
-    laporan,
-    ["dateTime", "date", "tanggalLaporan"],
-    "",
-  );
+  const tanggalKirim = laporan.dateTime || "";
 
-  const tanggalVerifikasi = ambilNilai(
-    laporan,
-    ["verificationDate", "tanggalVerifikasi", "verificationDateTime"],
-    "",
-  );
+  const tanggalVerifikasi = laporan.verificationDate
+    ? formatTanggalLengkapDetail(laporan.verificationDate)
+    : "";
 
-  const tanggalPenanganan = ambilNilai(
-    laporan,
-    ["handlingDate", "tanggalPenanganan", "handlingDateTime"],
-    "",
-  );
+  const tanggalPenanganan = laporan.handlingDate
+    ? formatTanggalLengkapDetail(laporan.handlingDate)
+    : "";
 
-  const tanggalSelesai = ambilNilai(
-    laporan,
-    ["completedDate", "tanggalSelesai", "completionDate"],
-    "",
-  );
+  const tanggalSelesai = laporan.completedDate
+    ? formatTanggalLengkapDetail(laporan.completedDate)
+    : "";
 
-  // Memeriksa status dari seluruh sumber data.
   const verifikasiTidakValid =
     apakahTidakValid(statusVerifikasi) || apakahTidakValid(statusUtama);
 
@@ -553,9 +606,7 @@ function tampilkanTimeline(laporan, statusUtama) {
     apakahValid(statusVerifikasi) ||
     apakahValid(statusUtama) ||
     apakahDiproses(statusPenanganan) ||
-    apakahSelesai(statusPenanganan) ||
-    apakahDiproses(statusUtama) ||
-    apakahSelesai(statusUtama);
+    apakahSelesai(statusPenanganan);
 
   const penangananSelesai =
     apakahSelesai(statusPenanganan) || apakahSelesai(statusUtama);
@@ -564,6 +615,7 @@ function tampilkanTimeline(laporan, statusUtama) {
     apakahDiproses(statusPenanganan) || apakahDiproses(statusUtama);
 
   // TAHAP 1: LAPORAN DIKIRIM.
+
   aturTahap(
     "step-submitted",
     "completed",
@@ -572,7 +624,8 @@ function tampilkanTimeline(laporan, statusUtama) {
     tanggalKirim,
   );
 
-  // KONDISI 1: LAPORAN TIDAK VALID.
+  // KONDISI 1: TIDAK VALID.
+
   if (verifikasiTidakValid) {
     aturTahap(
       "step-verification",
@@ -604,7 +657,8 @@ function tampilkanTimeline(laporan, statusUtama) {
     );
 
     aturCatatan(
-      "Laporan tidak dapat diproses karena tidak memenuhi persyaratan verifikasi petugas.",
+      laporan.catatanVerifikasi ||
+        "Laporan tidak memenuhi persyaratan verifikasi petugas.",
       "note-invalid",
     );
 
@@ -614,6 +668,7 @@ function tampilkanTimeline(laporan, statusUtama) {
   }
 
   // TAHAP 2: VERIFIKASI.
+
   if (verifikasiValid) {
     aturTahap(
       "step-verification",
@@ -662,6 +717,7 @@ function tampilkanTimeline(laporan, statusUtama) {
   }
 
   // KONDISI 2: PENANGANAN SELESAI.
+
   if (penangananSelesai) {
     aturTahap(
       "step-handling",
@@ -691,7 +747,8 @@ function tampilkanTimeline(laporan, statusUtama) {
     return;
   }
 
-  // KONDISI 3: PENANGANAN SEDANG BERJALAN.
+  // KONDISI 3: SEDANG DIPROSES.
+
   if (penangananBerjalan) {
     aturTahap(
       "step-handling",
@@ -723,7 +780,8 @@ function tampilkanTimeline(laporan, statusUtama) {
     return;
   }
 
-  // KONDISI 4: SUDAH VALID, MENUNGGU PENANGANAN.
+  // KONDISI 4: MENUNGGU PENANGANAN.
+
   aturTahap(
     "step-handling",
     "current",
@@ -749,58 +807,81 @@ function tampilkanTimeline(laporan, statusUtama) {
   tampilkanStatusUtama("Menunggu Penanganan");
 }
 
-// 20. Menampilkan seluruh detail laporan.
-function tampilkanDetailLaporan() {
-  const idLaporan = ambilIdLaporan();
+// ============================================================
+// 20. MENAMPILKAN DETAIL LAPORAN
+// ============================================================
 
-  if (!idLaporan) {
+async function tampilkanDetailLaporan() {
+  // Mencegah request yang tumpang tindih.
+  if (sedangMemuatDetail) return;
+
+  const identitasLaporan = ambilIdLaporan();
+
+  // Menerima ID angka maupun kode LP-...
+  if (!identitasLaporan) {
     tampilkanPesanError(
-      "Kode laporan tidak ditemukan. Silakan pilih laporan dari Riwayat Laporan.",
+      "Identitas laporan tidak ditemukan. Silakan pilih laporan dari Laporan Saya.",
     );
+
     return;
   }
 
-  const laporan = cariLaporan(idLaporan);
+  sedangMemuatDetail = true;
 
-  if (!laporan) {
+  const nomorPermintaan = ++permintaanTerakhir;
+
+  try {
+    const laporan = await cariLaporan(identitasLaporan);
+
+    // Memastikan halaman belum berganti identitas.
+    if (nomorPermintaan !== permintaanTerakhir) {
+      return;
+    }
+
+    const pesanError = document.getElementById("pesan-error-laporan");
+
+    if (pesanError) {
+      pesanError.remove();
+    }
+
+    // Mengisi informasi utama.
+    isiInformasiLaporan(laporan, identitasLaporan);
+
+    // Mengisi perkembangan laporan.
+    tampilkanTimeline(laporan, laporan.mainStatus);
+
+    console.log("===== DETAIL LAPORAN SIPFAS =====");
+
+    console.log("ID Database:", laporan.idLaporan);
+
+    console.log("Kode:", laporan.kodeLaporan);
+
+    console.log("Fasilitas:", laporan.facility);
+
+    console.log("Lokasi:", laporan.location);
+
+    console.log("Status:", laporan.mainStatus);
+
+    console.log("Verifikasi:", laporan.verificationStatus);
+
+    console.log("Penanganan:", laporan.handlingStatus);
+
+    console.log("=================================");
+  } catch (error) {
+    console.error("[SIPFAS DETAIL]", error);
+
     tampilkanPesanError(
-      "Data laporan dengan kode " + idLaporan + " tidak ditemukan.",
+      error.message || "Detail laporan gagal diambil dari database.",
     );
-    return;
+  } finally {
+    sedangMemuatDetail = false;
   }
-
-  // Menghapus pesan error jika data sudah ditemukan.
-  const pesanError = document.getElementById("pesan-error-laporan");
-
-  if (pesanError) {
-    pesanError.remove();
-  }
-
-  // Mengisi informasi utama.
-  isiInformasiLaporan(laporan, idLaporan);
-
-  // Mengambil status utama.
-  const statusUtama = ambilNilai(
-    laporan,
-    ["mainStatus", "status"],
-    "Menunggu Verifikasi",
-  );
-
-  // Menampilkan timeline sesuai kondisi laporan.
-  tampilkanTimeline(laporan, statusUtama);
-
-  // Informasi untuk pemeriksaan melalui Console.
-  console.log("===== DETAIL LAPORAN SIPFAS =====");
-  console.log("ID Laporan:", idLaporan);
-  console.log("Fasilitas:", laporan.facility || laporan.namaFasilitas);
-  console.log("Lokasi:", laporan.location || laporan.lokasiFasilitas);
-  console.log("Status Utama:", statusUtama);
-  console.log("Status Verifikasi:", laporan.verificationStatus);
-  console.log("Status Penanganan:", laporan.handlingStatus);
-  console.log("=================================");
 }
 
-// 21. Memperbarui nama pengguna pada header.
+// ============================================================
+// 21. SINKRONISASI PROFIL PENGGUNA
+// ============================================================
+
 function updateDetailProfile() {
   try {
     const savedProfile = localStorage.getItem(KUNCI_PROFIL);
@@ -813,12 +894,12 @@ function updateDetailProfile() {
       profile.name || profile.fullName || profile.nama || "",
     ).trim();
 
-    const headerName = document.querySelector(".header-name");
-
-    if (headerName && userName) {
-      headerName.textContent = userName;
-    }
+    document.querySelectorAll(".header-name").forEach(function (element) {
+      if (userName) {
+        element.textContent = userName;
+      }
+    });
   } catch (error) {
-    console.error("Gagal mengambil profil:", error);
+    console.error("[SIPFAS] Gagal mengambil profil:", error);
   }
 }

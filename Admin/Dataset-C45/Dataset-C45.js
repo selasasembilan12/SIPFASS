@@ -1,46 +1,44 @@
-/* =========================================================
-   SIPFAS - ADMIN DATASET C4.5
-   File: Admin/Dataset-C45/Dataset-C45.js
-
-   Terhubung dengan:
-   api/admin/dataset-c45.php
-
-   Fitur:
-   - Read dataset
-   - Create dataset
-   - Update dataset
-   - Delete dataset
-   - Search dan filter
-   - Pagination
-   - Import CSV
-   - Statistik dataset
-========================================================= */
-
 (() => {
   "use strict";
 
+  // ==========================================================
+  // 01. KONFIGURASI
+  // ==========================================================
+
   const API = "../../api/admin/dataset-c45.php";
+
+  const LIMIT = 25;
 
   const state = {
     items: [],
+    facilities: [],
+
     page: 1,
-    limit: 10,
     totalPages: 1,
+    total: 0,
+
+    csrfToken: "",
+
+    editingId: null,
+
     search: "",
+
     filters: {
       x1: "",
       x2: "",
       x3: "",
       label: "",
     },
-    editing: null,
-    loading: false,
   };
 
-  const $ = (selector, parent = document) => parent.querySelector(selector);
+  const $ = (selector) => document.querySelector(selector);
 
-  const escapeHTML = (value) =>
-    String(value ?? "").replace(
+  // ==========================================================
+  // 02. UTILITAS
+  // ==========================================================
+
+  function escapeHTML(value) {
+    return String(value ?? "").replace(
       /[&<>"']/g,
       (char) =>
         ({
@@ -48,676 +46,302 @@
           "<": "&lt;",
           ">": "&gt;",
           '"': "&quot;",
-          "'": "&#39;",
+          "'": "&#039;",
         })[char],
     );
+  }
 
-  /* =======================================================
-     01. REQUEST API
-  ======================================================= */
+  function namaX1(value) {
+    return (
+      {
+        1: "Ringan",
+        2: "Sedang",
+        3: "Berat",
+      }[Number(value)] || "-"
+    );
+  }
 
-  async function request(url, options = {}) {
-    const response = await fetch(url, {
+  function namaX2(value) {
+    return (
+      {
+        1: "Rendah",
+        2: "Sedang",
+        3: "Tinggi",
+      }[Number(value)] || "-"
+    );
+  }
+
+  function namaX3(value) {
+    return (
+      {
+        1: "Jarang",
+        2: "Sedang",
+        3: "Sering",
+      }[Number(value)] || "-"
+    );
+  }
+
+  function kelasLabel(label) {
+    const value = String(label || "").toLowerCase();
+
+    if (value === "tinggi") return "priority-high";
+
+    if (value === "sedang") return "priority-medium";
+
+    return "priority-low";
+  }
+
+  // Mengikuti aturan konversi pada C45Service.php.
+
+  function hitungX3(frekuensi) {
+    const nilai = Number(frekuensi);
+
+    // Validasi jumlah hari penggunaan.
+    if (!Number.isInteger(nilai) || nilai < 0 || nilai > 7) {
+      return null;
+    }
+
+    // 0-2 hari = Jarang.
+    if (nilai <= 2) return 1;
+
+    // 3-4 hari = Sedang.
+    if (nilai <= 4) return 2;
+
+    // 5-7 hari = Sering.
+    return 3;
+  }
+
+  // ==========================================================
+  // 03. MENYESUAIKAN ELEMEN HTML
+  // ==========================================================
+
+  function ensureDomHooks() {
+    // Tabel dataset.
+    const tbody = $("#datasetTableBody") || $(".dataset-table tbody");
+
+    if (tbody) {
+      tbody.id = "datasetTableBody";
+    }
+
+    // Pagination.
+    const pagination = $("#datasetPagination") || $(".panel-foot .pagination");
+
+    if (pagination) {
+      pagination.id = "datasetPagination";
+    }
+
+    // Statistik.
+    const cards = document.querySelectorAll(".summary-card");
+
+    if (cards.length >= 4) {
+      const selectors = ["#statTotal", "#statHigh", "#statMedium", "#statLow"];
+
+      cards.forEach((card, index) => {
+        const number = card.querySelector(".summary-number");
+
+        if (number && !number.id) {
+          number.id = selectors[index].substring(1);
+        }
+      });
+    }
+
+    // Notifikasi.
+    if (!$("#datasetNotification")) {
+      const notification = document.createElement("div");
+
+      notification.id = "datasetNotification";
+
+      notification.className = "dataset-notification";
+
+      notification.hidden = true;
+
+      notification.setAttribute("role", "status");
+
+      notification.setAttribute("aria-live", "polite");
+
+      document.body.appendChild(notification);
+    }
+  }
+
+  // ==========================================================
+  // 04. NOTIFIKASI
+  // ==========================================================
+
+  function tampilkanNotifikasi(pesan, tipe = "success") {
+    const box = $("#datasetNotification");
+
+    if (!box) {
+      alert(pesan);
+      return;
+    }
+
+    box.textContent = pesan;
+
+    box.className = `dataset-notification ${tipe}`;
+
+    box.hidden = false;
+
+    window.clearTimeout(box._timer);
+
+    box._timer = window.setTimeout(() => {
+      box.hidden = true;
+    }, 3500);
+  }
+
+  // ==========================================================
+  // 05. REQUEST API
+  // ==========================================================
+
+  async function requestAPI(method = "GET", payload = null, params = {}) {
+    const url = new URL(API, window.location.href);
+
+    if (method === "GET") {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== "" && value !== null && value !== undefined) {
+          url.searchParams.set(key, String(value));
+        }
+      });
+    }
+
+    const headers = {
+      Accept: "application/json",
+    };
+
+    const options = {
+      method,
+
       credentials: "same-origin",
+
       cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        ...(options.body instanceof FormData
-          ? {}
-          : { "Content-Type": "application/json" }),
-        ...(options.headers || {}),
-      },
-      ...options,
-    });
+
+      headers,
+    };
+
+    if (["POST", "PUT", "DELETE"].includes(method)) {
+      if (!state.csrfToken) {
+        throw new Error(
+          "Token keamanan belum tersedia. Silakan muat ulang halaman.",
+        );
+      }
+
+      headers["Content-Type"] = "application/json";
+
+      headers["X-CSRF-TOKEN"] = state.csrfToken;
+
+      options.body = JSON.stringify(payload || {});
+    }
+
+    const response = await fetch(url.toString(), options);
+
+    const raw = await response.text();
 
     let result;
 
     try {
-      result = await response.json();
+      result = JSON.parse(raw);
     } catch {
-      throw new Error("Respons server tidak valid.");
+      console.error("Respons API bukan JSON:", raw);
+
+      throw new Error(
+        "Respons server tidak valid. Periksa file PHP atau konfigurasi server.",
+      );
     }
 
-    if (!response.ok || result.success === false) {
-      throw new Error(result.message || "Permintaan ke server gagal.");
+    if (!response.ok || result.success !== true) {
+      throw new Error(
+        result.message || `Permintaan gagal (${response.status}).`,
+      );
     }
 
-    return result;
+    return result.data || {};
   }
 
-  /* =======================================================
-     02. NOTIFIKASI
-  ======================================================= */
-
-  function notify(message, type = "success") {
-    const box = $("#c45-feedback");
-
-    if (!box) return;
-
-    box.textContent = message;
-    box.className = `c45-feedback ${type}`;
-    box.hidden = false;
-
-    window.clearTimeout(notify.timer);
-
-    notify.timer = window.setTimeout(() => {
-      box.hidden = true;
-    }, 4000);
-  }
-
-  /* =======================================================
-     03. MEMBANGUN TAMPILAN
-  ======================================================= */
-
-  function buildInterface(root) {
-    root.innerHTML = `
-      <section class="c45-container">
-
-        <div class="c45-header">
-          <div>
-            <h2>Dataset C4.5</h2>
-            <p>
-              Pengelolaan data pelatihan klasifikasi
-              prioritas perbaikan fasilitas.
-            </p>
-          </div>
-
-          <div class="c45-actions">
-            <button type="button" id="c45-import-button">
-              Import Dataset
-            </button>
-
-            <button type="button" id="c45-add-button">
-              + Tambah Data
-            </button>
-
-            <input
-              type="file"
-              id="c45-file-input"
-              accept=".csv,text/csv"
-              hidden
-            >
-          </div>
-        </div>
-
-        <div id="c45-feedback"
-             class="c45-feedback"
-             hidden></div>
-
-        <div class="c45-statistics">
-
-          <div class="c45-stat-card">
-            <span>Total Dataset</span>
-            <strong id="c45-total">0</strong>
-          </div>
-
-          <div class="c45-stat-card">
-            <span>Prioritas Rendah</span>
-            <strong id="c45-low">0</strong>
-          </div>
-
-          <div class="c45-stat-card">
-            <span>Prioritas Sedang</span>
-            <strong id="c45-medium">0</strong>
-          </div>
-
-          <div class="c45-stat-card">
-            <span>Prioritas Tinggi</span>
-            <strong id="c45-high">0</strong>
-          </div>
-
-        </div>
-
-        <div class="c45-filter-panel">
-
-          <input
-            type="search"
-            id="c45-search"
-            placeholder="Cari kode atau nama fasilitas..."
-          >
-
-          <select id="c45-filter-x1">
-            <option value="">Semua Kerusakan</option>
-            <option value="1">Ringan</option>
-            <option value="2">Sedang</option>
-            <option value="3">Berat</option>
-          </select>
-
-          <select id="c45-filter-x2">
-            <option value="">Semua Dampak</option>
-            <option value="1">Rendah</option>
-            <option value="2">Sedang</option>
-            <option value="3">Tinggi</option>
-          </select>
-
-          <select id="c45-filter-x3">
-            <option value="">Semua Frekuensi</option>
-            <option value="1">Jarang</option>
-            <option value="2">Sedang</option>
-            <option value="3">Sering</option>
-          </select>
-
-          <select id="c45-filter-label">
-            <option value="">Semua Prioritas</option>
-            <option value="Rendah">Rendah</option>
-            <option value="Sedang">Sedang</option>
-            <option value="Tinggi">Tinggi</option>
-          </select>
-
-          <button type="button" id="c45-reset-filter">
-            Reset
-          </button>
-
-        </div>
-
-        <div class="c45-table-wrapper">
-
-          <table class="c45-table">
-
-            <thead>
-              <tr>
-                <th>No.</th>
-                <th>Kode Data</th>
-                <th>Nama Fasilitas</th>
-                <th>X1</th>
-                <th>X2</th>
-                <th>X3</th>
-                <th>Label Y</th>
-                <th>Sumber</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-
-            <tbody id="c45-table-body">
-              <tr>
-                <td colspan="9">Memuat dataset...</td>
-              </tr>
-            </tbody>
-
-          </table>
-
-        </div>
-
-        <div class="c45-footer">
-          <span id="c45-page-info">Halaman 1</span>
-
-          <div>
-            <button type="button" id="c45-prev">Sebelumnya</button>
-            <button type="button" id="c45-next">Selanjutnya</button>
-          </div>
-        </div>
-
-        <div class="c45-modal" id="c45-modal" hidden>
-
-          <div class="c45-modal-backdrop"
-               data-close-modal></div>
-
-          <div class="c45-modal-box">
-
-            <div class="c45-modal-header">
-              <h3 id="c45-modal-title">Tambah Dataset</h3>
-
-              <button type="button"
-                      id="c45-close-modal">×</button>
-            </div>
-
-            <form id="c45-form">
-
-              <label>
-                Kode Dataset
-                <input
-                  type="text"
-                  name="kode_data"
-                  required
-                  maxlength="30"
-                  placeholder="DS-101"
-                >
-              </label>
-
-              <label>
-                Nama Fasilitas
-                <input
-                  type="text"
-                  name="nama_fasilitas"
-                  required
-                  maxlength="150"
-                >
-              </label>
-
-              <label>
-                X1 - Tingkat Kerusakan
-                <select name="tingkat_kerusakan_x1" required>
-                  <option value="">Pilih kategori</option>
-                  <option value="1">Ringan</option>
-                  <option value="2">Sedang</option>
-                  <option value="3">Berat</option>
-                </select>
-              </label>
-
-              <label>
-                X2 - Dampak Akademik
-                <select name="dampak_akademik_x2" required>
-                  <option value="">Pilih kategori</option>
-                  <option value="1">Rendah</option>
-                  <option value="2">Sedang</option>
-                  <option value="3">Tinggi</option>
-                </select>
-              </label>
-
-              <label>
-                X3 - Frekuensi Penggunaan
-                <select name="frekuensi_penggunaan_x3" required>
-                  <option value="">Pilih kategori</option>
-                  <option value="1">Jarang</option>
-                  <option value="2">Sedang</option>
-                  <option value="3">Sering</option>
-                </select>
-              </label>
-
-              <label>
-                Y - Label Prioritas
-                <select name="label_prioritas" required>
-                  <option value="">Pilih label</option>
-                  <option value="Rendah">Rendah</option>
-                  <option value="Sedang">Sedang</option>
-                  <option value="Tinggi">Tinggi</option>
-                </select>
-              </label>
-
-              <label>
-                Sumber Data
-                <input
-                  type="text"
-                  name="sumber_data"
-                  value="Input Manual"
-                  maxlength="50"
-                >
-              </label>
-
-              <div class="c45-modal-actions">
-                <button type="button"
-                        id="c45-cancel">Batal</button>
-
-                <button type="submit"
-                        id="c45-save">Simpan Dataset</button>
-              </div>
-
-            </form>
-
-          </div>
-        </div>
-
-      </section>
-    `;
-
-    addStyles();
-  }
-
-  /* =======================================================
-     04. CSS INTERNAL
-  ======================================================= */
-
-  function addStyles() {
-    if ($("#c45-style")) return;
-
-    const style = document.createElement("style");
-    style.id = "c45-style";
-
-    style.textContent = `
-      .c45-container {
-        width: 100%;
-        color: #25364a;
-      }
-
-      .c45-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
-        margin-bottom: 22px;
-      }
-
-      .c45-header h2 {
-        font-size: 23px;
-        margin: 0 0 6px;
-      }
-
-      .c45-header p {
-        margin: 0;
-        color: #718096;
-        font-size: 13px;
-      }
-
-      .c45-actions {
-        display: flex;
-        gap: 9px;
-        flex-wrap: wrap;
-      }
-
-      .c45-container button {
-        cursor: pointer;
-        border: 1px solid #dce3ec;
-        border-radius: 7px;
-        padding: 10px 14px;
-        background: white;
-        color: #29496f;
-        font-weight: 600;
-      }
-
-      .c45-actions #c45-add-button {
-        color: white;
-        background: #234f82;
-        border-color: #234f82;
-      }
-
-      .c45-statistics {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 14px;
-        margin-bottom: 20px;
-      }
-
-      .c45-stat-card {
-        background: white;
-        padding: 18px;
-        border: 1px solid #e8edf3;
-        border-radius: 10px;
-      }
-
-      .c45-stat-card span {
-        display: block;
-        color: #718096;
-        font-size: 12px;
-        margin-bottom: 9px;
-      }
-
-      .c45-stat-card strong {
-        font-size: 25px;
-      }
-
-      .c45-filter-panel {
-        display: grid;
-        grid-template-columns: 2fr repeat(4, 1fr) auto;
-        gap: 9px;
-        margin-bottom: 17px;
-      }
-
-      .c45-filter-panel input,
-      .c45-filter-panel select,
-      .c45-modal input,
-      .c45-modal select {
-        width: 100%;
-        min-width: 0;
-        padding: 10px;
-        border: 1px solid #dce3ec;
-        border-radius: 7px;
-        background: white;
-        box-sizing: border-box;
-        font: inherit;
-        font-size: 13px;
-      }
-
-      .c45-table-wrapper {
-        overflow-x: auto;
-        background: white;
-        border: 1px solid #e8edf3;
-        border-radius: 10px;
-      }
-
-      .c45-table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 900px;
-        font-size: 12px;
-      }
-
-      .c45-table th {
-        background: #f5f8fc;
-        color: #52647a;
-        padding: 14px 11px;
-        text-align: left;
-        white-space: nowrap;
-      }
-
-      .c45-table td {
-        padding: 13px 11px;
-        border-top: 1px solid #edf1f5;
-      }
-
-      .c45-table tbody tr:hover {
-        background: #f9fbfd;
-      }
-
-      .c45-pill {
-        display: inline-block;
-        padding: 5px 9px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 11px;
-      }
-
-      .c45-pill.rendah {
-        background: #e9f7ef;
-        color: #187444;
-      }
-
-      .c45-pill.sedang {
-        background: #fff5dc;
-        color: #956500;
-      }
-
-      .c45-pill.tinggi {
-        background: #fdecec;
-        color: #bf3030;
-      }
-
-      .c45-row-actions {
-        display: flex;
-        gap: 5px;
-      }
-
-      .c45-row-actions button {
-        padding: 6px 9px;
-        font-size: 11px;
-      }
-
-      .c45-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-        margin-top: 16px;
-        font-size: 12px;
-      }
-
-      .c45-feedback {
-        padding: 12px;
-        margin: 12px 0;
-        border-radius: 7px;
-        font-size: 13px;
-      }
-
-      .c45-feedback.success {
-        background: #eaf8ef;
-        color: #187444;
-      }
-
-      .c45-feedback.error {
-        background: #fff0f0;
-        color: #bd3333;
-      }
-
-      .c45-modal[hidden] {
-        display: none;
-      }
-
-      .c45-modal {
-        position: fixed;
-        inset: 0;
-        z-index: 10000;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 15px;
-      }
-
-      .c45-modal-backdrop {
-        position: absolute;
-        inset: 0;
-        background: rgba(15, 30, 48, .55);
-      }
-
-      .c45-modal-box {
-        position: relative;
-        background: white;
-        width: min(520px, 100%);
-        max-height: 90vh;
-        overflow-y: auto;
-        border-radius: 12px;
-        padding: 22px;
-      }
-
-      .c45-modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 17px;
-      }
-
-      .c45-modal-header h3 {
-        margin: 0;
-      }
-
-      .c45-modal form {
-        display: grid;
-        gap: 13px;
-      }
-
-      .c45-modal form label {
-        display: grid;
-        gap: 6px;
-        font-size: 12px;
-        font-weight: 600;
-      }
-
-      .c45-modal-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 9px;
-        margin-top: 8px;
-      }
-
-      @media(max-width: 900px) {
-        .c45-statistics {
-          grid-template-columns: repeat(2, 1fr);
-        }
-
-        .c45-filter-panel {
-          grid-template-columns: repeat(2, 1fr);
-        }
-
-        #c45-search {
-          grid-column: span 2;
-        }
-      }
-
-      @media(max-width: 500px) {
-        .c45-statistics {
-          grid-template-columns: 1fr 1fr;
-          gap: 8px;
-        }
-
-        .c45-filter-panel {
-          grid-template-columns: 1fr;
-        }
-
-        #c45-search {
-          grid-column: auto;
-        }
-
-        .c45-footer {
-          align-items: flex-start;
-          flex-direction: column;
-        }
-      }
-    `;
-
-    document.head.appendChild(style);
-  }
-
-  /* =======================================================
-     05. MEMUAT DATA
-  ======================================================= */
+  // ==========================================================
+  // 06. MEMUAT DATASET
+  // ==========================================================
 
   async function loadDataset() {
-    if (state.loading) return;
-
-    state.loading = true;
-
-    const tbody = $("#c45-table-body");
+    const tbody = $("#datasetTableBody");
 
     if (tbody) {
       tbody.innerHTML = `
-        <tr><td colspan="9">Memuat data...</td></tr>
+        <tr>
+          <td colspan="8" class="center">
+            Memuat data dari database...
+          </td>
+        </tr>
       `;
     }
 
     try {
-      const params = new URLSearchParams({
+      const data = await requestAPI("GET", null, {
         page: state.page,
-        limit: state.limit,
+
+        limit: LIMIT,
+
         search: state.search,
-        ...state.filters,
+
+        x1: state.filters.x1,
+
+        x2: state.filters.x2,
+
+        x3: state.filters.x3,
+
+        label: state.filters.label,
       });
 
-      const result = await request(`${API}?${params.toString()}`);
+      state.items = Array.isArray(data.items) ? data.items : [];
 
-      const data = result.data || {};
+      state.facilities = Array.isArray(data.facilities) ? data.facilities : [];
 
-      state.items = data.items || [];
+      state.csrfToken = data.csrf_token || state.csrfToken;
 
       const pagination = data.pagination || {};
 
       state.page = Number(pagination.page || 1);
+
       state.totalPages = Number(pagination.total_pages || 1);
 
+      state.total = Number(pagination.total || 0);
+
       renderTable();
+
       renderStatistics(data.statistics || {});
-      renderPagination(pagination);
+
+      renderPagination();
+
+      updateFacilityOptions();
     } catch (error) {
-      console.error(error);
+      console.error("[SIPFAS DATASET C4.5]", error);
 
       if (tbody) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="9">
+            <td colspan="8" class="center">
               ${escapeHTML(error.message)}
             </td>
           </tr>
         `;
       }
 
-      notify(error.message, "error");
-    } finally {
-      state.loading = false;
+      tampilkanNotifikasi(error.message, "error");
     }
   }
 
-  /* =======================================================
-     06. RENDER TABEL
-  ======================================================= */
+  // ==========================================================
+  // 07. MENAMPILKAN TABEL
+  // ==========================================================
 
   function renderTable() {
-    const tbody = $("#c45-table-body");
+    const tbody = $("#datasetTableBody");
 
     if (!tbody) return;
 
-    if (!state.items.length) {
+    if (state.items.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="9" style="text-align:center;padding:30px">
-            Dataset tidak ditemukan.
+          <td colspan="8" class="center">
+            Data dataset tidak ditemukan.
           </td>
         </tr>
       `;
@@ -726,430 +350,780 @@
     }
 
     tbody.innerHTML = state.items
-      .map((item, index) => {
-        const label = String(item.label_prioritas || "");
-        const className = label.toLowerCase();
+      .map((item) => {
+        const id = Number(item.id_data);
 
-        const rowNumber = (state.page - 1) * state.limit + index + 1;
+        const label = item.label_prioritas || "-";
 
         return `
-        <tr>
-          <td>${rowNumber}</td>
-
-          <td><strong>${escapeHTML(item.kode_data)}</strong></td>
-
-          <td>${escapeHTML(item.nama_fasilitas)}</td>
-
-          <td>${escapeHTML(item.tingkat_kerusakan_x1)}</td>
-
-          <td>${escapeHTML(item.dampak_akademik_x2)}</td>
-
-          <td>${escapeHTML(item.frekuensi_penggunaan_x3)}</td>
+        <tr data-id="${id}">
 
           <td>
-            <span class="c45-pill ${escapeHTML(className)}">
+            <button
+              type="button"
+              class="case-id"
+              data-detail="${id}"
+            >
+              #${escapeHTML(item.kode_data)}
+            </button>
+          </td>
+
+          <td class="facility">
+            ${escapeHTML(item.nama_fasilitas || "-")}
+          </td>
+
+          <td class="center">
+            <span class="chip">
+              ${namaX1(item.tingkat_kerusakan_x1)}
+              (${Number(item.tingkat_kerusakan_x1)})
+            </span>
+          </td>
+
+          <td class="center">
+            <span class="chip">
+              ${namaX2(item.dampak_akademik_x2)}
+              (${Number(item.dampak_akademik_x2)})
+            </span>
+          </td>
+
+          <td class="center">
+            <span class="chip">
+              ${namaX3(item.frekuensi_penggunaan_x3)}
+              (${Number(item.frekuensi_penggunaan_x3)})
+            </span>
+          </td>
+
+          <td class="center">
+            <span class="score">
+              ${Number(item.skor || 0).toFixed(2)}
+            </span>
+          </td>
+
+          <td class="center">
+            <span class="priority ${kelasLabel(label)}">
               ${escapeHTML(label)}
             </span>
           </td>
 
-          <td>${escapeHTML(item.sumber_data)}</td>
+          <td class="center">
 
-          <td>
-            <div class="c45-row-actions">
+            <span class="action-group">
+
+              <!-- Tombol Lihat Detail -->
               <button
                 type="button"
-                data-action="edit"
-                data-id="${escapeHTML(item.id_data)}">
-                Edit
+                class="eye-btn"
+                data-detail="${id}"
+                title="Lihat detail"
+                aria-label="Lihat detail"
+              >
+                <svg viewBox="0 0 24 24">
+                  <path d="M2.5 12C4.4 8.9 7.7 7 12 7C16.3 7 19.6 8.9 21.5 12C19.6 15.1 16.3 17 12 17C7.7 17 4.4 15.1 2.5 12Z"/>
+                  <circle cx="12" cy="12" r="2.5"/>
+                </svg>
               </button>
 
+              <!-- Tombol Hapus -->
               <button
                 type="button"
-                data-action="delete"
-                data-id="${escapeHTML(item.id_data)}">
-                Hapus
+                class="trash-btn"
+                data-delete="${id}"
+                title="Hapus dataset"
+                aria-label="Hapus dataset"
+              >
+                <svg viewBox="0 0 24 24">
+                  <path d="M4.5 7H19.5"/>
+                  <path d="M9.5 7V4.8H14.5V7"/>
+                  <path d="M6.5 7L7.4 19.2H16.6L17.5 7"/>
+                </svg>
               </button>
-            </div>
+
+            </span>
+
           </td>
+
         </tr>
       `;
       })
       .join("");
   }
 
-  /* =======================================================
-     07. STATISTIK
-  ======================================================= */
+  // ==========================================================
+  // 08. STATISTIK
+  // ==========================================================
 
   function renderStatistics(stats) {
-    $("#c45-total").textContent = Number(stats.total || 0);
+    const total = Number(stats.total || 0);
 
-    $("#c45-low").textContent = Number(stats.rendah || 0);
+    const high = Number(stats.tinggi || 0);
 
-    $("#c45-medium").textContent = Number(stats.sedang || 0);
+    const medium = Number(stats.sedang || 0);
 
-    $("#c45-high").textContent = Number(stats.tinggi || 0);
+    const low = Number(stats.rendah || 0);
+
+    function isiStatistik(selector, jumlah, keterangan) {
+      const element = $(selector);
+
+      if (!element) return;
+
+      const persen = total > 0 ? ((jumlah / total) * 100).toFixed(1) : "0.0";
+
+      element.innerHTML = `
+        ${jumlah}
+        <small>${escapeHTML(keterangan || `${persen}% dari total`)}</small>
+      `;
+    }
+
+    isiStatistik("#statTotal", total, "Kasus Simulasi");
+
+    isiStatistik("#statHigh", high);
+
+    isiStatistik("#statMedium", medium);
+
+    isiStatistik("#statLow", low);
+
+    const barTotal = $(".bar-w100");
+
+    const barHigh = $(".bar-w32");
+
+    const barMedium = $(".bar-w45");
+
+    const barLow = $(".bar-w23");
+
+    if (barTotal) {
+      barTotal.style.width = total > 0 ? "100%" : "0%";
+    }
+
+    if (barHigh) {
+      barHigh.style.width = `${total ? (high / total) * 100 : 0}%`;
+    }
+
+    if (barMedium) {
+      barMedium.style.width = `${total ? (medium / total) * 100 : 0}%`;
+    }
+
+    if (barLow) {
+      barLow.style.width = `${total ? (low / total) * 100 : 0}%`;
+    }
   }
 
-  /* =======================================================
-     08. PAGINATION
-  ======================================================= */
+  // ==========================================================
+  // 09. PAGINATION
+  // ==========================================================
 
-  function renderPagination(data) {
-    const total = Number(data.total || 0);
+  function renderPagination() {
+    const container = $("#datasetPagination");
 
-    const page = Number(data.page || 1);
+    if (!container) return;
 
-    const pages = Number(data.total_pages || 1);
+    const current = state.page;
 
-    $("#c45-page-info").textContent =
-      `Halaman ${page} dari ${pages} | Total ${total} data`;
+    const total = state.totalPages;
 
-    $("#c45-prev").disabled = page <= 1;
+    let html = `
+      <button
+        type="button"
+        data-page="${current - 1}"
+        aria-label="Sebelumnya"
+        ${current <= 1 ? "disabled" : ""}
+      >
+        ‹
+      </button>
+    `;
 
-    $("#c45-next").disabled = page >= pages;
+    const pages = new Set([1, current - 1, current, current + 1, total]);
+
+    const sorted = [...pages]
+      .filter((page) => page >= 1 && page <= total)
+      .sort((a, b) => a - b);
+
+    let previous = 0;
+
+    sorted.forEach((page) => {
+      if (previous && page - previous > 1) {
+        html += `
+          <span class="pagination-dots">...</span>
+        `;
+      }
+
+      html += `
+        <button
+          type="button"
+          data-page="${page}"
+          class="${page === current ? "active" : ""}"
+          ${page === current ? 'aria-current="page"' : ""}
+        >
+          ${page}
+        </button>
+      `;
+
+      previous = page;
+    });
+
+    html += `
+      <button
+        type="button"
+        data-page="${current + 1}"
+        aria-label="Selanjutnya"
+        ${current >= total ? "disabled" : ""}
+      >
+        ›
+      </button>
+    `;
+
+    container.innerHTML = html;
   }
 
-  /* =======================================================
-     09. MODAL
-  ======================================================= */
+  // ==========================================================
+  // 10. DROPDOWN FASILITAS
+  // ==========================================================
+
+  function updateFacilityOptions(selectedId = "") {
+    const select = $("#datasetFacility");
+
+    if (!select) return;
+
+    select.innerHTML = `
+      <option value="">Pilih fasilitas...</option>
+    `;
+
+    state.facilities.forEach((facility) => {
+      const option = document.createElement("option");
+
+      option.value = facility.id_fasilitas;
+
+      option.textContent = `${facility.nama_fasilitas} (${facility.kode_fasilitas})`;
+
+      select.appendChild(option);
+    });
+
+    if (selectedId) {
+      select.value = String(selectedId);
+    }
+
+    updateFacilityInformation();
+  }
+
+  function updateFacilityInformation() {
+    const select = $("#datasetFacility");
+
+    if (!select) return;
+
+    const facility = state.facilities.find(
+      (item) => String(item.id_fasilitas) === select.value,
+    );
+
+    const category = $("#facilityCategory");
+
+    const frequencyElement = $("#facilityFrequency");
+
+    const x3Element = $("#facilityX3");
+
+    if (!facility) {
+      if (category) category.textContent = "-";
+
+      if (frequencyElement) frequencyElement.textContent = "-";
+
+      if (x3Element) x3Element.textContent = "-";
+
+      return;
+    }
+
+    const frequency = Number(facility.frekuensi_penggunaan);
+
+    const x3 = hitungX3(frequency);
+
+    if (category) {
+      category.textContent = facility.nama_kategori || "-";
+    }
+
+    if (frequencyElement) {
+      frequencyElement.textContent = `${frequency} kali`;
+    }
+
+    if (x3Element) {
+      x3Element.textContent = x3 ? `${namaX3(x3)} (${x3})` : "Tidak valid";
+    }
+  }
+
+  // ==========================================================
+  // 11. MEMBUAT MODAL TAMBAH DATASET
+  // ==========================================================
+
+  function ensureModal() {
+    if ($("#datasetModal")) return;
+
+    const modal = document.createElement("div");
+
+    modal.id = "datasetModal";
+
+    modal.className = "dataset-modal";
+
+    modal.hidden = true;
+
+    modal.innerHTML = `
+      <div class="dataset-modal-overlay" data-close-modal></div>
+
+      <section
+        class="dataset-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="datasetModalTitle"
+      >
+
+        <div class="dataset-modal-header">
+
+          <div>
+            <h2 id="datasetModalTitle">
+              Tambah Data Simulasi
+            </h2>
+
+            <p>Lengkapi atribut dataset kasus fasilitas.</p>
+          </div>
+
+          <button
+            type="button"
+            id="closeDatasetModal"
+            class="modal-close-btn"
+            aria-label="Tutup"
+          >
+            &times;
+          </button>
+
+        </div>
+
+        <form id="datasetForm">
+
+          <div class="dataset-modal-body">
+
+            <div class="form-group">
+
+              <label for="datasetFacility">
+                Jenis Fasilitas
+              </label>
+
+              <select
+                id="datasetFacility"
+                name="id_fasilitas"
+                required
+              >
+                <option value="">Pilih fasilitas...</option>
+              </select>
+
+            </div>
+
+            <div class="facility-information">
+
+              <div>
+                <span>Kategori</span>
+                <strong id="facilityCategory">-</strong>
+              </div>
+
+              <div>
+                <span>Frekuensi penggunaan</span>
+                <strong id="facilityFrequency">-</strong>
+              </div>
+
+              <div>
+                <span>Nilai X3</span>
+                <strong id="facilityX3">-</strong>
+              </div>
+
+            </div>
+
+            <div class="form-group">
+
+              <label for="datasetX1">
+                X1 - Tingkat Kerusakan
+              </label>
+
+              <select
+                id="datasetX1"
+                name="tingkat_kerusakan_x1"
+                required
+              >
+                <option value="">Pilih tingkat kerusakan...</option>
+                <option value="1">1 - Ringan</option>
+                <option value="2">2 - Sedang</option>
+                <option value="3">3 - Berat</option>
+              </select>
+
+            </div>
+
+            <div class="form-group">
+
+              <label for="datasetX2">
+                X2 - Dampak Akademik
+              </label>
+
+              <select
+                id="datasetX2"
+                name="dampak_akademik_x2"
+                required
+              >
+                <option value="">Pilih dampak akademik...</option>
+                <option value="1">1 - Rendah</option>
+                <option value="2">2 - Sedang</option>
+                <option value="3">3 - Tinggi</option>
+              </select>
+
+            </div>
+
+            <p class="dataset-modal-note">
+              X3 dan label prioritas (Y) dihitung otomatis
+              berdasarkan data fasilitas dan aturan backend.
+            </p>
+
+          </div>
+
+          <div class="dataset-modal-footer">
+
+            <button
+              type="button"
+              id="cancelDataset"
+              class="modal-cancel-btn"
+            >
+              Batal
+            </button>
+
+            <button
+              type="submit"
+              id="saveDataset"
+              class="modal-save-btn"
+            >
+              Simpan Dataset
+            </button>
+
+          </div>
+
+        </form>
+
+      </section>
+    `;
+
+    document.body.appendChild(modal);
+  }
+
+  // ==========================================================
+  // 12. MODAL TAMBAH DATASET
+  // ==========================================================
 
   function openModal(item = null) {
-    state.editing = item;
+    ensureModal();
 
-    const modal = $("#c45-modal");
-    const form = $("#c45-form");
+    const modal = $("#datasetModal");
+
+    const form = $("#datasetForm");
+
+    if (!modal || !form) return;
 
     form.reset();
 
-    $("#c45-modal-title").textContent = item
-      ? "Edit Dataset"
-      : "Tambah Dataset";
+    state.editingId = item ? Number(item.id_data) : null;
+
+    $("#datasetModalTitle").textContent = item
+      ? "Edit Dataset C4.5"
+      : "Tambah Data Simulasi";
+
+    updateFacilityOptions(item?.id_fasilitas || "");
 
     if (item) {
-      const fields = [
-        "kode_data",
-        "nama_fasilitas",
-        "tingkat_kerusakan_x1",
-        "dampak_akademik_x2",
-        "frekuensi_penggunaan_x3",
-        "label_prioritas",
-        "sumber_data",
-      ];
+      form.elements["tingkat_kerusakan_x1"].value = String(
+        item.tingkat_kerusakan_x1,
+      );
 
-      fields.forEach((name) => {
-        const field = form.elements[name];
-
-        if (field) {
-          field.value = item[name] ?? "";
-        }
-      });
+      form.elements["dampak_akademik_x2"].value = String(
+        item.dampak_akademik_x2,
+      );
     }
 
     modal.hidden = false;
+
+    document.body.classList.add("modal-open");
   }
 
   function closeModal() {
-    $("#c45-modal").hidden = true;
-    state.editing = null;
+    const modal = $("#datasetModal");
+
+    if (modal) {
+      modal.hidden = true;
+    }
+
+    document.body.classList.remove("modal-open");
+
+    state.editingId = null;
   }
 
-  /* =======================================================
-     10. SIMPAN DATA
-  ======================================================= */
+  // ==========================================================
+  // 13. SIMPAN DATASET
+  // ==========================================================
 
   async function saveDataset(event) {
     event.preventDefault();
 
-    const form = event.currentTarget;
+    const form = $("#datasetForm");
 
-    const payload = Object.fromEntries(new FormData(form).entries());
+    if (!form || !form.reportValidity()) return;
 
-    const editing = state.editing;
+    const payload = {
+      id_fasilitas: Number(form.elements["id_fasilitas"].value),
 
-    if (editing) {
-      payload.id_data = editing.id_data;
-    }
+      tingkat_kerusakan_x1: Number(form.elements["tingkat_kerusakan_x1"].value),
 
-    const button = $("#c45-save");
+      dampak_akademik_x2: Number(form.elements["dampak_akademik_x2"].value),
+    };
+
+    const button = $("#saveDataset");
+
+    if (!button) return;
 
     button.disabled = true;
+
     button.textContent = "Menyimpan...";
 
     try {
-      await request(API, {
-        method: editing ? "PUT" : "POST",
-        body: JSON.stringify(payload),
-      });
+      if (state.editingId) {
+        payload.id_data = state.editingId;
+
+        await requestAPI("PUT", payload);
+
+        tampilkanNotifikasi("Dataset berhasil diperbarui.");
+      } else {
+        await requestAPI("POST", payload);
+
+        tampilkanNotifikasi("Dataset berhasil ditambahkan.");
+      }
 
       closeModal();
-
-      notify(
-        editing
-          ? "Dataset berhasil diperbarui."
-          : "Dataset berhasil ditambahkan.",
-      );
-
-      await loadDataset();
-    } catch (error) {
-      notify(error.message, "error");
-    } finally {
-      button.disabled = false;
-      button.textContent = "Simpan Dataset";
-    }
-  }
-
-  /* =======================================================
-     11. EDIT DATA
-  ======================================================= */
-
-  function editDataset(id) {
-    const item = state.items.find((row) => String(row.id_data) === String(id));
-
-    if (!item) {
-      notify("Data tidak ditemukan.", "error");
-      return;
-    }
-
-    openModal(item);
-  }
-
-  /* =======================================================
-     12. HAPUS DATA
-  ======================================================= */
-
-  async function deleteDataset(id) {
-    const item = state.items.find((row) => String(row.id_data) === String(id));
-
-    if (!item) return;
-
-    const confirmed = window.confirm(`Hapus dataset ${item.kode_data}?`);
-
-    if (!confirmed) return;
-
-    try {
-      await request(API, {
-        method: "DELETE",
-        body: JSON.stringify({
-          id_data: Number(id),
-        }),
-      });
-
-      notify("Dataset berhasil dihapus.");
-
-      await loadDataset();
-    } catch (error) {
-      notify(error.message, "error");
-    }
-  }
-
-  /* =======================================================
-     13. IMPORT CSV
-  ======================================================= */
-
-  async function importDataset(file) {
-    if (!file) return;
-
-    if (!file.name.toLowerCase().endsWith(".csv")) {
-      notify("File harus berformat CSV.", "error");
-      return;
-    }
-
-    const confirmed = window.confirm(
-      `Import file ${file.name} ke dataset utama?`,
-    );
-
-    if (!confirmed) return;
-
-    const form = new FormData();
-
-    form.append("file_dataset", file);
-
-    const button = $("#c45-import-button");
-
-    button.disabled = true;
-    button.textContent = "Mengimpor...";
-
-    try {
-      const result = await request(`${API}?action=import`, {
-        method: "POST",
-        body: form,
-      });
-
-      const imported = result.data || {};
-
-      notify(
-        `Berhasil menambahkan ${imported.jumlah_ditambahkan || 0} data. Duplikat dilewati: ${imported.jumlah_duplikat_dilewati || 0}.`,
-      );
 
       state.page = 1;
 
       await loadDataset();
     } catch (error) {
-      notify(error.message, "error");
-
-      console.error("Import CSV:", error);
+      tampilkanNotifikasi(error.message, "error");
     } finally {
       button.disabled = false;
-      button.textContent = "Import Dataset";
 
-      $("#c45-file-input").value = "";
+      button.textContent = "Simpan Dataset";
     }
   }
 
-  /* =======================================================
-     14. FILTER
-  ======================================================= */
+  // ==========================================================
+  // 14. HAPUS DATASET
+  // ==========================================================
 
-  function applyFilters() {
-    state.search = $("#c45-search").value.trim();
+  async function deleteDataset(id) {
+    const item = state.items.find((row) => Number(row.id_data) === Number(id));
 
-    state.filters = {
-      x1: $("#c45-filter-x1").value,
-      x2: $("#c45-filter-x2").value,
-      x3: $("#c45-filter-x3").value,
-      label: $("#c45-filter-label").value,
-    };
+    if (!item) return;
 
-    state.page = 1;
-
-    loadDataset();
-  }
-
-  function resetFilters() {
-    $("#c45-search").value = "";
-
-    $("#c45-filter-x1").value = "";
-    $("#c45-filter-x2").value = "";
-    $("#c45-filter-x3").value = "";
-    $("#c45-filter-label").value = "";
-
-    state.search = "";
-
-    state.filters = {
-      x1: "",
-      x2: "",
-      x3: "",
-      label: "",
-    };
-
-    state.page = 1;
-
-    loadDataset();
-  }
-
-  /* =======================================================
-     15. EVENT LISTENER
-  ======================================================= */
-
-  function bindEvents(root) {
-    $("#c45-add-button").addEventListener("click", () => openModal());
-
-    $("#c45-import-button").addEventListener("click", () =>
-      $("#c45-file-input").click(),
+    const yakin = confirm(
+      `Hapus dataset ${item.kode_data} (${item.nama_fasilitas})?`,
     );
 
-    $("#c45-file-input").addEventListener("change", (event) =>
-      importDataset(event.target.files?.[0]),
-    );
+    if (!yakin) return;
 
-    $("#c45-form").addEventListener("submit", saveDataset);
+    try {
+      await requestAPI("DELETE", {
+        id_data: Number(id),
+      });
 
-    $("#c45-close-modal").addEventListener("click", closeModal);
+      tampilkanNotifikasi("Dataset berhasil dihapus.");
 
-    $("#c45-cancel").addEventListener("click", closeModal);
-
-    $("#c45-modal").addEventListener("click", (event) => {
-      if (event.target.hasAttribute("data-close-modal")) {
-        closeModal();
-      }
-    });
-
-    $("#c45-table-body").addEventListener("click", (event) => {
-      const button = event.target.closest("button[data-action]");
-
-      if (!button) return;
-
-      const action = button.dataset.action;
-      const id = button.dataset.id;
-
-      if (action === "edit") {
-        editDataset(id);
-      }
-
-      if (action === "delete") {
-        deleteDataset(id);
-      }
-    });
-
-    $("#c45-search").addEventListener("input", debounce(applyFilters, 350));
-
-    [
-      "#c45-filter-x1",
-      "#c45-filter-x2",
-      "#c45-filter-x3",
-      "#c45-filter-label",
-    ].forEach((selector) => {
-      $(selector).addEventListener("change", applyFilters);
-    });
-
-    $("#c45-reset-filter").addEventListener("click", resetFilters);
-
-    $("#c45-prev").addEventListener("click", () => {
-      if (state.page > 1) {
+      if (state.items.length === 1 && state.page > 1) {
         state.page--;
-        loadDataset();
+      }
+
+      await loadDataset();
+    } catch (error) {
+      tampilkanNotifikasi(error.message, "error");
+    }
+  }
+
+  // ==========================================================
+  // 15. DETAIL DATASET
+  // ==========================================================
+
+  function showDetail(id) {
+    const item = state.items.find((row) => Number(row.id_data) === Number(id));
+
+    if (!item) return;
+
+    const tanggal = item.tanggal_dibuat || "-";
+
+    alert(
+      `DETAIL DATASET C4.5\n\n` +
+        `Kode: ${item.kode_data}\n` +
+        `Nama fasilitas: ${item.nama_fasilitas}\n` +
+        `Kode fasilitas: ${item.kode_fasilitas || "-"}\n` +
+        `Kategori: ${item.nama_kategori || "-"}\n\n` +
+        `X1 Kerusakan: ${namaX1(item.tingkat_kerusakan_x1)}\n` +
+        `X2 Dampak: ${namaX2(item.dampak_akademik_x2)}\n` +
+        `X3 Frekuensi: ${namaX3(item.frekuensi_penggunaan_x3)}\n\n` +
+        `Skor: ${Number(item.skor || 0).toFixed(2)}\n` +
+        `Label Y: ${item.label_prioritas}\n\n` +
+        `Sumber: ${item.sumber_data || "-"}\n` +
+        `Tanggal dibuat: ${tanggal}`,
+    );
+  }
+
+  // ==========================================================
+  // 16. EVENT LISTENER
+  // ==========================================================
+
+  function bindEvents() {
+    ensureModal();
+
+    // Tambah dataset.
+    $("#addDatasetBtn")?.addEventListener("click", () => {
+      openModal();
+    });
+
+    // Tutup modal.
+    $("#closeDatasetModal")?.addEventListener("click", closeModal);
+
+    $("#cancelDataset")?.addEventListener("click", closeModal);
+
+    $("#datasetModal")?.addEventListener("click", (event) => {
+      if (event.target.matches("[data-close-modal]")) {
+        closeModal();
       }
     });
 
-    $("#c45-next").addEventListener("click", () => {
-      if (state.page < state.totalPages) {
-        state.page++;
-        loadDataset();
+    // Submit form.
+    $("#datasetForm")?.addEventListener("submit", saveDataset);
+
+    // Perubahan fasilitas.
+    $("#datasetFacility")?.addEventListener(
+      "change",
+      updateFacilityInformation,
+    );
+
+    // Aksi tabel: hanya detail dan hapus.
+    $("#datasetTableBody")?.addEventListener("click", (event) => {
+      const deleteButton = event.target.closest("[data-delete]");
+
+      const detailButton = event.target.closest("[data-detail]");
+
+      if (deleteButton) {
+        deleteDataset(Number(deleteButton.dataset.delete));
+
+        return;
+      }
+
+      if (detailButton) {
+        showDetail(Number(detailButton.dataset.detail));
       }
     });
 
+    // Pagination.
+    $("#datasetPagination")?.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-page]");
+
+      if (!button || button.disabled) return;
+
+      const page = Number(button.dataset.page);
+
+      if (page < 1 || page > state.totalPages) {
+        return;
+      }
+
+      state.page = page;
+
+      loadDataset();
+    });
+
+    // Pencarian dengan debounce.
+    let searchTimer;
+
+    $("#searchInput")?.addEventListener("input", (event) => {
+      window.clearTimeout(searchTimer);
+
+      searchTimer = window.setTimeout(() => {
+        state.search = event.target.value.trim();
+
+        state.page = 1;
+
+        loadDataset();
+      }, 350);
+    });
+
+    // Filter.
+    const filterMap = {
+      filterX1: "x1",
+
+      filterX2: "x2",
+
+      filterX3: "x3",
+
+      filterY: "label",
+    };
+
+    Object.entries(filterMap).forEach(([elementId, key]) => {
+      $(`#${elementId}`)?.addEventListener("change", (event) => {
+        const value = event.target.value;
+
+        if (key === "label") {
+          state.filters[key] =
+            value === "semua"
+              ? ""
+              : value.charAt(0).toUpperCase() + value.slice(1);
+        } else {
+          const map = {
+            ringan: "1",
+
+            rendah: "1",
+
+            jarang: "1",
+
+            sedang: "2",
+
+            berat: "3",
+
+            tinggi: "3",
+
+            sering: "3",
+          };
+
+          state.filters[key] = value === "semua" ? "" : map[value] || "";
+        }
+
+        state.page = 1;
+
+        loadDataset();
+      });
+    });
+
+    // Tombol Escape untuk menutup modal.
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
+      if (
+        event.key === "Escape" &&
+        $("#datasetModal") &&
+        !$("#datasetModal").hidden
+      ) {
         closeModal();
       }
     });
   }
 
-  /* =======================================================
-     16. DEBOUNCE
-  ======================================================= */
-
-  function debounce(callback, delay) {
-    let timer;
-
-    return (...args) => {
-      clearTimeout(timer);
-
-      timer = setTimeout(() => callback(...args), delay);
-    };
-  }
-
-  /* =======================================================
-     17. INISIALISASI
-  ======================================================= */
+  // ==========================================================
+  // 17. INISIALISASI
+  // ==========================================================
 
   async function init() {
-    const root = $("#dataset-c45-app");
+    ensureDomHooks();
 
-    if (!root) return;
+    ensureModal();
 
-    buildInterface(root);
-
-    bindEvents(root);
+    bindEvents();
 
     await loadDataset();
 
-    console.log("[SIPFAS] Modul Dataset C4.5 berhasil diinisialisasi.");
+    console.log("[SIPFAS] Dataset C4.5 berhasil diinisialisasi.");
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
+    document.addEventListener("DOMContentLoaded", init);
   } else {
     init();
   }

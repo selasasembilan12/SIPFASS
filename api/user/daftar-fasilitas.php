@@ -2,27 +2,15 @@
 declare(strict_types=1);
 
 
-// ============================================================
-// 01. MEMUAT AUTENTIKASI DAN KONEKSI DATABASE
-// ============================================================
-
 require_once dirname(__DIR__, 2) . '/config/auth-check.php';
-
-// auth-check.php sudah memuat bootstrap.php
-// dan menyediakan koneksi PDO melalui variabel $pdo.
-
-// ============================================================
-// 02. HEADER RESPONSE
-// ============================================================
+// Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
+require_once dirname(_DIR_, 2) . '/config/csrf.php';
+sipfas_csrf_require_valid();
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');
 header('X-Content-Type-Options: nosniff');
-
-// ============================================================
-// 03. FUNGSI RESPONSE JSON
-// ============================================================
 
 function daftarFasilitasResponse(
     int $status,
@@ -30,7 +18,6 @@ function daftarFasilitasResponse(
     string $message,
     array $data = []
 ): never {
-
     http_response_code($status);
 
     echo json_encode([
@@ -44,12 +31,8 @@ function daftarFasilitasResponse(
     exit;
 }
 
-// ============================================================
-// 04. MEMERIKSA METHOD REQUEST
-// ============================================================
-
+// Hanya menerima GET.
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
-
     header('Allow: GET');
 
     daftarFasilitasResponse(
@@ -59,183 +42,185 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
     );
 }
 
-// ============================================================
-// 05. MEMERIKSA AUTENTIKASI
-// ============================================================
-
+// Validasi login dan role.
 sipfas_require_auth();
-
-$user = sipfas_current_user();
-
-// Memastikan pengguna memiliki role Pelapor.
-$role = trim((string) ($user['nama_peran'] ?? ''));
-
-if (strcasecmp($role, 'Pelapor') !== 0) {
-
-    daftarFasilitasResponse(
-        403,
-        false,
-        'Akses ditolak. API ini khusus untuk pengguna Pelapor.'
-    );
-}
-
-// ============================================================
-// 06. MENGAMBIL DATA DARI DATABASE
-// ============================================================
+sipfas_require_role(['Pelapor']);
 
 try {
+    global $pdo;
 
-    // --------------------------------------------------------
-    // A. MENGAMBIL KATEGORI FASILITAS
-    // --------------------------------------------------------
+    if (!isset($pdo) || !($pdo instanceof PDO)) {
+        throw new RuntimeException('Koneksi database tidak tersedia.');
+    }
 
-    $queryKategori = $pdo->prepare("
+    $pdo->setAttribute(
+        PDO::ATTR_ERRMODE,
+        PDO::ERRMODE_EXCEPTION
+    );
+
+    // ==========================================
+    // A. MENGAMBIL KATEGORI AKTIF
+    // ==========================================
+
+    $stmtKategori = $pdo->prepare("
         SELECT
             id_kategori,
             kode_kategori,
             nama_kategori,
             deskripsi
-
         FROM kategori_fasilitas
-
         WHERE status_kategori = 'Aktif'
-
         ORDER BY nama_kategori ASC
     ");
 
-    $queryKategori->execute();
+    $stmtKategori->execute();
 
-    $kategori = $queryKategori->fetchAll(PDO::FETCH_ASSOC);
+    $kategori = $stmtKategori->fetchAll(PDO::FETCH_ASSOC);
 
-    // --------------------------------------------------------
-    // B. MENGAMBIL FASILITAS AKTIF
-    // --------------------------------------------------------
+    // ==========================================
+    // B. MENGAMBIL LOKASI AKTIF
+    // ==========================================
 
-    $queryFasilitas = $pdo->prepare("
+    $stmtLokasi = $pdo->prepare("
+        SELECT
+            id_lokasi,
+            kode_lokasi,
+            nama_lokasi,
+            status_lokasi
+        FROM lokasi_ruangan
+        WHERE status_lokasi = 'Aktif'
+        ORDER BY nama_lokasi ASC
+    ");
+
+    $stmtLokasi->execute();
+
+    $lokasi = $stmtLokasi->fetchAll(PDO::FETCH_ASSOC);
+
+    // ==========================================
+    // C. MENGAMBIL FASILITAS AKTIF
+    // ==========================================
+
+    /*
+     * Lokasi diambil melalui id_lokasi.
+     * Bukan membaca lokasi_ruangan dari tabel fasilitas.
+     */
+
+    $stmtFasilitas = $pdo->prepare("
         SELECT
             f.id_fasilitas,
             f.kode_fasilitas,
             f.nama_fasilitas,
             f.id_kategori,
-            f.lokasi_ruangan,
+            f.id_lokasi,
             f.frekuensi_penggunaan,
             f.status_fasilitas,
 
             k.kode_kategori,
-            k.nama_kategori
+            k.nama_kategori,
+
+            l.kode_lokasi,
+            l.nama_lokasi
 
         FROM fasilitas f
 
         INNER JOIN kategori_fasilitas k
-            ON f.id_kategori = k.id_kategori
+            ON k.id_kategori = f.id_kategori
+
+        INNER JOIN lokasi_ruangan l
+            ON l.id_lokasi = f.id_lokasi
 
         WHERE
             f.status_fasilitas = 'Aktif'
             AND k.status_kategori = 'Aktif'
+            AND l.status_lokasi = 'Aktif'
 
         ORDER BY
-            f.lokasi_ruangan ASC,
+            l.nama_lokasi ASC,
             f.nama_fasilitas ASC
     ");
 
-    $queryFasilitas->execute();
+    $stmtFasilitas->execute();
 
-    $hasilFasilitas = $queryFasilitas->fetchAll(PDO::FETCH_ASSOC);
+    $hasilFasilitas = $stmtFasilitas->fetchAll(PDO::FETCH_ASSOC);
 
-    // --------------------------------------------------------
-    // C. MENGUMPULKAN LOKASI UNIK
-    // --------------------------------------------------------
-
-    $lokasiUnik = [];
-
-    foreach ($hasilFasilitas as $item) {
-
-        $namaLokasi = trim(
-            (string) $item['lokasi_ruangan']
-        );
-
-        if ($namaLokasi === '') {
-            continue;
-        }
-
-        $key = mb_strtolower($namaLokasi);
-
-        if (!isset($lokasiUnik[$key])) {
-
-            $lokasiUnik[$key] = [
-                'value' => $namaLokasi,
-                'label' => $namaLokasi
-            ];
-        }
-    }
-
-    $daftarLokasi = array_values($lokasiUnik);
-
-    // --------------------------------------------------------
-    // D. MENYUSUN DATA FASILITAS
-    // --------------------------------------------------------
+    // ==========================================
+    // D. FORMAT DATA FASILITAS
+    // ==========================================
 
     $daftarFasilitas = [];
 
     foreach ($hasilFasilitas as $item) {
 
+        $frekuensi = (int) $item['frekuensi_penggunaan'];
+
         $daftarFasilitas[] = [
+            'id_fasilitas' => (int) $item['id_fasilitas'],
+            'kode_fasilitas' => $item['kode_fasilitas'],
+            'nama_fasilitas' => $item['nama_fasilitas'],
 
-            'id_fasilitas' =>
-                (int) $item['id_fasilitas'],
+            'id_kategori' => (int) $item['id_kategori'],
+            'kode_kategori' => $item['kode_kategori'],
+            'nama_kategori' => $item['nama_kategori'],
 
-            'kode_fasilitas' =>
-                $item['kode_fasilitas'],
+            'id_lokasi' => (int) $item['id_lokasi'],
+            'kode_lokasi' => $item['kode_lokasi'],
+            'nama_lokasi' => $item['nama_lokasi'],
 
-            'nama_fasilitas' =>
-                $item['nama_fasilitas'],
-
-            'id_kategori' =>
-                (int) $item['id_kategori'],
-
-            'kode_kategori' =>
-                $item['kode_kategori'],
-
-            'nama_kategori' =>
-                $item['nama_kategori'],
-
-            'lokasi_ruangan' =>
-                $item['lokasi_ruangan'],
-
-            'frekuensi_penggunaan' =>
-                $item['frekuensi_penggunaan'],
-
-            'status_fasilitas' =>
-                $item['status_fasilitas']
+            'frekuensi_penggunaan' => $frekuensi,
+            'status_fasilitas' => $item['status_fasilitas']
         ];
     }
 
-    // --------------------------------------------------------
-    // E. MENGIRIM DATA KE USER
-    // --------------------------------------------------------
+    // ==========================================
+    // E. FORMAT DATA KATEGORI
+    // ==========================================
+
+    $daftarKategori = [];
+
+    foreach ($kategori as $item) {
+        $daftarKategori[] = [
+            'id_kategori' => (int) $item['id_kategori'],
+            'kode_kategori' => $item['kode_kategori'],
+            'nama_kategori' => $item['nama_kategori'],
+            'deskripsi' => $item['deskripsi']
+        ];
+    }
+
+    // ==========================================
+    // F. FORMAT DATA LOKASI
+    // ==========================================
+
+    $daftarLokasi = [];
+
+    foreach ($lokasi as $item) {
+        $daftarLokasi[] = [
+            'id_lokasi' => (int) $item['id_lokasi'],
+            'kode_lokasi' => $item['kode_lokasi'],
+            'nama_lokasi' => $item['nama_lokasi']
+        ];
+    }
+
+    // ==========================================
+    // G. RESPONSE
+    // ==========================================
 
     daftarFasilitasResponse(
         200,
         true,
         'Data fasilitas berhasil dimuat.',
         [
+            'kategori' => $daftarKategori,
             'lokasi' => $daftarLokasi,
-
-            'kategori' => $kategori,
-
             'fasilitas' => $daftarFasilitas,
 
+            'total_kategori' => count($daftarKategori),
             'total_lokasi' => count($daftarLokasi),
-
-            'total_kategori' => count($kategori),
-
             'total_fasilitas' => count($daftarFasilitas)
         ]
     );
 
 } catch (Throwable $e) {
 
-    // Mencatat kesalahan sebenarnya pada log PHP.
     error_log(
         '[SIPFAS DAFTAR FASILITAS] ' .
         get_class($e) . ': ' .

@@ -1,26 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/**
- * =========================================================
- * SIPFAS - AUTHENTICATION CHECK
- * =========================================================
- *
- * Fungsi:
- * 1. Memeriksa session login resmi.
- * 2. Mengambil identitas pengguna aktif.
- * 3. Mengambil ID pengguna aktif.
- * 4. Mengambil nama pengguna aktif.
- * 5. Memeriksa role pengguna.
- * 6. Menolak akses pengguna yang belum login.
- *
- * Standar session:
- * $_SESSION['user']
- * $_SESSION['login_terverifikasi']
- *
- * =========================================================
- */
-
 // =========================================================
 // 1. MEMUAT BOOTSTRAP
 // =========================================================

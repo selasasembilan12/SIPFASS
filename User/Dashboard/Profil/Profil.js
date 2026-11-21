@@ -1,23 +1,3 @@
-/**
- * ============================================================
- * SIPFAS - PROFIL PELAPOR
- * ============================================================
- *
- * Sumber data:
- * DATABASE -> PHP SESSION -> API PROFIL
- *
- * Fitur:
- * 1. Mengambil identitas pengguna.
- * 2. Mengubah nama dan email.
- * 3. Mengubah password.
- * 4. Mengunggah foto profil.
- * 5. Menampilkan foto profil.
- * 6. Membatalkan perubahan.
- * 7. Sinkronisasi ke Dashboard.
- *
- * ============================================================
- */
-
 (function () {
   "use strict";
 

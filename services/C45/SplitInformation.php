@@ -1,5 +1,5 @@
 <?php
-
+//Split Information: Mengukur pembagian data berdasarkan atribut.
 namespace SIPFAS\Services\C45;
 
 class SplitInformation

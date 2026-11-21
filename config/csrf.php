@@ -160,7 +160,7 @@ if (!function_exists('sipfas_csrf_reject')) {
         // Menggunakan respons JSON standar SIPFAS.
         response_error(
             'Token keamanan tidak valid atau telah kedaluwarsa.',
-            419
+            403
         );
     }
 }

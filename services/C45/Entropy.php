@@ -1,5 +1,5 @@
 <?php
-
+// Entropy: Mengukur tingkat ketidakmurnian atau keragaman kelas data.
 namespace SIPFAS\Services\C45;
 
 class Entropy

@@ -1,28 +1,11 @@
 <?php
 declare(strict_types=1);
 
-/* ==================================================
-   SIPFAS - API ADMIN DATA FASILITAS
-
-   Database : sipfas
-   CRUD     : GET, POST, PUT, DELETE
-
-   RELASI DATABASE:
-   fasilitas.id_kategori -> kategori_fasilitas.id_kategori
-   fasilitas.id_lokasi   -> lokasi_ruangan.id_lokasi
-   fasilitas.id_pencatat -> pengguna.id_pengguna
-
-   JUMLAH UNIT:
-   fasilitas.jumlah_unit
-
-   LOKASI:
-   lokasi_ruangan.nama_lokasi
-
-   AKSES:
-   ADMIN ONLY
-================================================== */
 
 require_once __DIR__ . '/_admin-common.php';
+// Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
+require_once dirname(_DIR_, 2) . '/config/csrf.php';
+sipfas_csrf_require_valid();
 
 /* ==================================================
    01. VALIDASI FREKUENSI

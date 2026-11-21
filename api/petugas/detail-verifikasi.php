@@ -3,6 +3,9 @@ declare(strict_types=1);
 //revisi akhir demi
 // Memuat konfigurasi session dan koneksi database.
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
+// Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
+require_once dirname(_DIR_, 2) . '/config/csrf.php';
+sipfas_csrf_require_valid();
 
 // Mengatur respons JSON dan zona waktu.
 header('Content-Type: application/json; charset=utf-8');

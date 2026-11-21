@@ -1,15 +1,13 @@
 <?php
 declare(strict_types=1);
 
-/**
- * SIPFAS - PASSWORD BARU
- *
- * Memastikan OTP sudah diverifikasi sebelum pengguna
- * diperbolehkan memperbarui kata sandi.
- */
 
 // Memuat session dan koneksi utama SIPFAS.
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
+
+// Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
+require_once dirname(_DIR_, 2) . '/config/csrf.php';
+sipfas_csrf_require_valid();
 
 // Mengatur respons API.
 header('Content-Type: application/json; charset=utf-8');

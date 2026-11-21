@@ -1,229 +1,359 @@
 "use strict";
 
-/* =====================================================
-   SIPFAS - JAVASCRIPT KONFIRMASI LAPORAN
-   Fungsi: Mengambil dan menampilkan data laporan
-===================================================== */
+// ============================================================
+// 00. KONFIGURASI
+// ============================================================
 
-/* 01. MENENTUKAN NAMA PENYIMPANAN LAPORAN */
-
-// Key untuk mengambil seluruh laporan dari LocalStorage.
-const REPORT_STORAGE_KEY = "sipfasReports";
-
-// Key untuk mengambil laporan terakhir dari SessionStorage.
 const LAST_REPORT_KEY = "laporanTerakhir";
-
-// Key untuk mengambil notifikasi sementara.
 const FLASH_NOTIFICATION_KEY = "sipfasFlashNotification";
 
-/* 02. MENJALANKAN PROGRAM SETELAH HTML DIMUAT */
+const API_DETAIL_LAPORAN = "../../../api/user/detail.laporan.php";
+
+let sedangMemuatKonfirmasi = false;
+
+// ============================================================
+// 01. INISIALISASI
+// ============================================================
 
 document.addEventListener("DOMContentLoaded", function () {
   tampilkanKonfirmasiLaporan();
   tampilkanNotifikasiKonfirmasi();
 });
 
-/* 03. MENGAMBIL DATA LAPORAN TERAKHIR */
+// ============================================================
+// 02. MENGAMBIL IDENTITAS LAPORAN
+// ============================================================
 
-function ambilLaporanTerakhir() {
+function ambilIdentitasLaporan() {
   try {
-    // Mengambil data laporan sementara dari SessionStorage.
     const dataSesi = sessionStorage.getItem(LAST_REPORT_KEY);
 
-    // Mengambil seluruh data laporan dari LocalStorage.
-    const dataPenyimpanan = localStorage.getItem(REPORT_STORAGE_KEY);
-
-    // Mengubah data JSON menjadi array JavaScript.
-    const semuaLaporan = dataPenyimpanan ? JSON.parse(dataPenyimpanan) : [];
-
-    // Memastikan data laporan berbentuk array.
-    if (!Array.isArray(semuaLaporan)) {
-      throw new Error("Format data laporan tidak valid.");
+    if (!dataSesi) {
+      return null;
     }
 
-    // Mengambil laporan terakhir dari SessionStorage.
-    if (dataSesi) {
-      const laporanSesi = JSON.parse(dataSesi);
+    const laporan = JSON.parse(dataSesi);
 
-      // Memastikan data sesi berbentuk objek.
-      if (
-        laporanSesi &&
-        typeof laporanSesi === "object" &&
-        !Array.isArray(laporanSesi)
-      ) {
-        // Memastikan laporan juga tersimpan di LocalStorage.
-        const laporanTersimpan = semuaLaporan.find(function (laporan) {
-          return laporan.id === laporanSesi.id;
-        });
-
-        // Menggunakan data LocalStorage sebagai sumber utama.
-        if (laporanTersimpan) {
-          return laporanTersimpan;
-        }
-
-        // Menggunakan data sesi sebagai pengaman.
-        return laporanSesi;
-      }
+    if (!laporan || typeof laporan !== "object") {
+      return null;
     }
 
-    // Jika data sesi tidak tersedia, ambil laporan terbaru.
-    if (semuaLaporan.length > 0) {
-      return semuaLaporan[0];
+    const idDatabase =
+      laporan.idLaporan || laporan.id_laporan || laporan.idDatabase;
+
+    if (
+      idDatabase &&
+      /^\d+$/.test(String(idDatabase)) &&
+      Number(idDatabase) > 0
+    ) {
+      return String(idDatabase);
     }
 
-    // Jika belum ada laporan.
     return null;
   } catch (error) {
-    console.error("Gagal mengambil data laporan:", error);
-
+    console.error("[SIPFAS] Gagal membaca identitas laporan:", error);
     return null;
   }
 }
 
-/* 04. MENAMPILKAN INFORMASI LAPORAN PADA HALAMAN KONFIRMASI */
+// ============================================================
+// 03. MENGAMBIL DATA LAPORAN DARI DATABASE
+// ============================================================
 
-function tampilkanKonfirmasiLaporan() {
-  // Mengambil laporan yang terakhir dikirim.
-  const laporan = ambilLaporanTerakhir();
-
-  // Menghentikan proses jika tidak ada laporan.
-  if (!laporan) {
-    alert(
-      "Data laporan tidak ditemukan. Silakan buat laporan terlebih dahulu.",
-    );
-
-    window.location.href = "../Dashboard/dashboard.html";
-
-    return;
+async function ambilDetailLaporan(idLaporan) {
+  if (!idLaporan) {
+    throw new Error("ID laporan tidak ditemukan.");
   }
 
-  // Memastikan data menggunakan nama properti yang sesuai.
-  const kodeLaporan = laporan.id || laporan.kodeLaporan || "-";
+  const url =
+    API_DETAIL_LAPORAN +
+    "?id=" +
+    encodeURIComponent(idLaporan) +
+    "&_=" +
+    Date.now();
 
-  const namaFasilitas = laporan.facility || laporan.namaFasilitas || "-";
+  const response = await fetch(url, {
+    method: "GET",
+    credentials: "same-origin",
+    cache: "no-store",
+    headers: {
+      Accept: "application/json",
+    },
+  });
 
-  const lokasiFasilitas = laporan.location || laporan.lokasiFasilitas || "-";
+  const rawText = await response.text();
 
-  const prioritas = laporan.priority || laporan.prioritas || "Belum ditentukan";
+  let result;
 
-  const status = laporan.status || laporan.mainStatus || "Menunggu Verifikasi";
+  try {
+    result = JSON.parse(rawText);
+  } catch (error) {
+    console.error("[SIPFAS] Respons API bukan JSON:", rawText);
 
-  /* 05. MENAMPILKAN KODE LAPORAN */
+    throw new Error("Respons server tidak valid. Periksa API detail laporan.");
+  }
 
+  if (!response.ok || result.success !== true) {
+    throw new Error(
+      result.message || "Gagal mengambil informasi laporan dari database.",
+    );
+  }
+
+  if (!result.data || !result.data.id_laporan) {
+    throw new Error("Data laporan tidak ditemukan di database.");
+  }
+
+  return result.data;
+}
+
+// ============================================================
+// 04. MENAMPILKAN INFORMASI LAPORAN
+// ============================================================
+
+function tampilkanInformasiLaporan(data) {
   const elemenKode = document.querySelector(".report-code");
 
-  if (elemenKode) {
-    elemenKode.textContent = kodeLaporan;
-  }
-
-  /* 06. MENAMPILKAN NAMA DAN LOKASI FASILITAS */
-
-  const elemenNamaFasilitas = document.querySelector(
+  const elemenNama = document.querySelector(
     ".facility-row .information-value strong",
   );
 
-  const elemenLokasiFasilitas = document.querySelector(
+  const elemenLokasi = document.querySelector(
     ".facility-row .information-value span",
   );
 
-  if (elemenNamaFasilitas) {
-    elemenNamaFasilitas.textContent = namaFasilitas;
-  }
-
-  if (elemenLokasiFasilitas) {
-    elemenLokasiFasilitas.textContent = "(" + lokasiFasilitas + ")";
-  }
-
-  /* 07. MENAMPILKAN REKOMENDASI PRIORITAS */
-
   const elemenPrioritas = document.querySelector(".priority-badge");
-
-  if (elemenPrioritas) {
-    elemenPrioritas.textContent = prioritas;
-  }
-
-  /* 08. MENAMPILKAN STATUS LAPORAN */
 
   const elemenStatus = document.querySelector(".status-badge");
 
+  // KODE LAPORAN.
+
+  if (elemenKode) {
+    elemenKode.textContent = data.kode_laporan || "-";
+  }
+
+  // NAMA FASILITAS.
+
+  if (elemenNama) {
+    elemenNama.textContent = data.nama_fasilitas || "-";
+  }
+
+  // LOKASI FASILITAS.
+
+  if (elemenLokasi) {
+    elemenLokasi.textContent = "(" + (data.nama_lokasi || "-") + ")";
+  }
+
+  // PRIORITAS DARI HASIL MODEL C4.5.
+
+  const prioritas =
+    data.prioritas_prediksi || data.prioritas_awal || "Belum Ditentukan";
+
+  if (elemenPrioritas) {
+    elemenPrioritas.textContent = String(prioritas).replace(
+      /^Prioritas\s+/i,
+      "",
+    );
+
+    elemenPrioritas.classList.remove(
+      "priority-low",
+      "priority-medium",
+      "priority-high",
+    );
+
+    const nilaiPrioritas = String(prioritas).toLowerCase();
+
+    if (nilaiPrioritas.includes("tinggi")) {
+      elemenPrioritas.classList.add("priority-high");
+    } else if (nilaiPrioritas.includes("sedang")) {
+      elemenPrioritas.classList.add("priority-medium");
+    } else if (nilaiPrioritas.includes("rendah")) {
+      elemenPrioritas.classList.add("priority-low");
+    }
+  }
+
+  // STATUS VERIFIKASI.
+
   if (elemenStatus) {
-    elemenStatus.textContent = status;
+    const statusVerifikasi = String(data.status_verifikasi || "Menunggu");
+
+    const statusPenanganan = String(data.status_penanganan || "Menunggu");
+
+    let statusUtama = "Menunggu Verifikasi";
+
+    const verifikasi = statusVerifikasi.toLowerCase();
+    const penanganan = statusPenanganan.toLowerCase();
+
+    if (verifikasi.includes("tidak valid") || verifikasi.includes("ditolak")) {
+      statusUtama = "Tidak Valid";
+    } else if (
+      penanganan.includes("selesai") ||
+      penanganan.includes("ditangani")
+    ) {
+      statusUtama = "Selesai";
+    } else if (
+      penanganan.includes("proses") ||
+      penanganan.includes("diproses")
+    ) {
+      statusUtama = "Diproses";
+    } else if (
+      verifikasi.includes("valid") ||
+      verifikasi.includes("terverifikasi") ||
+      verifikasi.includes("disetujui")
+    ) {
+      statusUtama = "Menunggu Penanganan";
+    }
+
+    elemenStatus.textContent = statusUtama;
   }
-
-  /* 09. MENGHUBUNGKAN TOMBOL LIHAT DETAIL */
-
-  const tombolDetail = document.querySelector(".detail-button");
-
-  if (tombolDetail) {
-    tombolDetail.href =
-      "../Detail-laporan/Detail-laporan.html?id=" +
-      encodeURIComponent(kodeLaporan);
-  }
-
-  /* 10. MENAMPILKAN INFORMASI PROSES PADA CONSOLE */
-
-  console.log("===== KONFIRMASI LAPORAN SIPFAS =====");
-  console.log("Kode Laporan:", kodeLaporan);
-  console.log("Nama Fasilitas:", namaFasilitas);
-  console.log("Lokasi Fasilitas:", lokasiFasilitas);
-  console.log("Prioritas:", prioritas);
-  console.log("Status:", status);
-  console.log("=====================================");
 }
 
-/* =====================================================
-   11. MENAMPILKAN NOTIFIKASI KEBERHASILAN PENGIRIMAN
-   Notifikasi diteruskan dari halaman Buat Laporan.
-===================================================== */
+// ============================================================
+// 05. MENGATUR TOMBOL DETAIL LAPORAN
+// ============================================================
 
-function tampilkanNotifikasiKonfirmasi() {
-  // Mengambil data notifikasi dari SessionStorage.
-  const dataNotifikasi = sessionStorage.getItem(FLASH_NOTIFICATION_KEY);
+function aturTombolDetail(data) {
+  const tombolDetail = document.querySelector(".detail-button");
 
-  // Jika tidak ada notifikasi, hentikan proses.
-  if (!dataNotifikasi) {
+  if (!tombolDetail) return;
+
+  const idDatabase = Number(data.id_laporan);
+
+  if (!Number.isInteger(idDatabase) || idDatabase <= 0) {
+    tombolDetail.style.pointerEvents = "none";
+    tombolDetail.style.opacity = "0.5";
     return;
   }
 
+  const urlDetail =
+    "../Detail-laporan/Detail-laporan.html?id=" +
+    encodeURIComponent(idDatabase);
+
+  tombolDetail.href = urlDetail;
+
+  tombolDetail.style.pointerEvents = "auto";
+  tombolDetail.style.opacity = "1";
+
+  tombolDetail.onclick = function (event) {
+    event.preventDefault();
+    window.location.href = urlDetail;
+  };
+}
+
+// ============================================================
+// 06. MENAMPILKAN KONFIRMASI LAPORAN
+// ============================================================
+
+async function tampilkanKonfirmasiLaporan() {
+  if (sedangMemuatKonfirmasi) return;
+
+  sedangMemuatKonfirmasi = true;
+
   try {
-    // Mengubah data JSON menjadi objek.
+    const idLaporan = ambilIdentitasLaporan();
+
+    if (!idLaporan) {
+      throw new Error(
+        "Identitas laporan tidak ditemukan. Silakan kembali ke halaman Laporan Saya.",
+      );
+    }
+
+    // Data selalu diminta ulang dari database.
+    const data = await ambilDetailLaporan(idLaporan);
+
+    // Tampilkan informasi dari database.
+    tampilkanInformasiLaporan(data);
+
+    // Atur tautan detail berdasarkan ID database.
+    aturTombolDetail(data);
+
+    console.log("===== KONFIRMASI LAPORAN SIPFAS =====");
+
+    console.log("ID Database:", data.id_laporan);
+    console.log("Kode:", data.kode_laporan);
+    console.log("Fasilitas:", data.nama_fasilitas);
+    console.log("Lokasi:", data.nama_lokasi);
+    console.log("X1:", data.tingkat_kerusakan_x1);
+    console.log("X2:", data.dampak_akademik_x2);
+    console.log("X3:", data.frekuensi_penggunaan_x3);
+    console.log("Model C4.5:", data.id_pelatihan_awal);
+    console.log("Prioritas:", data.prioritas_awal);
+    console.log("Status:", data.status_verifikasi);
+
+    console.log("=====================================");
+  } catch (error) {
+    console.error("[SIPFAS KONFIRMASI]", error);
+
+    tampilkanErrorKonfirmasi(
+      error.message || "Informasi laporan gagal dimuat dari database.",
+    );
+  } finally {
+    sedangMemuatKonfirmasi = false;
+  }
+}
+
+// ============================================================
+// 07. MENAMPILKAN PESAN ERROR
+// ============================================================
+
+function tampilkanErrorKonfirmasi(pesan) {
+  const kartu = document.querySelector(".confirmation-card");
+
+  if (!kartu) {
+    console.error(pesan);
+    return;
+  }
+
+  let elemen = document.getElementById("error-konfirmasi");
+
+  if (!elemen) {
+    elemen = document.createElement("p");
+    elemen.id = "error-konfirmasi";
+
+    elemen.style.color = "#dc2626";
+    elemen.style.fontSize = "13px";
+
+    kartu.appendChild(elemen);
+  }
+
+  elemen.textContent = pesan;
+}
+
+// ============================================================
+// 08. NOTIFIKASI KEBERHASILAN
+// ============================================================
+
+function tampilkanNotifikasiKonfirmasi() {
+  const dataNotifikasi = sessionStorage.getItem(FLASH_NOTIFICATION_KEY);
+
+  if (!dataNotifikasi) return;
+
+  try {
     const notifikasi = JSON.parse(dataNotifikasi);
 
-    // Memastikan data notifikasi valid.
-    if (
-      !notifikasi ||
-      typeof notifikasi !== "object" ||
-      !notifikasi.title ||
-      !notifikasi.message
-    ) {
+    if (!notifikasi || !notifikasi.title || !notifikasi.message) {
       throw new Error("Format notifikasi tidak valid.");
     }
 
-    // Mengambil atau membuat elemen notifikasi.
-    let elemenNotifikasi = document.getElementById("sipfasNotification");
+    let elemen = document.getElementById("sipfasNotification");
 
-    if (!elemenNotifikasi) {
-      elemenNotifikasi = document.createElement("div");
+    if (!elemen) {
+      elemen = document.createElement("div");
+      elemen.id = "sipfasNotification";
 
-      elemenNotifikasi.id = "sipfasNotification";
-
-      document.body.appendChild(elemenNotifikasi);
+      document.body.appendChild(elemen);
     }
 
-    // Mengatur jenis notifikasi.
     const jenis = ["success", "warning", "error"].includes(notifikasi.type)
       ? notifikasi.type
       : "success";
 
-    elemenNotifikasi.className = "sipfas-notification " + jenis;
+    elemen.className = "sipfas-notification " + jenis;
 
-    elemenNotifikasi.setAttribute("role", "alert");
-    elemenNotifikasi.setAttribute("aria-live", "polite");
+    elemen.setAttribute("role", "alert");
+    elemen.setAttribute("aria-live", "polite");
 
-    // Mengosongkan isi notifikasi sebelumnya.
-    elemenNotifikasi.replaceChildren();
+    elemen.replaceChildren();
 
-    // Membuat ikon notifikasi.
     const ikon = document.createElement("span");
 
     ikon.className = "notification-icon";
@@ -231,28 +361,23 @@ function tampilkanNotifikasiKonfirmasi() {
     ikon.textContent =
       jenis === "success" ? "✓" : jenis === "error" ? "×" : "!";
 
-    // Membuat wadah konten.
     const konten = document.createElement("div");
 
     konten.className = "notification-content";
 
-    // Membuat judul notifikasi.
     const judul = document.createElement("strong");
 
     judul.className = "notification-title";
     judul.textContent = notifikasi.title;
 
-    // Membuat pesan notifikasi.
     const pesan = document.createElement("span");
 
     pesan.className = "notification-message";
     pesan.textContent = notifikasi.message;
 
-    // Menggabungkan konten.
     konten.appendChild(judul);
     konten.appendChild(pesan);
 
-    // Membuat tombol tutup.
     const tombolTutup = document.createElement("button");
 
     tombolTutup.type = "button";
@@ -261,32 +386,25 @@ function tampilkanNotifikasiKonfirmasi() {
 
     tombolTutup.setAttribute("aria-label", "Tutup notifikasi");
 
-    // Menangani tombol tutup.
     tombolTutup.addEventListener("click", function () {
-      elemenNotifikasi.classList.remove("show");
+      elemen.classList.remove("show");
     });
 
-    // Memasukkan seluruh elemen ke notifikasi.
-    elemenNotifikasi.appendChild(ikon);
-    elemenNotifikasi.appendChild(konten);
-    elemenNotifikasi.appendChild(tombolTutup);
+    elemen.appendChild(ikon);
+    elemen.appendChild(konten);
+    elemen.appendChild(tombolTutup);
 
-    // Menghapus data notifikasi setelah berhasil dibaca.
     sessionStorage.removeItem(FLASH_NOTIFICATION_KEY);
 
-    // Menampilkan notifikasi setelah elemen siap.
     requestAnimationFrame(function () {
-      elemenNotifikasi.classList.add("show");
+      elemen.classList.add("show");
     });
 
-    // Menghilangkan notifikasi otomatis setelah 4 detik.
     setTimeout(function () {
-      elemenNotifikasi.classList.remove("show");
+      elemen.classList.remove("show");
     }, 4000);
-
-    console.log("[SIPFAS] Notifikasi pengiriman laporan berhasil ditampilkan.");
   } catch (error) {
-    console.error("Gagal menampilkan notifikasi konfirmasi:", error);
+    console.error("[SIPFAS] Gagal menampilkan notifikasi:", error);
 
     sessionStorage.removeItem(FLASH_NOTIFICATION_KEY);
   }

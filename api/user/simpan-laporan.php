@@ -1,19 +1,24 @@
 <?php
 declare(strict_types=1);
 
-/*
- * SIPFAS - SIMPAN LAPORAN KERUSAKAN
- * Penyimpanan utama menggunakan database MySQL.
- */
+
 
 ini_set('display_errors', '0');
 
 require_once dirname(__DIR__, 2) . '/config/auth-check.php';
+require_once dirname(__DIR__, 2) . '/services/C45/C45Service.php';
+// Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
+require_once dirname(_DIR_, 2) . '/config/csrf.php';
+sipfas_csrf_require_valid();
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');
 header('X-Content-Type-Options: nosniff');
+
+// ==========================================
+// 01. RESPONSE JSON
+// ==========================================
 
 function simpanLaporanResponse(
     int $status,
@@ -21,42 +26,55 @@ function simpanLaporanResponse(
     string $message,
     array $data = []
 ): never {
+
     http_response_code($status);
 
-    echo json_encode(
-        [
-            'success' => $success,
-            'message' => $message,
-            'data' => $data,
-        ],
-        JSON_UNESCAPED_UNICODE |
-        JSON_UNESCAPED_SLASHES |
-        JSON_INVALID_UTF8_SUBSTITUTE
-    );
+    echo json_encode([
+        'success' => $success,
+        'message' => $message,
+        'data' => $data
+    ], JSON_UNESCAPED_UNICODE |
+       JSON_UNESCAPED_SLASHES |
+       JSON_INVALID_UTF8_SUBSTITUTE);
 
     exit;
 }
 
-/* ============================================================
-   01. VALIDASI REQUEST
-============================================================ */
+// ==========================================
+// 02. VALIDASI METHOD
+// ==========================================
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+
     header('Allow: POST');
-    simpanLaporanResponse(405, false, 'Metode permintaan tidak diizinkan.');
+
+    simpanLaporanResponse(
+        405,
+        false,
+        'Metode permintaan tidak diizinkan.'
+    );
 }
+
+// ==========================================
+// 03. VALIDASI CONTENT TYPE
+// ==========================================
 
 $contentType = strtolower(
     trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0])
 );
 
 if ($contentType !== 'application/json') {
-    simpanLaporanResponse(415, false, 'Gunakan format JSON.');
+
+    simpanLaporanResponse(
+        415,
+        false,
+        'Gunakan format JSON.'
+    );
 }
 
-/* ============================================================
-   02. AUTENTIKASI RESMI SIPFAS
-============================================================ */
+// ==========================================
+// 04. VALIDASI LOGIN DAN ROLE
+// ==========================================
 
 sipfas_require_auth();
 sipfas_require_role(['Pelapor']);
@@ -65,6 +83,7 @@ $userSession = sipfas_current_user();
 $idPengguna = sipfas_current_user_id();
 
 if (!$userSession || !$idPengguna) {
+
     simpanLaporanResponse(
         401,
         false,
@@ -72,55 +91,92 @@ if (!$userSession || !$idPengguna) {
     );
 }
 
-/* ============================================================
-   03. MEMBACA BODY JSON
-============================================================ */
+// ==========================================
+// 05. MEMBACA JSON
+// ==========================================
 
 $rawInput = file_get_contents('php://input');
 
 if ($rawInput === false || strlen($rawInput) > 8192) {
-    simpanLaporanResponse(400, false, 'Data permintaan tidak valid.');
+
+    simpanLaporanResponse(
+        400,
+        false,
+        'Data permintaan tidak valid.'
+    );
 }
 
 $input = json_decode($rawInput, true);
 
 if (!is_array($input) || json_last_error() !== JSON_ERROR_NONE) {
-    simpanLaporanResponse(400, false, 'Format JSON tidak valid.');
+
+    simpanLaporanResponse(
+        400,
+        false,
+        'Format JSON tidak valid.'
+    );
 }
 
-/* ============================================================
-   04. MENGAMBIL DAN MEMVALIDASI INPUT
-============================================================ */
+// ==========================================
+// 06. VALIDASI INPUT
+// ==========================================
 
-$kodeLaporan = trim((string) ($input['kode_laporan'] ?? ''));
+$kodeLaporan = trim(
+    (string) ($input['kode_laporan'] ?? '')
+);
+
 $idFasilitas = filter_var(
     $input['id_fasilitas'] ?? null,
     FILTER_VALIDATE_INT
 );
-$deskripsi = trim((string) ($input['deskripsi_kerusakan'] ?? ''));
+
+$deskripsi = trim(
+    (string) ($input['deskripsi_kerusakan'] ?? '')
+);
 
 $x1 = filter_var(
     $input['tingkat_kerusakan_x1'] ?? null,
     FILTER_VALIDATE_INT
 );
+
 $x2 = filter_var(
     $input['dampak_akademik_x2'] ?? null,
     FILTER_VALIDATE_INT
 );
 
-if ($kodeLaporan === '' || strlen($kodeLaporan) > 100) {
-    simpanLaporanResponse(422, false, 'Kode laporan tidak valid.');
+// Kode laporan maksimal 30 karakter.
+if (
+    $kodeLaporan === '' ||
+    mb_strlen($kodeLaporan, 'UTF-8') > 30
+) {
+
+    simpanLaporanResponse(
+        422,
+        false,
+        'Kode laporan wajib diisi dan maksimal 30 karakter.'
+    );
 }
 
 if (!$idFasilitas || $idFasilitas <= 0) {
-    simpanLaporanResponse(422, false, 'Silakan pilih fasilitas yang valid.');
+
+    simpanLaporanResponse(
+        422,
+        false,
+        'Silakan pilih fasilitas yang valid.'
+    );
 }
 
 if ($deskripsi === '') {
-    simpanLaporanResponse(422, false, 'Deskripsi kerusakan wajib diisi.');
+
+    simpanLaporanResponse(
+        422,
+        false,
+        'Deskripsi kerusakan wajib diisi.'
+    );
 }
 
 if (mb_strlen($deskripsi, 'UTF-8') > 300) {
+
     simpanLaporanResponse(
         422,
         false,
@@ -129,137 +185,277 @@ if (mb_strlen($deskripsi, 'UTF-8') > 300) {
 }
 
 if (!in_array($x1, [1, 2, 3], true)) {
-    simpanLaporanResponse(422, false, 'Nilai tingkat kerusakan tidak valid.');
+
+    simpanLaporanResponse(
+        422,
+        false,
+        'Nilai tingkat kerusakan tidak valid.'
+    );
 }
 
 if (!in_array($x2, [1, 2, 3], true)) {
-    simpanLaporanResponse(422, false, 'Nilai dampak akademik tidak valid.');
+
+    simpanLaporanResponse(
+        422,
+        false,
+        'Nilai dampak akademik tidak valid.'
+    );
 }
 
-/*
- * Prioritas dihitung ulang di backend.
- * Frontend tidak menjadi sumber kebenaran perhitungan.
- */
-if ($x1 === 3) {
-    $prioritasAwal = 'Tinggi';
-} elseif ($x1 === 2 && $x2 === 3) {
-    $prioritasAwal = 'Tinggi';
-} elseif ($x1 === 2 || $x2 === 3) {
-    $prioritasAwal = 'Sedang';
-} else {
-    $prioritasAwal = 'Rendah';
-}
+// ==========================================
+// 07. PRIORITAS AWAL DITENTUKAN OLEH MODEL C4.5
+// ==========================================
+// Prediksi dijalankan setelah X3 berhasil diambil dari database
+// fasilitas. Model harus sudah dilatih oleh Administrator.
 
-/* ============================================================
-   05. PROSES DATABASE
-============================================================ */
+// ==========================================
+// 08. PROSES DATABASE
+// ==========================================
 
 try {
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Pastikan akun masih aktif dan role tetap Pelapor.
+    global $pdo;
+
+    if (!isset($pdo) || !($pdo instanceof PDO)) {
+        throw new RuntimeException('Koneksi PDO tidak tersedia.');
+    }
+
+    $pdo->setAttribute(
+        PDO::ATTR_ERRMODE,
+        PDO::ERRMODE_EXCEPTION
+    );
+
+    // --------------------------------------
+    // A. VALIDASI PENGGUNA
+    // --------------------------------------
+
     $stmtUser = $pdo->prepare("
         SELECT
             u.id_pengguna,
             u.status_akun,
             p.nama_peran
+
         FROM pengguna u
-        INNER JOIN peran p ON p.id_peran = u.id_peran
+
+        INNER JOIN peran p
+            ON p.id_peran = u.id_peran
+
         WHERE u.id_pengguna = :id_pengguna
+
         LIMIT 1
     ");
 
     $stmtUser->execute([
-        ':id_pengguna' => $idPengguna,
+        ':id_pengguna' => $idPengguna
     ]);
 
     $pengguna = $stmtUser->fetch(PDO::FETCH_ASSOC);
 
     if (!$pengguna) {
-        simpanLaporanResponse(404, false, 'Data pengguna tidak ditemukan.');
+
+        simpanLaporanResponse(
+            404,
+            false,
+            'Data pengguna tidak ditemukan.'
+        );
     }
 
-    if (strcasecmp(trim((string) $pengguna['status_akun']), 'Aktif') !== 0) {
-        simpanLaporanResponse(403, false, 'Akun tidak aktif. Hubungi Administrator.');
+    if (
+        strcasecmp(
+            trim((string) $pengguna['status_akun']),
+            'Aktif'
+        ) !== 0
+    ) {
+
+        simpanLaporanResponse(
+            403,
+            false,
+            'Akun tidak aktif. Hubungi Administrator.'
+        );
     }
 
-    if (strcasecmp(trim((string) $pengguna['nama_peran']), 'Pelapor') !== 0) {
-        simpanLaporanResponse(403, false, 'Akses API hanya untuk Pelapor.');
+    if (
+        strcasecmp(
+            trim((string) $pengguna['nama_peran']),
+            'Pelapor'
+        ) !== 0
+    ) {
+
+        simpanLaporanResponse(
+            403,
+            false,
+            'Akses API hanya untuk Pelapor.'
+        );
     }
 
-    // Ambil fasilitas dan kategori dari database.
+    // --------------------------------------
+    // B. AMBIL DATA FASILITAS
+    // --------------------------------------
+
     $stmtFasilitas = $pdo->prepare("
         SELECT
             f.id_fasilitas,
             f.kode_fasilitas,
             f.nama_fasilitas,
             f.id_kategori,
-            f.lokasi_ruangan,
+            f.id_lokasi,
             f.frekuensi_penggunaan,
             f.status_fasilitas,
-            k.status_kategori
+
+            k.nama_kategori,
+            k.status_kategori,
+
+            l.nama_lokasi,
+            l.status_lokasi
+
         FROM fasilitas f
+
         INNER JOIN kategori_fasilitas k
             ON k.id_kategori = f.id_kategori
+
+        INNER JOIN lokasi_ruangan l
+            ON l.id_lokasi = f.id_lokasi
+
         WHERE f.id_fasilitas = :id_fasilitas
+
         LIMIT 1
     ");
 
     $stmtFasilitas->execute([
-        ':id_fasilitas' => $idFasilitas,
+        ':id_fasilitas' => $idFasilitas
     ]);
 
     $fasilitas = $stmtFasilitas->fetch(PDO::FETCH_ASSOC);
 
     if (!$fasilitas) {
-        simpanLaporanResponse(404, false, 'Fasilitas tidak ditemukan di database.');
-    }
 
-    if (
-        strcasecmp(trim((string) $fasilitas['status_fasilitas']), 'Aktif') !== 0 ||
-        strcasecmp(trim((string) $fasilitas['status_kategori']), 'Aktif') !== 0
-    ) {
         simpanLaporanResponse(
-            422,
+            404,
             false,
-            'Fasilitas atau kategorinya sedang tidak aktif.'
+            'Fasilitas tidak ditemukan di database.'
         );
     }
 
-    // Pemetaan frekuensi teks Admin menjadi X3 numerik.
-    $frekuensi = mb_strtolower(
-        trim((string) ($fasilitas['frekuensi_penggunaan'] ?? '')),
-        'UTF-8'
-    );
+    // --------------------------------------
+    // C. VALIDASI STATUS FASILITAS
+    // --------------------------------------
 
-    if (str_contains($frekuensi, 'sering')) {
-        $x3 = 3;
-    } elseif (str_contains($frekuensi, 'sedang')) {
-        $x3 = 2;
-    } elseif (str_contains($frekuensi, 'jarang')) {
-        $x3 = 1;
-    } else {
-        preg_match('/\d+/', $frekuensi, $match);
-        $jumlahHari = isset($match[0]) ? (int) $match[0] : null;
+    if (
+        strcasecmp(
+            trim((string) $fasilitas['status_fasilitas']),
+            'Aktif'
+        ) !== 0
+    ) {
 
-        if ($jumlahHari === null) {
-            simpanLaporanResponse(
-                422,
-                false,
-                'Frekuensi penggunaan fasilitas belum memiliki format yang dikenali. Periksa data fasilitas di Admin.'
-            );
-        }
-
-        if ($jumlahHari <= 2) {
-            $x3 = 1;
-        } elseif ($jumlahHari <= 4) {
-            $x3 = 2;
-        } else {
-            $x3 = 3;
-        }
+        simpanLaporanResponse(
+            422,
+            false,
+            'Fasilitas sedang tidak aktif.'
+        );
     }
 
-    // Pastikan kode laporan belum digunakan.
+    // --------------------------------------
+    // D. VALIDASI KATEGORI
+    // --------------------------------------
+
+    if (
+        strcasecmp(
+            trim((string) $fasilitas['status_kategori']),
+            'Aktif'
+        ) !== 0
+    ) {
+
+        simpanLaporanResponse(
+            422,
+            false,
+            'Kategori fasilitas sedang tidak aktif.'
+        );
+    }
+
+    // --------------------------------------
+    // E. VALIDASI LOKASI
+    // --------------------------------------
+
+    if (
+        strcasecmp(
+            trim((string) $fasilitas['status_lokasi']),
+            'Aktif'
+        ) !== 0
+    ) {
+
+        simpanLaporanResponse(
+            422,
+            false,
+            'Lokasi fasilitas sedang tidak aktif.'
+        );
+    }
+
+    // --------------------------------------
+    // F. MENGHITUNG X3
+    // Aturan konversi dipusatkan di C45Service agar sama
+    // dengan Dataset Admin dan proses pelatihan.
+    // --------------------------------------
+
+    $frekuensi = (int) $fasilitas['frekuensi_penggunaan'];
+
+    if ($frekuensi < 0 || $frekuensi > 7) {
+        simpanLaporanResponse(
+            422,
+            false,
+            'Frekuensi penggunaan fasilitas harus antara 0 sampai 7.'
+        );
+    }
+
+    $x3 = \SIPFAS\Services\C45\C45Service::mapFrekuensiPenggunaan(
+        $frekuensi
+    );
+
+    // --------------------------------------
+    // G. PREDIKSI DENGAN MODEL C4.5 AKTIF
+    // --------------------------------------
+
+    $stmtModel = $pdo->query("
+        SELECT id_pelatihan, struktur_pohon
+        FROM riwayat_pelatihan_c45
+        WHERE status_model = 'Aktif'
+        ORDER BY id_pelatihan DESC
+        LIMIT 1
+    ");
+
+    $activeModel = $stmtModel->fetch(PDO::FETCH_ASSOC);
+
+    if (!$activeModel || empty($activeModel['struktur_pohon'])) {
+        simpanLaporanResponse(
+            409,
+            false,
+            'Model C4.5 belum tersedia. Administrator harus menjalankan Pelatihan C4.5 terlebih dahulu.'
+        );
+    }
+
+    $decisionTree = json_decode(
+        (string) $activeModel['struktur_pohon'],
+        true
+    );
+
+    if (!is_array($decisionTree) || empty($decisionTree)) {
+        throw new RuntimeException('Struktur model C4.5 aktif tidak valid.');
+    }
+
+    $c45Service = new \SIPFAS\Services\C45\C45Service();
+
+    $prioritasAwal = $c45Service->predict(
+        $decisionTree,
+        [
+            'x1' => $x1,
+            'x2' => $x2,
+            'x3' => $x3
+        ]
+    );
+
+    // --------------------------------------
+    // H. VALIDASI KODE LAPORAN
+    // --------------------------------------
+
     $stmtKode = $pdo->prepare("
         SELECT id_laporan
         FROM laporan_kerusakan
@@ -268,65 +464,107 @@ try {
     ");
 
     $stmtKode->execute([
-        ':kode_laporan' => $kodeLaporan,
+        ':kode_laporan' => $kodeLaporan
     ]);
 
-    if ($stmtKode->fetch(PDO::FETCH_ASSOC)) {
-        simpanLaporanResponse(409, false, 'Kode laporan sudah digunakan. Silakan kirim ulang.');
+    if ($stmtKode->fetch()) {
+
+        simpanLaporanResponse(
+            409,
+            false,
+            'Kode laporan sudah digunakan. Silakan buat kode baru.'
+        );
     }
 
-    /*
-     * Kolom tanggal mengikuti struktur database yang terlihat
-     * pada phpMyAdmin/ERD: tanggal_dibuat dan tanggal_diperbarui.
-     */
+    // --------------------------------------
+    // I. SIMPAN LAPORAN
+    // --------------------------------------
+
     $pdo->beginTransaction();
 
     $stmtInsert = $pdo->prepare("
         INSERT INTO laporan_kerusakan (
+
             id_pelapor,
             id_fasilitas,
+            id_lokasi,
+
             kode_laporan,
             deskripsi_kerusakan,
+
             tingkat_kerusakan_x1,
             dampak_akademik_x2,
             frekuensi_penggunaan_x3,
+
+            id_pelatihan_awal,
             prioritas_awal,
+
             status_verifikasi,
             status_penanganan,
+
             tanggal_dibuat,
             tanggal_diperbarui
+
         ) VALUES (
+
             :id_pelapor,
             :id_fasilitas,
+            :id_lokasi,
+
             :kode_laporan,
             :deskripsi_kerusakan,
+
             :x1,
             :x2,
             :x3,
+
+            :id_pelatihan_awal,
             :prioritas_awal,
+
             :status_verifikasi,
             :status_penanganan,
+
             NOW(),
             NOW()
         )
     ");
 
     $stmtInsert->execute([
+
         ':id_pelapor' => $idPengguna,
-        ':id_fasilitas' => $idFasilitas,
+
+        ':id_fasilitas' =>
+            (int) $fasilitas['id_fasilitas'],
+
+        ':id_lokasi' =>
+            (int) $fasilitas['id_lokasi'],
+
         ':kode_laporan' => $kodeLaporan,
+
         ':deskripsi_kerusakan' => $deskripsi,
+
         ':x1' => $x1,
+
         ':x2' => $x2,
+
         ':x3' => $x3,
+
+        ':id_pelatihan_awal' => (int) $activeModel['id_pelatihan'],
+
         ':prioritas_awal' => $prioritasAwal,
+
         ':status_verifikasi' => 'Menunggu',
-        ':status_penanganan' => 'Menunggu',
+
+        ':status_penanganan' => 'Menunggu'
     ]);
 
     $idLaporan = (int) $pdo->lastInsertId();
 
     $pdo->commit();
+
+    // --------------------------------------
+    // J. RESPONSE BERHASIL
+    // --------------------------------------
 
     simpanLaporanResponse(
         201,
@@ -334,29 +572,64 @@ try {
         'Laporan berhasil disimpan ke database.',
         [
             'id_laporan' => $idLaporan,
+
             'kode_laporan' => $kodeLaporan,
-            'id_pelapor' => $idPengguna,
-            'id_fasilitas' => (int) $fasilitas['id_fasilitas'],
-            'kode_fasilitas' => (string) $fasilitas['kode_fasilitas'],
-            'nama_fasilitas' => (string) $fasilitas['nama_fasilitas'],
-            'lokasi_ruangan' => (string) $fasilitas['lokasi_ruangan'],
+
+            'id_pelapor' => (int) $idPengguna,
+
+            'id_fasilitas' =>
+                (int) $fasilitas['id_fasilitas'],
+
+            'kode_fasilitas' =>
+                $fasilitas['kode_fasilitas'],
+
+            'nama_fasilitas' =>
+                $fasilitas['nama_fasilitas'],
+
+            'id_kategori' =>
+                (int) $fasilitas['id_kategori'],
+
+            'nama_kategori' =>
+                $fasilitas['nama_kategori'],
+
+            'id_lokasi' =>
+                (int) $fasilitas['id_lokasi'],
+
+            'nama_lokasi' =>
+                $fasilitas['nama_lokasi'],
+
+            'frekuensi_penggunaan' => $frekuensi,
+
             'tingkat_kerusakan_x1' => $x1,
+
             'dampak_akademik_x2' => $x2,
+
             'frekuensi_penggunaan_x3' => $x3,
+
+            'id_pelatihan_awal' => (int) $activeModel['id_pelatihan'],
+
             'prioritas_awal' => $prioritasAwal,
+
             'status_verifikasi' => 'Menunggu',
-            'status_penanganan' => 'Menunggu',
+
+            'status_penanganan' => 'Menunggu'
         ]
     );
 
 } catch (Throwable $e) {
-    if ($pdo->inTransaction()) {
+
+    if (
+        isset($pdo) &&
+        $pdo instanceof PDO &&
+        $pdo->inTransaction()
+    ) {
         $pdo->rollBack();
     }
 
     error_log(
         '[SIPFAS SIMPAN LAPORAN] ' .
-        get_class($e) . ': ' . $e->getMessage()
+        get_class($e) . ': ' .
+        $e->getMessage()
     );
 
     simpanLaporanResponse(

@@ -1,5 +1,5 @@
 <?php
-
+// ModelEvaluation.php melakukan pengujian menggunakan data testing, termasuk akurasi dan confusion matrix.
 namespace SIPFAS\Services\C45;
 
 class ModelEvaluation

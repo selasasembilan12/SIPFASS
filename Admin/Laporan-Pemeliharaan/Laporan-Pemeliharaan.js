@@ -1,171 +1,81 @@
-
-/* =========================================================
-   SIPFAS - ADMIN LAPORAN PEMELIHARAAN
-   File: Laporan-Pemeliharaan.js
-
-   LocalStorage:
-   sipfas_laporan_pemeliharaan
-
-   FITUR:
-   1. Membaca data laporan dari HTML
-   2. Menampilkan detail laporan
-   3. Statistik laporan otomatis
-   4. Pagination
-   5. Penyimpanan LocalStorage
-   6. Sinkronisasi perubahan data
-========================================================= */
-
 (() => {
   "use strict";
 
   // =====================================================
-  // 1. KONFIGURASI
-  // =====================================================
-
-  const STORAGE_KEY = "sipfas_laporan_pemeliharaan";
-
-  const state = {
-    reports: [],
-    currentPage: 1,
-    pageSize: 5,
-    selectedReport: null
-  };
-
-  const $ = (selector, parent = document) =>
-    parent.querySelector(selector);
-
-  const $$ = (selector, parent = document) =>
-    [...parent.querySelectorAll(selector)];
-
-
-  // =====================================================
-  // 2. HELPER
-  // =====================================================
-
-  function escapeHTML(value) {
-
-    return String(value ?? "").replace(/[&<>"']/g, char => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[char]);
-
-  }
-
-  function normalize(value) {
-
-    return String(value ?? "")
-      .trim()
-      .toLowerCase();
-
-  }
-
-
-  // =====================================================
-  // =====================================================
-  // 3. KONFIGURASI API DAN PEMETAAN DATA DATABASE
+  // 01. KONFIGURASI
   // =====================================================
 
   const API_URL = "../../api/admin/laporan-pemeliharaan.php";
 
+  const PAGE_SIZE = 5;
+
+  const state = {
+    reports: [],
+    currentPage: 1,
+    totalPages: 1,
+    total: 0,
+    statistics: {
+      total: 0,
+      menunggu: 0,
+      diproses: 0,
+      selesai: 0,
+    },
+    selectedReport: null,
+    search: "",
+    statusVerifikasi: "",
+    statusPenanganan: "",
+    loading: false,
+  };
+
+  const $ = (selector, parent = document) => parent.querySelector(selector);
+
+  const $$ = (selector, parent = document) => [
+    ...parent.querySelectorAll(selector),
+  ];
+
+  // =====================================================
+  // 02. UTILITAS
+  // =====================================================
+
+  function escapeHTML(value) {
+    return String(value ?? "").replace(
+      /[&<>"']/g,
+      (char) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;",
+        })[char],
+    );
+  }
+
+  function normalize(value) {
+    return String(value ?? "")
+      .trim()
+      .toLowerCase();
+  }
+
   function formatDate(value) {
     if (!value) return "-";
+
     const date = new Date(String(value).replace(" ", "T"));
-    if (Number.isNaN(date.getTime())) return String(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return String(value);
+    }
+
     return new Intl.DateTimeFormat("id-ID", {
-      day: "2-digit", month: "short", year: "numeric",
-      hour: "2-digit", minute: "2-digit"
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     }).format(date);
   }
 
-  function firstValue(...values) {
-    return values.find(value => value !== undefined && value !== null && value !== "") ?? "-";
-  }
-
-  function mapReport(row) {
-    const priority = firstValue(row.prioritas_sesudah, row.prioritas_sebelum, row.prioritas, "-");
-    const rawConfidence = firstValue(
-      row.nilai_kepercayaan, row.confidence, row.persentase_keyakinan,
-      row.confidence_score, 0
-    );
-    const confidence = Number(String(rawConfidence).replace("%", "")) || 0;
-    const verification = firstValue(row.hasil_verifikasi, "Menunggu Verifikasi");
-    let handling = firstValue(row.status_penanganan, row.status_laporan, "Menunggu");
-    if (row.waktu_selesai_penanganan) handling = "Selesai";
-    else if (row.waktu_mulai_penanganan || row.tindak_lanjut_perbaikan) handling = "Dalam Perbaikan";
-
-    return {
-      id: firstValue(row.kode_laporan, row.id_laporan),
-      date: formatDate(firstValue(row.waktu_laporan, row.tanggal_laporan, row.created_at)),
-      facility: firstValue(row.nama_fasilitas),
-      inventory: firstValue(row.kode_fasilitas, row.kode_inventaris),
-      location: firstValue(row.lokasi_ruangan, row.lokasi),
-      recommendation: priority === "-" ? "Belum ada rekomendasi" : `${priority}${confidence ? ` (${confidence.toFixed(1)}%)` : ""}`,
-      priority,
-      confidence,
-      verification,
-      verificationReason: firstValue(row.catatan_verifikasi, ""),
-      handling,
-      reporter: firstValue(row.nama_pelapor),
-      description: firstValue(row.deskripsi_kerusakan, row.keterangan, "-")
-    };
-  }
-
-  async function requestReports() {
-    const allRows = [];
-    let page = 1;
-    let total = Infinity;
-    do {
-      const url = new URL(API_URL, window.location.href);
-      url.searchParams.set("page", String(page));
-      url.searchParams.set("limit", "100");
-      const response = await fetch(url, {
-        method: "GET",
-        credentials: "same-origin",
-        headers: { "Accept": "application/json" }
-      });
-      let result;
-      try { result = await response.json(); }
-      catch { throw new Error("Respons server bukan JSON yang valid."); }
-      if (!response.ok || result.success !== true) {
-        throw new Error(result.message || `Gagal memuat laporan (HTTP ${response.status}).`);
-      }
-      const data = result.data || {};
-      const rows = Array.isArray(data.items) ? data.items : (Array.isArray(data) ? data : []);
-      allRows.push(...rows.map(mapReport).filter(item => item.id !== "-"));
-      total = Number(data.pagination?.total ?? allRows.length);
-      page += 1;
-      if (!rows.length) break;
-    } while (allRows.length < total && page <= 100);
-    return allRows;
-  }
-
-  // =====================================================
-  // 4. MEMUAT DATA LAPORAN DARI API PHP
-  // =====================================================
-
-  async function loadReports() {
-    const tbody = $(".report-table tbody");
-    if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:25px">Memuat data laporan...</td></tr>`;
-    try {
-      state.reports = await requestReports();
-      state.currentPage = 1;
-      renderTable();
-      updateStatistics();
-    } catch (error) {
-      console.error("Gagal memuat laporan pemeliharaan:", error);
-      if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:25px">${escapeHTML(error.message)} <button type="button" class="retry-report-load">Coba lagi</button></td></tr>`;
-      updateStatistics();
-    }
-  }
-
-  // 6. KELAS STATUS
-  // =====================================================
-
   function getPriorityClass(priority) {
-
     const value = normalize(priority);
 
     if (value === "tinggi") {
@@ -176,35 +86,32 @@
       return "priority-medium";
     }
 
-    return "priority-low";
-
-  }
-
-
-  function getVerificationClass(status) {
-
-    const value = normalize(status);
-
-    if (value.includes("terverifikasi") &&
-        !value.includes("tidak")) {
-      return "verified";
+    if (value === "rendah") {
+      return "priority-low";
     }
 
-    if (value.includes("tidak valid")) {
+    return "pending";
+  }
+
+  function getVerificationClass(status) {
+    const value = normalize(status);
+
+    if (value.includes("tidak valid") || value.includes("ditolak")) {
       return "verification-error";
+    }
+
+    if (value.includes("terverifikasi") || value === "valid") {
+      return "verified";
     }
 
     if (value.includes("menunggu")) {
       return "waiting";
     }
 
-    return "";
-
+    return "waiting";
   }
 
-
   function getHandlingClass(status) {
-
     const value = normalize(status);
 
     if (value.includes("selesai")) {
@@ -212,310 +119,304 @@
     }
 
     if (
+      value.includes("proses") ||
       value.includes("perbaikan") ||
-      value.includes("diproses")
+      value.includes("ditangani")
     ) {
       return "processing";
     }
 
-    if (
-      value.includes("ditolak")
-    ) {
+    if (value.includes("ditolak") || value.includes("tidak valid")) {
       return "rejected";
     }
 
     return "pending";
-
   }
 
+  function showError(message) {
+    console.error("[SIPFAS LAPORAN]", message);
+  }
 
   // =====================================================
-  // 7. RENDER TABEL
+  // 03. REQUEST API
+  // =====================================================
+
+  async function requestAPI(params = {}) {
+    const url = new URL(API_URL, window.location.href);
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== "" && value !== null && value !== undefined) {
+        url.searchParams.set(key, String(value));
+      }
+    });
+
+    let response;
+
+    try {
+      response = await fetch(url.toString(), {
+        method: "GET",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+    } catch (error) {
+      throw new Error(
+        "Tidak dapat menghubungi server. Periksa Apache dan koneksi database XAMPP.",
+      );
+    }
+
+    const raw = await response.text();
+
+    let result;
+
+    try {
+      result = JSON.parse(raw);
+    } catch (error) {
+      console.error("[SIPFAS] Respons API bukan JSON:", raw);
+
+      throw new Error("Respons server tidak valid. Periksa file PHP.");
+    }
+
+    if (!response.ok || result.success !== true) {
+      throw new Error(
+        result.message || `Gagal mengambil laporan. HTTP ${response.status}.`,
+      );
+    }
+
+    return result.data || {};
+  }
+
+  // =====================================================
+  // 04. MEMUAT LAPORAN DARI DATABASE
+  // =====================================================
+
+  async function loadReports() {
+    if (state.loading) return;
+
+    state.loading = true;
+
+    const tbody = $(".report-table tbody");
+
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" style="text-align:center;padding:25px">
+            Memuat laporan dari database...
+          </td>
+        </tr>
+      `;
+    }
+
+    try {
+      const data = await requestAPI({
+        page: state.currentPage,
+        limit: PAGE_SIZE,
+        search: state.search,
+        status_verifikasi: state.statusVerifikasi,
+        status_penanganan: state.statusPenanganan,
+      });
+
+      state.reports = Array.isArray(data.items) ? data.items : [];
+
+      const pagination = data.pagination || {};
+
+      state.currentPage = Number(pagination.page || 1);
+
+      state.totalPages = Math.max(1, Number(pagination.total_pages || 1));
+
+      state.total = Number(pagination.total || 0);
+
+      state.statistics = data.statistics || {
+        total: 0,
+        menunggu: 0,
+        diproses: 0,
+        selesai: 0,
+      };
+
+      renderTable();
+      renderStatistics();
+      renderPagination();
+      updateArchiveCount();
+    } catch (error) {
+      showError(error);
+
+      state.reports = [];
+
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align:center;padding:25px">
+              ${escapeHTML(error.message)}
+              <br>
+              <button
+                type="button"
+                class="retry-report-load"
+                style="margin-top:10px"
+              >
+                Coba Lagi
+              </button>
+            </td>
+          </tr>
+        `;
+      }
+
+      updateStatistics();
+      updateArchiveCount();
+    } finally {
+      state.loading = false;
+    }
+  }
+
+  // =====================================================
+  // 05. MENAMPILKAN TABEL LAPORAN
   // =====================================================
 
   function renderTable() {
-
     const tbody = $(".report-table tbody");
 
     if (!tbody) return;
 
-    const totalPages = Math.max(
-      1,
-      Math.ceil(state.reports.length / state.pageSize)
-    );
-
-    state.currentPage = Math.min(
-      Math.max(1, state.currentPage),
-      totalPages
-    );
-
-    const start =
-      (state.currentPage - 1) * state.pageSize;
-
-    const displayed = state.reports.slice(
-      start,
-      start + state.pageSize
-    );
-
-    if (displayed.length === 0) {
-
+    if (state.reports.length === 0) {
       tbody.innerHTML = `
         <tr>
           <td colspan="9" style="text-align:center;padding:25px">
-            Belum ada laporan pemeliharaan.
+            Belum ada laporan pemeliharaan dari User.
           </td>
         </tr>
       `;
+      return;
+    }
 
-    } else {
+    const start = (state.currentPage - 1) * PAGE_SIZE;
 
-      tbody.innerHTML = displayed.map((item, index) => {
+    tbody.innerHTML = state.reports
+      .map((item, index) => {
+        const priority = item.prioritas_rekomendasi || "-";
 
-        const verificationClass =
-          getVerificationClass(item.verification);
+        const verification = item.status_verifikasi || "Menunggu";
 
-        const handlingClass =
-          getHandlingClass(item.handling);
+        const handling = item.status_penanganan || "Menunggu";
 
         return `
+        <tr data-id="${Number(item.id_laporan)}">
 
-          <tr data-id="${escapeHTML(item.id)}">
+          <td class="center">
+            ${start + index + 1}
+          </td>
 
-            <td class="center">
-              ${start + index + 1}
-            </td>
+          <td>
+            <a
+              href="#"
+              class="report-id"
+              data-id="${Number(item.id_laporan)}"
+            >
+              ${escapeHTML(item.kode_laporan)}
+            </a>
+          </td>
 
-            <td>
-              <a
-                href="#"
-                class="report-id"
-                data-id="${escapeHTML(item.id)}"
-              >
-                ${escapeHTML(item.id)}
-              </a>
-            </td>
+          <td>
+            ${escapeHTML(formatDate(item.tanggal_dibuat))}
+          </td>
 
-            <td>
-              ${escapeHTML(item.date)}
-            </td>
+          <td>
+            <strong>
+              ${escapeHTML(item.nama_fasilitas || "-")}
+            </strong>
 
-            <td>
-              <strong>
-                ${escapeHTML(item.facility)}
-              </strong>
+            <small>
+              ${escapeHTML(item.kode_fasilitas || "-")}
+            </small>
+          </td>
 
-              <small>
-                ${escapeHTML(item.inventory)}
-              </small>
-            </td>
+          <td>
+            <span class="location-badge">
+              ${escapeHTML(item.nama_lokasi || "-")}
+            </span>
+          </td>
 
-            <td>
-              <span class="location-badge">
-                ${escapeHTML(item.location)}
-              </span>
-            </td>
+          <td>
+            <span class="status-pill ${getPriorityClass(priority)}">
+              <i></i>
+              ${escapeHTML(priority === "-" ? "Belum tersedia" : priority)}
+            </span>
+          </td>
 
-            <td>
-              <span class="status-pill ${getPriorityClass(item.priority)}">
-                <i></i>
-                ${escapeHTML(item.recommendation)}
-              </span>
-            </td>
+          <td>
+            <span class="status-pill ${getVerificationClass(verification)}">
+              <i></i>
+              ${escapeHTML(verification)}
+            </span>
+          </td>
 
-            <td>
-              <span class="status-pill ${verificationClass}">
-                <i></i>
-                ${escapeHTML(item.verification)}
-              </span>
+          <td>
+            <span class="status-pill ${getHandlingClass(handling)}">
+              <i></i>
+              ${escapeHTML(handling)}
+            </span>
+          </td>
 
-              ${
-                item.verificationReason
-                  ? `<small>${escapeHTML(item.verificationReason)}</small>`
-                  : ""
-              }
-            </td>
+          <td class="center">
+            <a
+              href="#"
+              class="action-btn view-report-btn"
+              data-id="${Number(item.id_laporan)}"
+              aria-label="Lihat laporan"
+              title="Lihat detail laporan"
+            >
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"
+                />
+                <circle cx="12" cy="12" r="2.5"/>
+              </svg>
+            </a>
+          </td>
 
-            <td>
-              <span class="status-pill ${handlingClass}">
-                <i></i>
-                ${escapeHTML(item.handling)}
-              </span>
-            </td>
-
-            <td class="center">
-
-              <a
-                href="#"
-                class="action-btn view-report-btn"
-                data-id="${escapeHTML(item.id)}"
-                aria-label="Lihat laporan"
-                title="Lihat detail laporan"
-              >
-                <svg viewBox="0 0 24 24">
-                  <path
-                    d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"
-                  />
-                  <circle cx="12" cy="12" r="2.5"/>
-                </svg>
-              </a>
-
-            </td>
-
-          </tr>
-
-        `;
-
-      }).join("");
-
-    }
-
-    renderPagination(totalPages);
-
-    updateArchiveCount();
-
-  }
-
-
-  // =====================================================
-  // 8. PAGINATION
-  // =====================================================
-
-  function renderPagination(totalPages) {
-
-    const pagination = $(".pagination");
-
-    if (!pagination) return;
-
-    let html = `
-
-      <a
-        href="#"
-        class="page-btn ${state.currentPage === 1 ? "disabled" : ""}"
-        data-page="prev"
-        aria-label="Sebelumnya"
-      >
-        ‹
-      </a>
-
-    `;
-
-    for (let page = 1; page <= totalPages; page++) {
-
-      html += `
-
-        <a
-          href="#"
-          class="page-btn ${page === state.currentPage ? "active" : ""}"
-          data-page="${page}"
-        >
-          ${page}
-        </a>
-
+        </tr>
       `;
-
-    }
-
-    html += `
-
-      <a
-        href="#"
-        class="page-btn ${state.currentPage === totalPages ? "disabled" : ""}"
-        data-page="next"
-        aria-label="Selanjutnya"
-      >
-        ›
-      </a>
-
-    `;
-
-    pagination.innerHTML = html;
-
+      })
+      .join("");
   }
 
-
-  function changePage(value) {
-
-    const totalPages = Math.max(
-      1,
-      Math.ceil(state.reports.length / state.pageSize)
-    );
-
-    if (value === "prev") {
-
-      state.currentPage--;
-
-    } else if (value === "next") {
-
-      state.currentPage++;
-
-    } else {
-
-      state.currentPage = Number(value);
-
-    }
-
-    state.currentPage = Math.max(
-      1,
-      Math.min(state.currentPage, totalPages)
-    );
-
-    renderTable();
-
-  }
-
-
   // =====================================================
-  // 9. STATISTIK LAPORAN
+  // 06. STATISTIK DARI DATABASE
   // =====================================================
 
-  function updateStatistics() {
-
+  function renderStatistics() {
     const cards = $$(".stats-grid .stat-card");
 
     if (cards.length < 4) return;
 
-    const total = state.reports.length;
+    const total = Number(state.statistics.total || 0);
 
-    const waiting = state.reports.filter(item =>
-      normalize(item.verification).includes("menunggu")
-    ).length;
+    const waiting = Number(state.statistics.menunggu || 0);
 
-    const processing = state.reports.filter(item => {
+    const processing = Number(state.statistics.diproses || 0);
 
-      const status = normalize(item.handling);
-
-      return (
-        status.includes("perbaikan") ||
-        status.includes("diproses")
-      );
-
-    }).length;
-
-    const completed = state.reports.filter(item =>
-      normalize(item.handling).includes("selesai")
-    ).length;
+    const completed = Number(state.statistics.selesai || 0);
 
     const values = [
       {
         count: total,
-        note: `${total} laporan tersedia`
+        note: `${total} laporan tersedia`,
       },
       {
         count: waiting,
-        note: `${total ? (waiting / total * 100).toFixed(1) : 0}% Menunggu Sarpras`
+        note: `${total ? ((waiting / total) * 100).toFixed(1) : "0.0"}% Menunggu Sarpras`,
       },
       {
         count: processing,
-        note: `${total ? (processing / total * 100).toFixed(1) : 0}% Tindakan Aktif`
+        note: `${total ? ((processing / total) * 100).toFixed(1) : "0.0"}% Tindakan Aktif`,
       },
       {
         count: completed,
-        note: `${total ? (completed / total * 100).toFixed(1) : 0}% Selesai`
-      }
+        note: `${total ? ((completed / total) * 100).toFixed(1) : "0.0"}% Selesai`,
+      },
     ];
 
     values.forEach((item, index) => {
-
       const card = cards[index];
 
       const number = $(".stat-value", card);
@@ -533,44 +434,138 @@
       }
 
       if (progress) {
+        const percent = total > 0 ? (item.count / total) * 100 : 0;
 
-        const percent = total
-          ? item.count / total * 100
-          : 0;
-
-        progress.style.width = `${percent}%`;
-
+        progress.style.width = `${Math.min(100, percent)}%`;
       }
-
     });
-
   }
 
+  function updateStatistics() {
+    state.statistics = {
+      total: 0,
+      menunggu: 0,
+      diproses: 0,
+      selesai: 0,
+    };
+
+    renderStatistics();
+  }
 
   // =====================================================
-  // 10. JUMLAH ARSIP
+  // 07. PAGINATION DATABASE
+  // =====================================================
+
+  function renderPagination() {
+    const pagination = $(".pagination");
+
+    if (!pagination) return;
+
+    const current = state.currentPage;
+
+    const total = state.totalPages;
+
+    let pages = [];
+
+    if (total <= 7) {
+      pages = Array.from({ length: total }, (_, index) => index + 1);
+    } else {
+      pages = [...new Set([1, current - 1, current, current + 1, total])]
+        .filter((page) => page >= 1 && page <= total)
+        .sort((a, b) => a - b);
+    }
+
+    let html = `
+      <a
+        href="#"
+        class="page-btn ${current <= 1 ? "disabled" : ""}"
+        data-page="prev"
+        aria-label="Sebelumnya"
+      >
+        ‹
+      </a>
+    `;
+
+    let previous = 0;
+
+    pages.forEach((page) => {
+      if (previous && page - previous > 1) {
+        html += `<span class="page-dots">...</span>`;
+      }
+
+      html += `
+        <a
+          href="#"
+          class="page-btn ${page === current ? "active" : ""}"
+          data-page="${page}"
+        >
+          ${page}
+        </a>
+      `;
+
+      previous = page;
+    });
+
+    html += `
+      <a
+        href="#"
+        class="page-btn ${current >= total ? "disabled" : ""}"
+        data-page="next"
+        aria-label="Selanjutnya"
+      >
+        ›
+      </a>
+    `;
+
+    pagination.innerHTML = html;
+  }
+
+  async function changePage(value) {
+    let nextPage = state.currentPage;
+
+    if (value === "prev") {
+      nextPage--;
+    } else if (value === "next") {
+      nextPage++;
+    } else {
+      nextPage = Number(value);
+    }
+
+    if (
+      nextPage < 1 ||
+      nextPage > state.totalPages ||
+      nextPage === state.currentPage
+    ) {
+      return;
+    }
+
+    state.currentPage = nextPage;
+
+    await loadReports();
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
+  // =====================================================
+  // 08. JUMLAH ARSIP
   // =====================================================
 
   function updateArchiveCount() {
-
     const badge = $(".archive-badge");
 
     if (badge) {
-
-      badge.textContent =
-        `${state.reports.length} Arsip Ditemukan`;
-
+      badge.textContent = `${state.total} Arsip Ditemukan`;
     }
-
   }
 
-
   // =====================================================
-  // 11. MEMBUAT MODAL DETAIL
+  // 09. MODAL DETAIL LAPORAN
   // =====================================================
 
   function createModal() {
-
     if ($("#report-detail-modal")) return;
 
     const modal = document.createElement("div");
@@ -578,7 +573,6 @@
     modal.id = "report-detail-modal";
 
     modal.innerHTML = `
-
       <div class="report-modal-backdrop"></div>
 
       <div class="report-modal-card">
@@ -606,168 +600,18 @@
         ></div>
 
         <div class="report-modal-footer">
-
-          <button
-            type="button"
-            class="report-close-btn"
-          >
+          <button type="button" class="report-close-btn">
             Tutup
           </button>
-
         </div>
 
       </div>
-
     `;
 
     document.body.appendChild(modal);
-
   }
-
-
-  // =====================================================
-  // 12. MEMBUKA DETAIL LAPORAN
-  // =====================================================
-
-  function openReportDetail(id) {
-
-    const item = state.reports.find(report =>
-      String(report.id) === String(id)
-    );
-
-    if (!item) {
-
-      alert("Data laporan tidak ditemukan.");
-
-      return;
-
-    }
-
-    state.selectedReport = item;
-
-    createModal();
-
-    $("#report-modal-title").textContent = item.id;
-
-    $("#report-modal-content").innerHTML = `
-
-      <div class="report-detail-section">
-
-        <h3>Informasi Laporan</h3>
-
-        <div class="report-detail-grid">
-
-          <div class="report-detail-item">
-            <span>ID Laporan</span>
-            <strong>${escapeHTML(item.id)}</strong>
-          </div>
-
-          <div class="report-detail-item">
-            <span>Tanggal Masuk</span>
-            <strong>${escapeHTML(item.date)}</strong>
-          </div>
-
-          <div class="report-detail-item">
-            <span>Nama Fasilitas</span>
-            <strong>${escapeHTML(item.facility)}</strong>
-          </div>
-
-          <div class="report-detail-item">
-            <span>Kode Inventaris</span>
-            <strong>${escapeHTML(item.inventory)}</strong>
-          </div>
-
-          <div class="report-detail-item full">
-            <span>Lokasi Ruangan</span>
-            <strong>${escapeHTML(item.location)}</strong>
-          </div>
-
-        </div>
-
-      </div>
-
-      <div class="report-detail-section">
-
-        <h3>Rekomendasi Sistem C4.5</h3>
-
-        <div class="report-detail-highlight">
-
-          <span class="status-pill ${getPriorityClass(item.priority)}">
-            <i></i>
-            ${escapeHTML(item.priority)}
-          </span>
-
-          <strong>${Number(item.confidence).toFixed(1)}%</strong>
-
-          <small>Nilai rekomendasi yang tercantum pada laporan</small>
-
-        </div>
-
-      </div>
-
-      <div class="report-detail-section">
-
-        <h3>Status Verifikasi dan Penanganan</h3>
-
-        <div class="report-detail-grid">
-
-          <div class="report-detail-item">
-            <span>Status Verifikasi</span>
-            <strong>${escapeHTML(item.verification)}</strong>
-          </div>
-
-          <div class="report-detail-item">
-            <span>Status Penanganan</span>
-            <strong>${escapeHTML(item.handling)}</strong>
-          </div>
-
-          <div class="report-detail-item full">
-            <span>Catatan Verifikasi</span>
-            <strong>
-              ${escapeHTML(item.verificationReason || "Tidak ada catatan verifikasi pada data awal.")}
-            </strong>
-          </div>
-
-        </div>
-
-      </div>
-
-      <div class="report-detail-disclaimer">
-        Detail ini menampilkan informasi yang tersedia pada dataset
-        laporan. Nilai rekomendasi tidak otomatis membuktikan bahwa
-        proses verifikasi atau perbaikan telah dilakukan.
-      </div>
-
-    `;
-
-    $("#report-detail-modal").classList.add("show");
-
-    document.body.style.overflow = "hidden";
-
-  }
-
-
-  // =====================================================
-  // 13. MENUTUP MODAL
-  // =====================================================
-
-  function closeReportDetail() {
-
-    $("#report-detail-modal")?.classList.remove("show");
-
-    document.body.style.overflow = "";
-
-    state.selectedReport = null;
-
-  }
-
-
-  // =====================================================
-  // 14. CSS TAMBAHAN MODAL
-  // =====================================================
 
   function addModalCSS() {
-
     if ($("#report-modal-style")) return;
 
     const style = document.createElement("style");
@@ -775,7 +619,6 @@
     style.id = "report-modal-style";
 
     style.textContent = `
-
       #report-detail-modal {
         position: fixed;
         inset: 0;
@@ -798,7 +641,7 @@
 
       .report-modal-card {
         position: relative;
-        width: min(650px, 100%);
+        width: min(680px, 100%);
         max-height: 90vh;
         overflow-y: auto;
         background: #fff;
@@ -828,11 +671,9 @@
       }
 
       .report-modal-close {
-        border: none;
         background: transparent;
         color: #68717c;
         font-size: 28px;
-        cursor: pointer;
       }
 
       .report-modal-body {
@@ -878,33 +719,13 @@
         color: #25364a;
         font-size: 12px;
         overflow-wrap: anywhere;
-      }
-
-      .report-detail-highlight {
-        display: flex;
-        align-items: center;
-        gap: 13px;
-        flex-wrap: wrap;
-        padding: 15px;
-        background: #f3f6fb;
-        border-radius: 8px;
-      }
-
-      .report-detail-highlight strong {
-        color: #203f65;
-        font-size: 20px;
-      }
-
-      .report-detail-highlight small {
-        color: #718096;
-        font-size: 11px;
-        width: 100%;
+        white-space: pre-wrap;
       }
 
       .report-detail-disclaimer {
         padding: 12px;
-        background: #fff8e8;
-        color: #795c20;
+        background: #f3f6fb;
+        color: #53657b;
         border-radius: 7px;
         font-size: 11px;
         line-height: 1.6;
@@ -919,25 +740,17 @@
 
       .report-close-btn {
         padding: 10px 20px;
-        border: none;
         border-radius: 7px;
         background: #244d7b;
         color: white;
         font-size: 12px;
-        cursor: pointer;
       }
 
       .report-close-btn:hover {
         background: #183b62;
       }
 
-      .view-report-btn,
-      .report-id {
-        cursor: pointer;
-      }
-
       @media(max-width: 550px) {
-
         .report-detail-grid {
           grid-template-columns: 1fr;
         }
@@ -949,50 +762,135 @@
         .report-modal-body {
           padding: 17px;
         }
-
       }
-
     `;
 
     document.head.appendChild(style);
-
   }
 
+  function detailItem(label, value, full = false) {
+    return `
+      <div class="report-detail-item ${full ? "full" : ""}">
+        <span>${escapeHTML(label)}</span>
+        <strong>${escapeHTML(value || "-")}</strong>
+      </div>
+    `;
+  }
+
+  function openReportDetail(id) {
+    const item = state.reports.find(
+      (report) => Number(report.id_laporan) === Number(id),
+    );
+
+    if (!item) {
+      alert("Data laporan tidak ditemukan.");
+      return;
+    }
+
+    state.selectedReport = item;
+
+    createModal();
+
+    $("#report-modal-title").textContent =
+      item.kode_laporan || "Detail Laporan";
+
+    const priority = item.prioritas_rekomendasi || "-";
+
+    $("#report-modal-content").innerHTML = `
+      <div class="report-detail-section">
+        <h3>Informasi Laporan</h3>
+
+        <div class="report-detail-grid">
+          ${detailItem("Kode Laporan", item.kode_laporan)}
+          ${detailItem("Tanggal Masuk", formatDate(item.tanggal_dibuat))}
+          ${detailItem("Nama Pelapor", item.nama_pelapor)}
+          ${detailItem("Nomor Identitas", item.nomor_identitas)}
+          ${detailItem("Nama Fasilitas", item.nama_fasilitas)}
+          ${detailItem("Kode Inventaris", item.kode_fasilitas)}
+          ${detailItem("Lokasi Ruangan", item.nama_lokasi, true)}
+          ${detailItem("Deskripsi Kerusakan", item.deskripsi_kerusakan, true)}
+        </div>
+      </div>
+
+      <div class="report-detail-section">
+        <h3>Atribut Laporan</h3>
+
+        <div class="report-detail-grid">
+          ${detailItem("X1 - Tingkat Kerusakan", item.tingkat_kerusakan_x1)}
+          ${detailItem("X2 - Dampak Akademik", item.dampak_akademik_x2)}
+          ${detailItem("X3 - Frekuensi Penggunaan", item.frekuensi_penggunaan_x3)}
+          ${detailItem("Prioritas Rekomendasi C4.5", priority)}
+        </div>
+      </div>
+
+      <div class="report-detail-section">
+        <h3>Status Verifikasi dan Penanganan</h3>
+
+        <div class="report-detail-grid">
+          ${detailItem("Status Verifikasi", item.status_verifikasi)}
+          ${detailItem("Status Penanganan", item.status_penanganan)}
+          ${detailItem("Nama Verifikator", item.nama_verifikator)}
+          ${detailItem("Waktu Verifikasi", formatDate(item.waktu_verifikasi))}
+          ${detailItem("Catatan Verifikasi", item.catatan_verifikasi, true)}
+          ${detailItem("Nama Petugas Penanggung Jawab", item.nama_petugas)}
+          ${detailItem("Tindak Lanjut Perbaikan", item.tindak_lanjut_perbaikan, true)}
+          ${detailItem("Catatan Petugas", item.catatan_petugas, true)}
+          ${detailItem("Waktu Mulai Penanganan", formatDate(item.waktu_mulai_penanganan))}
+          ${detailItem("Waktu Selesai Penanganan", formatDate(item.waktu_selesai_penanganan))}
+        </div>
+      </div>
+
+      <div class="report-detail-disclaimer">
+        Halaman ini digunakan Administrator untuk memantau laporan.
+        Verifikasi dan pembaruan penanganan tetap dilakukan oleh Petugas.
+        Rekomendasi C4.5 ditampilkan berdasarkan hasil klasifikasi
+        yang tersimpan pada database.
+      </div>
+    `;
+
+    addModalCSS();
+
+    $("#report-detail-modal").classList.add("show");
+
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeReportDetail() {
+    $("#report-detail-modal")?.classList.remove("show");
+
+    document.body.style.overflow = "";
+
+    state.selectedReport = null;
+  }
 
   // =====================================================
-  // 15. EVENT LISTENER
+  // 10. EVENT LISTENER
   // =====================================================
 
   function bindEvents() {
-
-    // AKSI DETAIL LAPORAN
-
     const tbody = $(".report-table tbody");
 
-    tbody?.addEventListener("click", function(event) {
+    // DETAIL LAPORAN
 
-      const button = event.target.closest(
-        ".view-report-btn, .report-id"
-      );
+    tbody?.addEventListener("click", (event) => {
+      const button = event.target.closest(".view-report-btn, .report-id");
 
-      if (!button) return;
+      if (button) {
+        event.preventDefault();
 
-      event.preventDefault();
+        openReportDetail(button.dataset.id);
 
-      const id = button.dataset.id ||
-        button.closest("tr")?.dataset.id;
-
-      if (id) {
-        openReportDetail(id);
+        return;
       }
 
+      if (event.target.closest(".retry-report-load")) {
+        loadReports();
+      }
     });
-
 
     // PAGINATION
 
-    $(".pagination")?.addEventListener("click", function(event) {
-
+    $(".pagination")?.addEventListener("click", (event) => {
       const button = event.target.closest("[data-page]");
 
       if (!button) return;
@@ -1002,84 +900,80 @@
       if (button.classList.contains("disabled")) return;
 
       changePage(button.dataset.page);
-
     });
 
+    // MENUTUP MODAL
 
-    // TUTUP MODAL
-
-    document.addEventListener("click", function(event) {
-
+    document.addEventListener("click", (event) => {
       if (
         event.target.closest(".report-modal-close") ||
         event.target.closest(".report-close-btn") ||
         event.target.classList.contains("report-modal-backdrop")
       ) {
-
         closeReportDetail();
-
       }
-
     });
 
+    // TOMBOL ESCAPE
 
-    // ESCAPE
-
-    document.addEventListener("keydown", function(event) {
-
+    document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
         closeReportDetail();
       }
-
     });
 
+    // PENCARIAN JIKA INPUT TERSEDIA DI HTML
 
-    // MUAT ULANG DATA JIKA REQUEST API GAGAL
-    $(".report-table tbody")?.addEventListener("click", function(event) {
-      if (event.target.closest(".retry-report-load")) loadReports();
+    const searchInput = $("#searchInput");
+
+    let searchTimer;
+
+    searchInput?.addEventListener("input", (event) => {
+      window.clearTimeout(searchTimer);
+
+      searchTimer = window.setTimeout(() => {
+        state.search = event.target.value.trim();
+        state.currentPage = 1;
+        loadReports();
+      }, 350);
     });
 
+    // FILTER STATUS JIKA SELECT TERSEDIA
+
+    $("#filterVerification")?.addEventListener("change", (event) => {
+      state.statusVerifikasi = event.target.value;
+      state.currentPage = 1;
+      loadReports();
+    });
+
+    $("#filterHandling")?.addEventListener("change", (event) => {
+      state.statusPenanganan = event.target.value;
+      state.currentPage = 1;
+      loadReports();
+    });
   }
 
-
   // =====================================================
-  // 16. INISIALISASI
+  // 11. INISIALISASI
   // =====================================================
 
-  function init() {
-
+  async function init() {
     if (!$(".report-table")) return;
-
-    addModalCSS();
-
-    loadReports();
 
     bindEvents();
 
-    console.log(
-      "SIPFAS Laporan Pemeliharaan berhasil dijalankan."
-    );
+    addModalCSS();
+
+    await loadReports();
 
     console.log(
-      "Total laporan:",
-      state.reports.length
+      "[SIPFAS] Admin Laporan Pemeliharaan terhubung ke database MySQL.",
     );
-
   }
-
 
   if (document.readyState === "loading") {
-
-    document.addEventListener(
-      "DOMContentLoaded",
-      init,
-      { once: true }
-    );
-
+    document.addEventListener("DOMContentLoaded", init, { once: true });
   } else {
-
     init();
-
   }
-
 })();

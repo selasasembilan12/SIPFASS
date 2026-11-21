@@ -1,31 +1,12 @@
 <?php
 declare(strict_types=1);
 
-/**
- * SIPFAS - ADMIN API COMMON
- *
- * Helper bersama untuk seluruh endpoint Administrator.
- *
- * Fungsi:
- * - Koneksi database.
- * - Validasi login.
- * - Validasi role Admin.
- * - Perlindungan CSRF.
- * - Respons JSON.
- * - Membaca input API.
- * - Validasi metode HTTP.
- * - Mengambil ID pengguna.
- * - Validasi ID dan teks.
- * - Pagination.
- * - Transaksi database.
- * - Penanganan error.
- */
-
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
-
 require_once dirname(__DIR__, 2) . '/config/role-check.php';
-
 require_once dirname(__DIR__, 2) . '/config/csrf.php';
+// Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
+require_once dirname(_DIR_, 2) . '/config/csrf.php';
+sipfas_csrf_require_valid();
 
 
 /* ==================================================
@@ -33,37 +14,24 @@ require_once dirname(__DIR__, 2) . '/config/csrf.php';
 ================================================== */
 
 header('Content-Type: application/json; charset=utf-8');
-
 header('Cache-Control: no-store, no-cache, must-revalidate');
 
 
 /* ==================================================
    02. VALIDASI LOGIN
 ================================================== */
-
-// Memastikan pengguna sudah login dan OTP terverifikasi.
-
 sipfas_require_auth();
 
 
 /* ==================================================
    03. VALIDASI ROLE ADMIN
 ================================================== */
-
-// Hanya Administrator yang boleh mengakses API Admin.
-
 sipfas_require_role([SIPFAS_ROLE_ADMIN]);
 
 
 /* ==================================================
    04. VALIDASI CSRF
 ================================================== */
-
-// Memastikan seluruh request yang mengubah data
-// memiliki token CSRF yang valid.
-//
-// POST, PUT, PATCH, DELETE wajib menggunakan token.
-// GET, HEAD, OPTIONS tidak memerlukan token.
 
 sipfas_csrf_require_valid();
 

@@ -3,7 +3,7 @@
 date_default_timezone_set('Asia/Makassar');
 
 // =========================================================
-// 2. KONFIGURASI SESSION
+// 1. KONFIGURASI SESSION
 // =========================================================
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -34,6 +34,20 @@ if (session_status() === PHP_SESSION_NONE) {
             'Session SIPFAS gagal dimulai.'
         );
     }
+}
+
+// =========================================================
+// 2. TOKEN CSRF (DIBUAT SETELAH SESSION AKTIF)
+// =========================================================
+// Token disimpan di $_SESSION dan dikirim ke browser lewat
+// endpoint api/shared/csrf-token.php. Browser mengirimnya
+// kembali pada header X-CSRF-Token (lihat assets/js/csrf.js).
+
+if (
+    empty($_SESSION['_csrf_token']) ||
+    !is_string($_SESSION['_csrf_token'])
+) {
+    $_SESSION['_csrf_token'] = bin2hex(random_bytes(32));
 }
 
 // =========================================================

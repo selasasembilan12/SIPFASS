@@ -1,496 +1,363 @@
-// 01. Menjalankan JavaScript setelah HTML selesai dimuat.
+// 01. Konfigurasi API.
+const API_DAFTAR_LAPORAN = "../../../api/user/daftar-laporan.php";
+const KUNCI_PROFIL = "sipfasProfile";
+
+// Menyimpan seluruh laporan dari database.
+let seluruhLaporan = [];
+
+// Mencegah permintaan API berjalan bersamaan.
+let sedangMemuatLaporan = false;
+
+// ============================================================
+// 02. MENJALANKAN PROGRAM SETELAH HALAMAN SELESAI DIMUAT.
+// ============================================================
+
 document.addEventListener("DOMContentLoaded", function () {
   mulaiRiwayatLaporan();
 });
 
-// 02. Nama penyimpanan yang sama dengan halaman Dashboard dan Buat Laporan.
-// 02. Menentukan nama penyimpanan laporan dan profil pengguna.
-const KUNCI_PENYIMPANAN = "sipfasReports";
-const PROFILE_KEY = "sipfasProfile";
-
-// 03. Data simulasi awal apabila LocalStorage masih kosong.
-// const dataLaporanAwal = [
-//   {
-//     id: "LP-2024-089",
-//     date: "24 Okt 2024",
-//     facility: "Proyektor Lab Komputer 2",
-//     priority: "Tinggi",
-//     status: "Menunggu Verifikasi",
-//   },
-//   {
-//     id: "LP-2024-085",
-//     date: "22 Okt 2024",
-//     facility: "Unit AC Split 2 PK",
-//     priority: "Tinggi",
-//     status: "Diproses",
-//   },
-//   {
-//     id: "LP-2024-076",
-//     date: "15 Okt 2024",
-//     facility: "Stop Kontak Meja 04",
-//     priority: "Rendah",
-//     status: "Selesai",
-//   },
-//   {
-//     id: "LP-2024-072",
-//     date: "12 Okt 2024",
-//     facility: "Kipas Angin Dinding",
-//     priority: "Rendah",
-//     status: "Tidak Valid",
-//   },
-//   {
-//     id: "LP-2024-070",
-//     date: "10 Okt 2024",
-//     facility: "Kursi Kuliah Lipat",
-//     priority: "Rendah",
-//     status: "Selesai",
-//   },
-// ];
-
-/* 04. Memulai halaman Riwayat Laporan dan sinkronisasi profil. */
+// ============================================================
+// 03. INISIALISASI HALAMAN LAPORAN SAYA.
+// ============================================================
 
 function mulaiRiwayatLaporan() {
-  const kolomPencarian = document.querySelector(".search-box input");
-  const pilihanStatus = document.querySelector(".filter-box select");
+  const pencarian = document.querySelector(".search-box input");
+  const filter = document.querySelector(".filter-box select");
   const tombolRefresh = document.querySelector(".refresh-button");
-  const isiTabel = document.querySelector(".report-table tbody");
 
-  // Memastikan seluruh elemen HTML tersedia.
-  if (!kolomPencarian || !pilihanStatus || !tombolRefresh || !isiTabel) {
-    console.error("Elemen Riwayat Laporan tidak ditemukan.");
+  // Memperbarui profil pengguna.
+  updateProfilRiwayat();
+
+  // Mengambil data pertama kali.
+  muatRiwayatLaporan();
+
+  // Pencarian laporan.
+  if (pencarian) {
+    pencarian.addEventListener("input", function () {
+      tampilkanRiwayatLaporan();
+    });
+  }
+
+  // Filter status laporan.
+  if (filter) {
+    filter.addEventListener("change", function () {
+      tampilkanRiwayatLaporan();
+    });
+  }
+
+  // Tombol refresh mengambil data terbaru.
+  if (tombolRefresh) {
+    tombolRefresh.addEventListener("click", function (event) {
+      event.preventDefault();
+      muatRiwayatLaporan();
+    });
+  }
+
+  // Memperbarui data saat kembali ke halaman.
+  window.addEventListener("pageshow", function () {
+    muatRiwayatLaporan();
+  });
+
+  // Memperbarui profil jika berubah dari tab lain.
+  window.addEventListener("storage", function (event) {
+    if (event.key === KUNCI_PROFIL || event.key === null) {
+      updateProfilRiwayat();
+    }
+  });
+
+  // Memperbarui laporan secara otomatis setiap 30 detik.
+  setInterval(function () {
+    muatRiwayatLaporan();
+  }, 30000);
+}
+
+// ============================================================
+// 04. MENGAMBIL DATA LAPORAN DARI DATABASE.
+// ============================================================
+
+async function muatRiwayatLaporan() {
+  if (sedangMemuatLaporan) return;
+
+  sedangMemuatLaporan = true;
+
+  try {
+    const response = await fetch(API_DAFTAR_LAPORAN + "?_=" + Date.now(), {
+      method: "GET",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || result.success !== true) {
+      throw new Error(
+        result.message || "Gagal mengambil laporan dari database.",
+      );
+    }
+
+    if (!result.data || !Array.isArray(result.data.laporan)) {
+      throw new Error("Format data laporan dari server tidak sesuai.");
+    }
+
+    // Menyimpan laporan dari database.
+    seluruhLaporan = result.data.laporan;
+
+    // Menampilkan laporan.
+    tampilkanRiwayatLaporan();
+
+    console.log("===== SIPFAS LAPORAN SAYA =====");
+    console.log("Jumlah laporan:", seluruhLaporan.length);
+    console.log("Data laporan:", seluruhLaporan);
+    console.log("================================");
+  } catch (error) {
+    console.error("[SIPFAS RIWAYAT]", error);
+
+    // Tidak menghapus data lama jika pengambilan gagal.
+    tampilkanPesanTabel(error.message || "Gagal memuat laporan dari database.");
+  } finally {
+    sedangMemuatLaporan = false;
+  }
+}
+
+// ============================================================
+// 05. MENAMPILKAN SELURUH LAPORAN.
+// ============================================================
+
+function tampilkanRiwayatLaporan() {
+  const tbody = document.querySelector(".report-table tbody");
+
+  if (!tbody) {
+    console.error("[SIPFAS] Tabel laporan tidak ditemukan.");
     return;
   }
 
-  // Menampilkan data profil terbaru pada bagian header.
-  perbaruiProfilRiwayat();
+  const pencarian = document.querySelector(".search-box input");
+  const filter = document.querySelector(".filter-box select");
 
-  // Menampilkan seluruh data laporan.
-  tampilkanRiwayatLaporan();
+  const kataKunci = pencarian ? pencarian.value.trim().toLowerCase() : "";
 
-  // Memperbarui nama dan laporan apabila data berubah dari tab lain.
-  window.addEventListener("storage", function (event) {
-    if (event.key === PROFILE_KEY || event.key === null) {
-      perbaruiProfilRiwayat();
-    }
+  const statusDipilih = filter
+    ? filter.value.trim().toLowerCase()
+    : "semua status";
 
-    if (event.key === KUNCI_PENYIMPANAN || event.key === null) {
-      tampilkanRiwayatLaporan();
-    }
-  });
+  // Melakukan pencarian dan filter.
+  const hasil = seluruhLaporan.filter(function (laporan) {
+    const status = statusUtamaRiwayat(laporan);
 
-  // Menjalankan pencarian ketika pengguna mengetik.
-  kolomPencarian.addEventListener("input", tampilkanRiwayatLaporan);
+    const teksPencarian = [
+      laporan.kode_laporan,
+      laporan.nama_fasilitas,
+      laporan.nama_lokasi,
+      laporan.deskripsi_kerusakan,
+      laporan.prioritas_awal,
+      laporan.prioritas_prediksi,
+    ]
+      .join(" ")
+      .toLowerCase();
 
-  // Menjalankan filter ketika pengguna memilih status.
-  pilihanStatus.addEventListener("change", tampilkanRiwayatLaporan);
+    const cocokPencarian = teksPencarian.includes(kataKunci);
 
-  // Memuat ulang data ketika tombol refresh diklik.
-  tombolRefresh.addEventListener("click", function (event) {
-    event.preventDefault();
-    tampilkanRiwayatLaporan();
-    perbaruiProfilRiwayat();
-  });
-}
-
-/* =========================================================
-   05. MENGAMBIL DATA DARI LOCALSTORAGE
-   Tidak menggunakan data dummy.
-========================================================= */
-
-function ambilDataLaporan() {
-  try {
-    const dataTersimpan = localStorage.getItem(KUNCI_PENYIMPANAN);
-
-    // Jika belum ada laporan, gunakan array kosong.
-    if (dataTersimpan === null) {
-      return [];
-    }
-
-    const dataLaporan = JSON.parse(dataTersimpan);
-
-    if (
-      !Array.isArray(dataLaporan) ||
-      !dataLaporan.every(function (laporan) {
-        return laporan && typeof laporan === "object";
-      })
-    ) {
-      throw new Error("Format data laporan tidak valid.");
-    }
-
-    return dataLaporan;
-  } catch (error) {
-    console.error("Gagal membaca data laporan:", error);
-    return [];
-  }
-}
-/* =========================================================
-   06. MENYERAGAMKAN DATA LAPORAN
-========================================================= */
-
-function rapikanDataLaporan(laporan) {
-  // Membaca ID dari beberapa kemungkinan nama properti.
-  const kode = laporan.id || laporan.kodeLaporan || laporan.kode_laporan || "";
-
-  // Membaca nama fasilitas.
-  const fasilitas =
-    laporan.facility ||
-    laporan.namaFasilitas ||
-    laporan.nama_fasilitas ||
-    "Fasilitas tidak disebutkan";
-
-  // Membaca lokasi fasilitas.
-  const lokasi =
-    laporan.location ||
-    laporan.lokasiFasilitas ||
-    laporan.lokasi_fasilitas ||
-    "";
-
-  // Membaca tanggal laporan.
-  const tanggal =
-    laporan.date ||
-    laporan.tanggalLaporan ||
-    laporan.tanggal_laporan ||
-    laporan.createdAt ||
-    laporan.created_at ||
-    "";
-
-  // Membaca prioritas laporan.
-  const prioritas = laporan.priority || laporan.prioritas || "Belum Ditentukan";
-
-  // Membaca status laporan.
-  const status =
-    laporan.status ||
-    laporan.mainStatus ||
-    laporan.statusLaporan ||
-    laporan.status_laporan ||
-    "Menunggu Verifikasi";
-
-  return {
-    ...laporan,
-    id: String(kode),
-    facility: String(fasilitas),
-    location: String(lokasi),
-    date: formatTanggalLaporan(tanggal),
-    sortDate: bacaTanggalLaporan(tanggal),
-    priority: formatPrioritas(prioritas),
-    status: formatStatus(status),
-  };
-}
-
-/* =========================================================
-   07. MENYERAGAMKAN FORMAT PRIORITAS
-========================================================= */
-
-function formatPrioritas(prioritas) {
-  const nilai = String(prioritas)
-    .replace(/^Prioritas\s+/i, "")
-    .trim()
-    .toLowerCase();
-
-  const daftarPrioritas = {
-    tinggi: "Tinggi",
-    sedang: "Sedang",
-    rendah: "Rendah",
-  };
-
-  return daftarPrioritas[nilai] || "Belum Ditentukan";
-}
-
-/* =========================================================
-   08. MENYERAGAMKAN FORMAT STATUS
-========================================================= */
-
-function formatStatus(status) {
-  const nilai = String(status).toLowerCase().trim();
-
-  if (nilai.includes("menunggu")) {
-    return "Menunggu Verifikasi";
-  }
-
-  if (nilai.includes("proses")) {
-    return "Diproses";
-  }
-
-  if (nilai.includes("selesai")) {
-    return "Selesai";
-  }
-
-  if (
-    nilai.includes("tidak valid") ||
-    nilai.includes("invalid") ||
-    nilai.includes("ditolak")
-  ) {
-    return "Tidak Valid";
-  }
-
-  return "Menunggu Verifikasi";
-}
-
-/* =========================================================
-   09. MEMBACA DAN MENGUBAH FORMAT TANGGAL
-========================================================= */
-
-function bacaTanggalLaporan(tanggal) {
-  if (!tanggal) return 0;
-
-  // Mencoba membaca tanggal ISO atau format bawaan JavaScript.
-  const tanggalLangsung = new Date(tanggal);
-
-  if (!isNaN(tanggalLangsung.getTime())) {
-    return tanggalLangsung.getTime();
-  }
-
-  // Daftar bulan dalam bahasa Indonesia.
-  const bulan = {
-    jan: 0,
-    januari: 0,
-    feb: 1,
-    februari: 1,
-    mar: 2,
-    maret: 2,
-    apr: 3,
-    april: 3,
-    mei: 4,
-    jun: 5,
-    juni: 5,
-    jul: 6,
-    juli: 6,
-    agu: 7,
-    agustus: 7,
-    sep: 8,
-    september: 8,
-    okt: 9,
-    oktober: 9,
-    nov: 10,
-    november: 10,
-    des: 11,
-    desember: 11,
-  };
-
-  // Membaca tanggal seperti 24 Okt 2024.
-  const cocok = String(tanggal).match(/(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})/i);
-
-  if (cocok) {
-    const hari = Number(cocok[1]);
-    const namaBulan = cocok[2].toLowerCase();
-    const tahun = Number(cocok[3]);
-
-    if (bulan[namaBulan] !== undefined) {
-      return new Date(tahun, bulan[namaBulan], hari).getTime();
-    }
-  }
-
-  return 0;
-}
-
-// Mengubah tanggal menjadi format yang ditampilkan pada tabel.
-function formatTanggalLaporan(tanggal) {
-  if (!tanggal) return "-";
-
-  const waktu = bacaTanggalLaporan(tanggal);
-
-  if (!waktu) return String(tanggal);
-
-  return new Date(waktu).toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    timeZone: "Asia/Jayapura",
-  });
-}
-
-/* =========================================================
-   10. MENAMPILKAN RIWAYAT LAPORAN
-========================================================= */
-
-function tampilkanRiwayatLaporan() {
-  const isiTabel = document.querySelector(".report-table tbody");
-  const kolomPencarian = document.querySelector(".search-box input");
-  const pilihanStatus = document.querySelector(".filter-box select");
-
-  if (!isiTabel || !kolomPencarian || !pilihanStatus) return;
-
-  // Mengambil dan menyeragamkan seluruh data laporan.
-  const semuaLaporan = ambilDataLaporan().map(rapikanDataLaporan);
-
-  // Mengurutkan laporan dari tanggal terbaru.
-  semuaLaporan.sort(function (a, b) {
-    return b.sortDate - a.sortDate;
-  });
-
-  // Mengambil kata kunci pencarian.
-  const kataKunci = kolomPencarian.value.toLowerCase().trim();
-
-  // Mengambil status yang dipilih.
-  const statusDipilih = pilihanStatus.value;
-
-  // Mencari dan menyaring laporan.
-  const hasilFilter = semuaLaporan.filter(function (laporan) {
-    const cocokPencarian =
-      laporan.id.toLowerCase().includes(kataKunci) ||
-      laporan.facility.toLowerCase().includes(kataKunci) ||
-      laporan.location.toLowerCase().includes(kataKunci) ||
-      laporan.date.toLowerCase().includes(kataKunci) ||
-      laporan.priority.toLowerCase().includes(kataKunci) ||
-      laporan.status.toLowerCase().includes(kataKunci);
-
+    // Filter Semua Status.
     const cocokStatus =
-      statusDipilih === "Semua Status" ||
-      laporan.status === formatStatus(statusDipilih);
+      statusDipilih === "" ||
+      statusDipilih === "semua" ||
+      statusDipilih === "semua status" ||
+      status.toLowerCase() === statusDipilih;
 
     return cocokPencarian && cocokStatus;
   });
 
-  // Menghapus isi tabel sebelumnya.
-  isiTabel.replaceChildren();
+  tbody.replaceChildren();
 
-  // Menampilkan pesan jika data tidak ditemukan.
-  if (hasilFilter.length === 0) {
-    const barisKosong = document.createElement("tr");
-    const kolomKosong = document.createElement("td");
+  // Jika tidak ada hasil.
+  if (hasil.length === 0) {
+    const pesan =
+      seluruhLaporan.length === 0
+        ? "Belum ada laporan yang dikirim."
+        : "Tidak ditemukan laporan yang sesuai.";
 
-    kolomKosong.colSpan = 6;
-    kolomKosong.textContent = "Data laporan tidak ditemukan.";
-    kolomKosong.style.textAlign = "center";
-    kolomKosong.style.padding = "30px";
-    kolomKosong.style.color = "#687d9d";
-
-    barisKosong.appendChild(kolomKosong);
-    isiTabel.appendChild(barisKosong);
-
+    tampilkanPesanTabel(pesan);
     return;
   }
 
-  // Menampilkan setiap laporan pada tabel.
-  hasilFilter.forEach(function (laporan) {
-    const baris = document.createElement("tr");
+  // Membuat baris tabel.
+  hasil.forEach(function (laporan) {
+    const row = document.createElement("tr");
 
     // Kolom kode laporan.
-    const kolomKode = document.createElement("td");
-    kolomKode.className = "report-code";
-    kolomKode.textContent = laporan.id || "-";
+    const kodeCell = document.createElement("td");
+    kodeCell.className = "report-code";
+    kodeCell.textContent = laporan.kode_laporan || "-";
 
     // Kolom tanggal.
-    const kolomTanggal = document.createElement("td");
-    kolomTanggal.className = "report-date";
-    kolomTanggal.textContent = laporan.date;
+    const tanggalCell = document.createElement("td");
+    tanggalCell.className = "report-date";
+    tanggalCell.textContent = formatTanggalRiwayat(laporan.tanggal_dibuat);
 
     // Kolom fasilitas.
-    const kolomFasilitas = document.createElement("td");
-    kolomFasilitas.className = "facility-name";
-    kolomFasilitas.textContent = laporan.facility;
+    const fasilitasCell = document.createElement("td");
+    fasilitasCell.className = "facility-name";
+    fasilitasCell.textContent = laporan.nama_fasilitas || "-";
 
     // Kolom prioritas.
-    const kolomPrioritas = document.createElement("td");
-    kolomPrioritas.appendChild(buatBadgePrioritas(laporan.priority));
+    const prioritasCell = document.createElement("td");
+
+    prioritasCell.appendChild(
+      buatBadgePrioritasRiwayat(
+        laporan.prioritas_prediksi || laporan.prioritas_awal,
+      ),
+    );
 
     // Kolom status.
-    const kolomStatus = document.createElement("td");
-    kolomStatus.appendChild(buatBadgeStatus(laporan.status));
+    const statusCell = document.createElement("td");
 
-    // Kolom aksi atau tombol detail.
-    const kolomAksi = document.createElement("td");
+    statusCell.appendChild(buatBadgeStatusRiwayat(statusUtamaRiwayat(laporan)));
+
+    // Kolom aksi.
+    const aksiCell = document.createElement("td");
+
     const tombolDetail = document.createElement("a");
 
     tombolDetail.className = "detail-button";
-    tombolDetail.href =
-      "../Detail-laporan/Detail-laporan.html?id=" +
-      encodeURIComponent(laporan.id);
-
     tombolDetail.textContent = "Detail";
 
-    // Membuat ikon mata pada tombol detail.
-    tombolDetail.appendChild(buatIkonMata());
+    // Mengirim ID laporan database melalui URL.
+    tombolDetail.href =
+      "../Detail-laporan/Detail-laporan.html?id=" +
+      encodeURIComponent(laporan.id_laporan);
 
-    kolomAksi.appendChild(tombolDetail);
+    aksiCell.appendChild(tombolDetail);
 
-    // Menggabungkan seluruh kolom.
-    baris.append(
-      kolomKode,
-      kolomTanggal,
-      kolomFasilitas,
-      kolomPrioritas,
-      kolomStatus,
-      kolomAksi,
+    // Memasukkan seluruh kolom.
+    row.append(
+      kodeCell,
+      tanggalCell,
+      fasilitasCell,
+      prioritasCell,
+      statusCell,
+      aksiCell,
     );
 
-    isiTabel.appendChild(baris);
+    tbody.appendChild(row);
   });
 
-  // Menampilkan informasi pada Console.
-  console.log("===== RIWAYAT LAPORAN SIPFAS =====");
-  console.log("Total laporan:", semuaLaporan.length);
-  console.log("Hasil pencarian:", hasilFilter.length);
-  console.log("Kata kunci:", kataKunci || "Tidak ada");
-  console.log("Filter status:", statusDipilih);
-  console.log("Data laporan:", hasilFilter);
-  console.log("==================================");
+  console.log("[SIPFAS] Laporan ditampilkan:", hasil.length);
 }
 
-/* =========================================================
-   11. MEMBUAT BADGE PRIORITAS
-========================================================= */
+// ============================================================
+// 06. MENENTUKAN STATUS UTAMA LAPORAN.
+// ============================================================
 
-function buatBadgePrioritas(prioritas) {
+function statusUtamaRiwayat(laporan) {
+  const verifikasi = normalisasiStatusRiwayat(laporan.status_verifikasi);
+
+  const penanganan = normalisasiStatusRiwayat(laporan.status_penanganan);
+
+  // Laporan ditolak atau tidak valid.
+  if (
+    verifikasi.includes("tolak") ||
+    verifikasi.includes("tidak valid") ||
+    verifikasi.includes("invalid")
+  ) {
+    return "Tidak Valid";
+  }
+
+  // Penanganan selesai.
+  if (penanganan.includes("selesai")) {
+    return "Selesai";
+  }
+
+  // Penanganan atau verifikasi berjalan.
+  if (
+    penanganan.includes("proses") ||
+    penanganan.includes("ditangani") ||
+    verifikasi.includes("proses") ||
+    verifikasi.includes("diverifikasi") ||
+    verifikasi.includes("diterima") ||
+    verifikasi === "valid"
+  ) {
+    return "Diproses";
+  }
+
+  // Kondisi awal.
+  return "Menunggu Verifikasi";
+}
+
+// ============================================================
+// 07. NORMALISASI STATUS.
+// ============================================================
+
+function normalisasiStatusRiwayat(status) {
+  return String(status || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+// ============================================================
+// 08. MEMBUAT BADGE PRIORITAS.
+// ============================================================
+
+function buatBadgePrioritasRiwayat(nilai) {
   const badge = document.createElement("span");
-  const titik = document.createElement("span");
 
-  const kelasPrioritas = {
-    Tinggi: "priority-high",
-    Sedang: "priority-medium",
-    Rendah: "priority-low",
-  };
+  const prioritas = normalisasiStatusRiwayat(nilai);
 
-  badge.className =
-    "priority-badge " + (kelasPrioritas[prioritas] || "priority-low");
+  badge.className = "priority-badge";
 
-  titik.className = "badge-dot";
-
-  badge.append(titik, document.createTextNode(prioritas));
+  if (prioritas.includes("tinggi")) {
+    badge.classList.add("priority-high");
+    badge.textContent = "Tinggi";
+  } else if (prioritas.includes("sedang")) {
+    badge.classList.add("priority-medium");
+    badge.textContent = "Sedang";
+  } else if (prioritas.includes("rendah")) {
+    badge.classList.add("priority-low");
+    badge.textContent = "Rendah";
+  } else {
+    badge.textContent = "Belum Ditentukan";
+  }
 
   return badge;
 }
 
-/* =========================================================
-   12. MEMBUAT BADGE STATUS
-========================================================= */
+// ============================================================
+// 09. MEMBUAT BADGE STATUS.
+// ============================================================
 
-function buatBadgeStatus(status) {
+function buatBadgeStatusRiwayat(status) {
   const badge = document.createElement("span");
 
-  const kelasStatus = {
-    "Menunggu Verifikasi": "status-waiting",
-    Diproses: "status-process",
-    Selesai: "status-completed",
-    "Tidak Valid": "status-invalid",
-  };
+  badge.className = "status-badge";
 
-  badge.className = "status-badge " + (kelasStatus[status] || "status-waiting");
+  if (status === "Selesai") {
+    badge.classList.add("status-completed");
+  } else if (status === "Diproses") {
+    badge.classList.add("status-processing");
 
-  // Membuat ikon silang untuk laporan tidak valid.
-  if (status === "Tidak Valid") {
-    const ikon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const dot = document.createElement("span");
+    dot.className = "status-dot";
 
-    ikon.setAttribute("viewBox", "0 0 24 24");
+    badge.appendChild(dot);
+  } else if (status === "Tidak Valid") {
+    badge.classList.add("status-invalid");
 
-    const lingkaran = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "circle",
-    );
+    const icon = document.createElement("span");
+    icon.className = "invalid-icon";
+    icon.textContent = "⊗";
 
-    lingkaran.setAttribute("cx", "12");
-    lingkaran.setAttribute("cy", "12");
-    lingkaran.setAttribute("r", "9");
+    badge.appendChild(icon);
+  } else {
+    badge.classList.add("status-waiting");
 
-    const silang = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "path",
-    );
+    const dot = document.createElement("span");
+    dot.className = "status-dot";
 
-    silang.setAttribute("d", "m9 9 6 6m0-6-6 6");
-
-    ikon.append(lingkaran, silang);
-    badge.appendChild(ikon);
+    badge.appendChild(dot);
   }
 
   badge.appendChild(document.createTextNode(status));
@@ -498,68 +365,72 @@ function buatBadgeStatus(status) {
   return badge;
 }
 
-/* =========================================================
-   13. MEMBUAT IKON MATA UNTUK TOMBOL DETAIL
-========================================================= */
+// ============================================================
+// 10. FORMAT TANGGAL LAPORAN.
+// ============================================================
 
-function buatIkonMata() {
-  const ikon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+function formatTanggalRiwayat(value) {
+  if (!value) return "-";
 
-  ikon.setAttribute("viewBox", "0 0 24 24");
-  ikon.setAttribute("aria-hidden", "true");
+  const tanggal = new Date(String(value).replace(" ", "T"));
 
-  const jalur = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  if (Number.isNaN(tanggal.getTime())) {
+    return String(value);
+  }
 
-  jalur.setAttribute("d", "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z");
-
-  const lingkaran = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "circle",
-  );
-
-  lingkaran.setAttribute("cx", "12");
-  lingkaran.setAttribute("cy", "12");
-  lingkaran.setAttribute("r", "3");
-
-  ikon.append(jalur, lingkaran);
-
-  return ikon;
+  return tanggal.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "Asia/Makassar",
+  });
 }
 
-/* 14. Mengambil dan memperbarui nama pengguna dari LocalStorage. */
+// ============================================================
+// 11. MENAMPILKAN PESAN PADA TABEL.
+// ============================================================
 
-function perbaruiProfilRiwayat() {
+function tampilkanPesanTabel(pesan) {
+  const tbody = document.querySelector(".report-table tbody");
+
+  if (!tbody) return;
+
+  tbody.replaceChildren();
+
+  const row = document.createElement("tr");
+  const cell = document.createElement("td");
+
+  cell.colSpan = 6;
+  cell.textContent = pesan;
+  cell.style.textAlign = "center";
+  cell.style.padding = "25px";
+
+  row.appendChild(cell);
+  tbody.appendChild(row);
+}
+
+// ============================================================
+// 12. SINKRONISASI PROFIL PENGGUNA.
+// ============================================================
+
+function updateProfilRiwayat() {
   try {
-    // Mengambil data profil yang tersimpan.
-    const dataProfil = localStorage.getItem(PROFILE_KEY);
+    const dataProfil = localStorage.getItem(KUNCI_PROFIL);
 
-    if (!dataProfil) {
-      console.log("Data profil belum tersedia.");
-      return;
-    }
+    if (!dataProfil) return;
 
-    // Mengubah JSON menjadi objek JavaScript.
     const profil = JSON.parse(dataProfil);
 
-    // Memastikan nama pengguna tersedia.
-    if (!profil || typeof profil.name !== "string") {
-      return;
+    const nama = String(
+      profil.name || profil.fullName || profil.nama || "",
+    ).trim();
+
+    if (nama) {
+      document.querySelectorAll(".header-name").forEach(function (element) {
+        element.textContent = nama;
+      });
     }
-
-    const namaPengguna = profil.name.trim();
-
-    if (!namaPengguna) return;
-
-    // Memperbarui nama pengguna pada bagian header.
-    document.querySelectorAll(".header-name").forEach(function (elemen) {
-      elemen.textContent = namaPengguna;
-    });
-
-    console.log(
-      "Nama pengguna pada Riwayat Laporan berhasil diperbarui:",
-      namaPengguna,
-    );
   } catch (error) {
-    console.error("Gagal memperbarui profil Riwayat Laporan:", error);
+    console.error("[SIPFAS] Gagal memperbarui profil:", error);
   }
 }

@@ -1,18 +1,10 @@
 
 <?php
 // konfigurasi DB 
-// Menentukan alamat server database.
 define('DB_HOST', '127.0.0.1');
-
-// Menentukan nama database SIPFAS.
 define('DB_NAME', 'sipfas');
-
-// Menentukan username database.
 define('DB_USER', 'root');
-
-// Password database XAMPP (default kosong).
 define('DB_PASS', '');
-
 
 // 2. MEMBUAT KONEKSI DATABASE
 

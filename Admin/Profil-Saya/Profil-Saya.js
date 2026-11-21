@@ -1,15 +1,3 @@
-/* =========================================================
-   SIPFAS - PROFIL ADMIN
-
-   Fitur:
-   - Memuat profil dari database.
-   - Preview foto sementara.
-   - Foto tidak diupload sebelum tombol Simpan ditekan.
-   - Menyimpan profil ke database.
-   - Mengupload foto setelah tombol Simpan ditekan.
-   - Sinkronisasi profil ke seluruh halaman Admin.
-========================================================= */
-
 (() => {
   "use strict";
 
