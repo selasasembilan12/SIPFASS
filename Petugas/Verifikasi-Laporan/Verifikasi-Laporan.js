@@ -18,7 +18,7 @@
       "../Detail-Verifikasi-Laporan/Detail-Verifikasi-Laporan.html";
 
     const SELECTED_REPORT_KEY = "sipfas_selected_report";
-    const TIME_ZONE = "Asia/Jayapura";
+    const TIME_ZONE = "Asia/Makassar";
 
     // Mengambil elemen HTML yang digunakan halaman.
     const $ = (id) => document.getElementById(id);
@@ -44,6 +44,7 @@
     let reports = [];
     let currentOfficerProfile = null;
     let refreshTimer = null;
+    let clockTimer = null;
     let refreshInProgress = false;
 
     // Menormalisasi teks agar pencarian tidak sensitif terhadap huruf besar.
@@ -167,7 +168,7 @@
       }).format(date);
 
       if (today === reportDay) {
-        return `Hari ini, ${time} WIT`;
+        return `Hari ini, ${time} WITA`;
       }
 
       const formattedDate = new Intl.DateTimeFormat("id-ID", {
@@ -177,7 +178,7 @@
         year: "numeric"
       }).format(date);
 
-      return `${formattedDate}, pukul ${time} WIT`;
+      return `${formattedDate}, pukul ${time} WITA`;
     }
 
     // Mengambil data JSON dari server.
@@ -617,7 +618,7 @@
       }
     }
 
-    // Memperbarui informasi waktu pada judul tabel.
+    // Menampilkan jam aktual perangkat dalam zona waktu Manado (WITA).
     function updateLatestVerificationDisplay() {
       const element = document.querySelector(
         "#lastUpdate, #lastUpdated, .last-update, .update-terakhir, [data-last-update]"
@@ -937,7 +938,15 @@
       }
     });
 
-    // Memperbarui data secara berkala untuk mendukung laporan baru.
+    // Jam pada label diperbarui setiap detik, terpisah dari pemuatan data.
+    updateLatestVerificationDisplay();
+    clockTimer = window.setInterval(() => {
+      if (!document.hidden) {
+        updateLatestVerificationDisplay();
+      }
+    }, 1000);
+
+    // Memperbarui data laporan dari database setiap 15 detik.
     refreshTimer = window.setInterval(() => {
       if (!document.hidden) {
         refreshReports();
@@ -949,6 +958,11 @@
       if (refreshTimer !== null) {
         clearInterval(refreshTimer);
         refreshTimer = null;
+      }
+
+      if (clockTimer !== null) {
+        clearInterval(clockTimer);
+        clockTimer = null;
       }
     });
 

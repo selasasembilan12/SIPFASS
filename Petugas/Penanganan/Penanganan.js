@@ -126,7 +126,9 @@
 
       if (
         text === "valid" ||
-        text === "laporan valid"
+        text === "laporan valid" ||
+        text === "terverifikasi" ||
+        text === "diterima"
       ) {
         return "valid";
       }
@@ -278,7 +280,8 @@
 
         decision: normalizeDecision(
           firstValue(report, [
-            "hasil_verifikasi"
+            "hasil_verifikasi",
+            "status_verifikasi"
           ])
         ),
 
@@ -322,6 +325,8 @@
         ]),
 
         officerId: firstValue(report, [
+          "id_petugas_penanganan",
+          "id_petugas_penanggung_jawab",
           "id_petugas"
         ])
       };

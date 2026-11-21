@@ -176,6 +176,10 @@ try {
             -- IDENTITAS PETUGAS PENANGGUNG JAWAB
             petugas.nama_lengkap AS nama_petugas,
 
+            -- HASIL VERIFIKASI TERAKHIR
+            rv.hasil_verifikasi,
+            rv.prioritas_sesudah,
+
             -- RIWAYAT PENANGANAN TERAKHIR
             rp.id_riwayat_penanganan,
             rp.id_petugas AS id_petugas_penanganan,
@@ -205,6 +209,13 @@ try {
         LEFT JOIN pengguna petugas
             ON petugas.id_pengguna =
                 lk.id_petugas_penanggung_jawab
+
+        LEFT JOIN riwayat_verifikasi_laporan rv
+            ON rv.id_riwayat_verifikasi = (
+                SELECT MAX(rv2.id_riwayat_verifikasi)
+                FROM riwayat_verifikasi_laporan rv2
+                WHERE rv2.id_laporan = lk.id_laporan
+            )
 
         LEFT JOIN riwayat_penanganan rp
             ON rp.id_riwayat_penanganan = (
@@ -345,16 +356,13 @@ try {
         }
     }
 
-    // 07. Mengirim daftar laporan kepada JavaScript.
-    daftarPenangananResponse(
-        200,
-        true,
-        'Daftar penanganan berhasil dimuat.',
-        [
-            'laporan' => $laporan,
-            'stats' => $stats
-        ]
-    );
+   // 07. Mengirim daftar laporan kepada JavaScript.
+daftarPenangananResponse(
+    200,
+    true,
+    'Daftar penanganan berhasil dimuat.',
+    $laporan
+);
 
 } catch (Throwable $e) {
 

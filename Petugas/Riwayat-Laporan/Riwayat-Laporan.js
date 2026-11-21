@@ -32,6 +32,9 @@
     const detailPriority = $("detailPriority");
     const detailAction = $("detailAction");
     const detailNote = $("detailNote");
+    const detailOfficer = $("detailOfficer");
+    const detailOfficerLabel = $("detailOfficerLabel");
+    const detailHandlingTime = $("detailHandlingTime");
 
     const sidebar = $("sidebar");
     const menuToggle = $("menuToggle");
@@ -168,6 +171,7 @@
       if (
         text === "valid" ||
         text === "laporan valid" ||
+        text === "terverifikasi" ||
         text === "diterima"
       ) {
         return "valid";
@@ -216,6 +220,7 @@
       if (
         [
           "menunggu",
+          "menunggu penanganan",
           "waiting",
           "menunggu perbaikan"
         ].includes(text)
@@ -269,16 +274,18 @@
         ] = match;
 
         const date = new Date(
-          Number(year),
-          Number(month) - 1,
-          Number(day),
-          Number(hour),
-          Number(minute),
-          Number(second)
+          Date.UTC(
+            Number(year),
+            Number(month) - 1,
+            Number(day),
+            Number(hour),
+            Number(minute),
+            Number(second)
+          )
         );
 
         const formatted = new Intl.DateTimeFormat("id-ID", {
-          timeZone: "Asia/Jayapura",
+          timeZone: "UTC",
           day: "2-digit",
           month: "short",
           year: "numeric"
@@ -349,8 +356,8 @@
     function isFinalHistoryRecord(data) {
       const decision = normalizeDecision(
         firstValue(data, [
-          "hasil_verifikasi",
-          "status_verifikasi"
+          "status_verifikasi",
+          "hasil_verifikasi"
         ])
       );
 
@@ -386,10 +393,20 @@
 
       if (!code) return null;
 
+      // Catatan penanganan terakhir yang disimpan dari halaman Detail Penanganan.
+      const handlingHistory = Array.isArray(data.riwayat_penanganan)
+        ? data.riwayat_penanganan
+        : [];
+
+      const latestHandling = handlingHistory[0] || {};
+
+      const handlingValue = (keys, fallback = "") =>
+        firstValue(data, keys, firstValue(latestHandling, keys, fallback));
+
       const decision = normalizeDecision(
         firstValue(data, [
-          "hasil_verifikasi",
-          "status_verifikasi"
+          "status_verifikasi",
+          "hasil_verifikasi"
         ])
       );
 
@@ -429,6 +446,46 @@
           ? "tidak-valid"
           : "selesai";
 
+      const isInvalid = decision === "tidak-valid";
+
+      // Laporan tidak valid tidak pernah ditangani; tampilkan hasil verifikasinya.
+      const actionText = isInvalid
+        ? "Laporan dinyatakan tidak valid saat verifikasi, sehingga tidak ada tindakan perbaikan."
+        : handlingValue(
+            ["tindak_lanjut_perbaikan"],
+            "Belum ada tindak lanjut"
+          );
+
+      const noteText = isInvalid
+        ? firstValue(
+            data,
+            [
+              "alasan_koreksi",
+              "catatan_verifikasi_terakhir",
+              "catatan_verifikasi"
+            ],
+            "Tidak ada catatan verifikasi"
+          )
+        : handlingValue(
+            ["catatan_petugas"],
+            "Tidak ada catatan akhir"
+          );
+
+      const officerName = isInvalid
+        ? firstValue(
+            data,
+            ["nama_verifikator"],
+            "Tidak tersedia"
+          )
+        : firstValue(
+            data,
+            ["nama_petugas"],
+            firstValue(latestHandling, ["nama_petugas"], "Tidak tersedia")
+          );
+
+      const startValue = handlingValue(["waktu_mulai_penanganan"]);
+      const endValue = handlingValue(["waktu_selesai_penanganan"]);
+
       return {
         code,
 
@@ -462,7 +519,9 @@
         ]),
 
         completionDate: getFinalDate(
-          data,
+          { ...latestHandling, ...data,
+            waktu_selesai_penanganan: handlingValue(["waktu_selesai_penanganan"]),
+            waktu_pembaruan: handlingValue(["waktu_pembaruan"]) },
           decision,
           handlingStatus
         ),
@@ -486,31 +545,24 @@
         x2: normalizeImpact(x2),
         x3: normalizeFrequency(x3),
 
-        action: firstValue(data, [
-          "tindak_lanjut_perbaikan"
-        ], "Belum ada tindak lanjut"),
+        action: actionText,
 
-        note: firstValue(data, [
-          "catatan_petugas"
-        ], "Tidak ada catatan akhir"),
+        note: noteText,
 
-        officer: firstValue(data, [
-          "nama_petugas",
-          "nama_penanggung_jawab"
-        ], "Tidak tersedia"),
+        officer: officerName,
 
-        startDate: firstValue(data, [
-          "waktu_mulai_penanganan"
-        ]),
+        officerLabel: isInvalid
+          ? "Diverifikasi oleh"
+          : "Petugas Penanggung Jawab",
 
-        endDate: firstValue(data, [
-          "waktu_selesai_penanganan"
-        ]),
+        startDate: startValue,
 
-        updateDate: firstValue(data, [
-          "waktu_pembaruan",
-          "tanggal_diperbarui"
-        ])
+        endDate: endValue,
+
+        updateDate: handlingValue(
+          ["waktu_pembaruan"],
+          firstValue(data, ["tanggal_diperbarui"])
+        )
       };
     }
 
@@ -1085,6 +1137,22 @@
       // Menampilkan catatan akhir petugas.
       if (detailNote) {
         detailNote.textContent = record.note;
+      }
+
+      // Menampilkan petugas dan rentang waktu penanganan dari database.
+      if (detailOfficerLabel) {
+        detailOfficerLabel.textContent = record.officerLabel;
+      }
+
+      if (detailOfficer) {
+        detailOfficer.textContent = record.officer;
+      }
+
+      if (detailHandlingTime) {
+        detailHandlingTime.textContent =
+          record.finalStatus === "tidak-valid"
+            ? "Tidak ada penanganan"
+            : `${formatDate(record.startDate)} s.d. ${formatDate(record.endDate)}`;
       }
 
       // Memperbarui label status detail.

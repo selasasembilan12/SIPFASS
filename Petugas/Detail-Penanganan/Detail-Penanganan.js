@@ -5,7 +5,11 @@
   document.addEventListener("DOMContentLoaded", initialize);
 
   function initialize() {
-    // Mengatur endpoint API.
+
+    // ============================================================
+    // 01. KONFIGURASI API
+    // ============================================================
+
     const API = {
       detail: "../../api/petugas/detail-penanganan.php",
       save: "../../api/petugas/simpan-penanganan.php",
@@ -15,8 +19,11 @@
 
     const LOGIN_URL = "../../auth/Login.html";
 
-    // Mengambil elemen HTML.
     const $ = (id) => document.getElementById(id);
+
+    // ============================================================
+    // 02. ELEMEN HTML
+    // ============================================================
 
     const form = $("handlingForm");
     const followUpInput = $("followUp");
@@ -51,14 +58,24 @@
       return;
     }
 
+    // ============================================================
+    // 03. STATE APLIKASI
+    // ============================================================
+
     let currentReportCode = "";
     let currentReport = null;
     let currentOfficer = null;
+
     let originalFormData = null;
+
     let saving = false;
     let alreadyCompleted = false;
+    let toastTimer = null;
 
-    // Menormalkan teks.
+    // ============================================================
+    // 04. FUNGSI NORMALISASI
+    // ============================================================
+
     function normalizeText(value) {
       return String(value ?? "")
         .normalize("NFD")
@@ -68,7 +85,6 @@
         .toLowerCase();
     }
 
-    // Mengambil nilai pertama yang tersedia.
     function firstValue(object, keys, fallback = "") {
       for (const key of keys) {
         const value = object?.[key];
@@ -85,7 +101,6 @@
       return fallback;
     }
 
-    // Menormalkan kode laporan.
     function normalizeCode(value) {
       return String(value ?? "")
         .replace(/\s+/g, "")
@@ -93,47 +108,48 @@
         .toUpperCase();
     }
 
-    // Menormalkan status penanganan.
+    // Menyamakan status database, HTML, dan PHP.
     function normalizeStatus(value) {
       const status = normalizeText(value);
 
-      if (
-        [
-          "selesai",
-          "completed",
-          "selesai ditangani",
-          "selesai diperbaiki"
-        ].includes(status)
-      ) {
+      if ([
+        "selesai",
+        "completed",
+        "selesai ditangani",
+        "selesai diperbaiki",
+        "ditutup"
+      ].includes(status)) {
         return "Selesai";
       }
 
-      if (
-        [
-          "diproses",
-          "processing",
-          "sedang diproses",
-          "dalam proses"
-        ].includes(status)
-      ) {
+      if ([
+        "diproses",
+        "processing",
+        "sedang diproses",
+        "dalam proses",
+        "sedang dikerjakan"
+      ].includes(status)) {
         return "Diproses";
       }
 
-      if (
-        [
-          "menunggu",
-          "waiting",
-          "menunggu perbaikan",
-          "terverifikasi"
-        ].includes(status)
-      ) {
+      if ([
+        "menunggu",
+        "waiting",
+        "menunggu perbaikan",
+        "menunggu penanganan",
+        "belum ditangani",
+        "terverifikasi"
+      ].includes(status)) {
         return "Menunggu";
       }
 
       return "";
     }
 
-    // Memastikan laporan telah dinyatakan valid.
+    // ============================================================
+    // 05. VALIDASI STATUS VERIFIKASI
+    // ============================================================
+
     function isValidReport(data) {
       const verification = normalizeText(
         firstValue(data, [
@@ -145,11 +161,15 @@
       return [
         "valid",
         "terverifikasi",
+        "diterima",
         "sudah diverifikasi"
       ].includes(verification);
     }
 
-    // Membaca kode laporan dari alamat halaman.
+    // ============================================================
+    // 06. MENGAMBIL KODE LAPORAN
+    // ============================================================
+
     function getTargetCode() {
       const params = new URLSearchParams(
         window.location.search
@@ -157,12 +177,17 @@
 
       return normalizeCode(
         params.get("kode") ||
+        params.get("kode_laporan") ||
         reportCodeElement.textContent
       );
     }
 
-    // Mengambil data JSON dari API.
+    // ============================================================
+    // 07. REQUEST API
+    // ============================================================
+
     async function fetchJson(url, options = {}) {
+
       const response = await fetch(url, {
         credentials: "same-origin",
         cache: "no-store",
@@ -179,7 +204,12 @@
 
       try {
         payload = JSON.parse(raw);
-      } catch {
+      } catch (error) {
+        console.error(
+          "[SIPFAS] Respons API bukan JSON:",
+          raw
+        );
+
         throw new Error(
           "Respons server bukan JSON. Periksa endpoint API."
         );
@@ -189,7 +219,7 @@
         window.location.replace(LOGIN_URL);
 
         throw new Error(
-          "Sesi login telah berakhir."
+          "Sesi login telah berakhir. Silakan login kembali."
         );
       }
 
@@ -203,30 +233,45 @@
       return payload;
     }
 
-    // Memformat waktu database tanpa menambahkan offset dua kali.
+    // ============================================================
+    // 08. FORMAT WAKTU WIT
+    // ============================================================
+
     function formatWIT(value) {
       if (!value) return "Belum tersedia";
 
       const raw = String(value).trim();
 
+      // DATETIME database dianggap sudah menggunakan waktu WIT.
+      // Jangan menambahkan offset UTC+9 kembali.
       const match = raw.match(
         /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/
       );
 
       if (match) {
-        const [, year, month, day, hour, minute, second] = match;
+        const [
+          ,
+          year,
+          month,
+          day,
+          hour,
+          minute,
+          second
+        ] = match;
 
         const date = new Date(
-          Number(year),
-          Number(month) - 1,
-          Number(day),
-          Number(hour),
-          Number(minute),
-          Number(second || 0)
+          Date.UTC(
+            Number(year),
+            Number(month) - 1,
+            Number(day),
+            Number(hour),
+            Number(minute),
+            Number(second || 0)
+          )
         );
 
         return new Intl.DateTimeFormat("id-ID", {
-          timeZone: "Asia/Jayapura",
+          timeZone: "UTC",
           day: "2-digit",
           month: "long",
           year: "numeric",
@@ -237,6 +282,7 @@
         }).format(date) + " WIT";
       }
 
+      // Untuk tanggal ISO yang sudah memiliki informasi zona waktu.
       const date = new Date(raw);
 
       if (Number.isNaN(date.getTime())) {
@@ -255,7 +301,6 @@
       }).format(date) + " WIT";
     }
 
-    // Menampilkan tanggal pada elemen HTML.
     function setTimestampElement(id, timestamp) {
       const element = $(id);
 
@@ -266,8 +311,9 @@
       }
     }
 
-    // Menampilkan notifikasi.
-    let toastTimer;
+    // ============================================================
+    // 09. NOTIFIKASI
+    // ============================================================
 
     function showToast(message, type = "info") {
       let toast = $("sipfasToastNotification");
@@ -287,12 +333,14 @@
           color: "#087443",
           border: "#a7e5c2"
         },
+
         error: {
           icon: "✕",
           background: "#fff0f0",
           color: "#c62828",
           border: "#ffcaca"
         },
+
         info: {
           icon: "ℹ",
           background: "#edf3ff",
@@ -309,7 +357,7 @@
       icon.textContent = style.icon;
 
       const text = document.createElement("span");
-      text.textContent = message;
+      text.textContent = String(message);
 
       toast.append(icon, text);
 
@@ -342,7 +390,10 @@
       }, 4000);
     }
 
-    // Mengubah status pada bagian judul halaman.
+    // ============================================================
+    // 10. STATUS HEADER
+    // ============================================================
+
     function setHeaderStatus(status) {
       if (!headerStatusElement) return;
 
@@ -354,8 +405,12 @@
       headerStatusElement.dataset.status = normalized;
     }
 
-    // Menampilkan informasi identitas pelapor.
+    // ============================================================
+    // 11. INFORMASI LAPORAN
+    // ============================================================
+
     function renderReportInformation(data) {
+
       const infoMap = {
         reportName: firstValue(data, [
           "nama_pelapor",
@@ -372,8 +427,8 @@
         ], "—"),
 
         reportLocation: firstValue(data, [
-          "nama_lokasi",
-          "lokasi_ruangan"
+          "lokasi_ruangan",
+          "nama_lokasi"
         ], "—"),
 
         reportDescription: firstValue(data, [
@@ -396,18 +451,20 @@
         "waktu_lapor"
       ]);
 
-      if (createdAt && $("reportTime")) {
-        $("reportTime").textContent = formatWIT(createdAt);
+      if ($("reportTime")) {
+        $("reportTime").textContent = createdAt
+          ? formatWIT(createdAt)
+          : "Belum tersedia";
       }
 
       const initials = $("reportInitials");
 
-      if (initials && infoMap.reportName) {
+      if (initials) {
         initials.textContent = String(infoMap.reportName)
           .split(/\s+/)
           .filter(Boolean)
           .slice(0, 2)
-          .map((word) => word.charAt(0).toUpperCase())
+          .map(word => word.charAt(0).toUpperCase())
           .join("");
       }
 
@@ -419,11 +476,11 @@
       }
     }
 
-    // Mengambil identitas petugas dari session database.
-    async function loadOfficerProfile() {
-      const payload = await fetchJson(API.profile);
+    // ============================================================
+    // 12. IDENTITAS PETUGAS
+    // ============================================================
 
-      const user = payload.user || payload.data;
+    function setOfficerProfile(user) {
 
       if (!user || !user.id_pengguna) {
         throw new Error(
@@ -433,24 +490,203 @@
 
       currentOfficer = {
         id: Number(user.id_pengguna),
-        name: user.nama_lengkap || user.nama_pengguna,
+        name: user.nama_lengkap || user.nama_pengguna || "",
         email: user.email || "",
         photo: user.foto_profil || "",
         role: user.nama_peran || ""
       };
 
+      if (!Number.isInteger(currentOfficer.id) ||
+          currentOfficer.id <= 0) {
+        throw new Error(
+          "ID petugas tidak valid."
+        );
+      }
+
       return currentOfficer;
     }
 
-    // Memuat detail laporan dan riwayat penanganan.
-    async function loadHandlingFromDB() {
+    async function loadOfficerProfile(detailOfficer = null) {
+
+      if (
+        detailOfficer &&
+        detailOfficer.id_pengguna
+      ) {
+        return setOfficerProfile(detailOfficer);
+      }
+
+      const payload = await fetchJson(API.profile);
+
+      const user = payload.user || payload.data;
+
+      return setOfficerProfile(user);
+    }
+
+    // ============================================================
+    // 13. RENDER RIWAYAT PENANGANAN
+    // ============================================================
+
+    function renderHandlingHistory(history) {
+
+      const container =
+        $("handlingHistory") ||
+        $("historyHandling") ||
+        $("riwayatPenanganan");
+
+      if (!container) return;
+
+      container.replaceChildren();
+
+      if (!Array.isArray(history) || history.length === 0) {
+        const empty = document.createElement("p");
+
+        empty.textContent =
+          "Belum ada riwayat penanganan.";
+
+        container.appendChild(empty);
+        return;
+      }
+
+      history.forEach(item => {
+
+        const card = document.createElement("div");
+        card.className = "history-item";
+
+        const officer = document.createElement("strong");
+        officer.textContent =
+          item.nama_petugas || "Petugas";
+
+        const action = document.createElement("p");
+        action.textContent =
+          item.tindak_lanjut_perbaikan ||
+          "Tidak ada keterangan.";
+
+        const notes = document.createElement("p");
+        notes.textContent =
+          item.catatan_petugas ||
+          "Tidak ada catatan.";
+
+        const started = document.createElement("small");
+
+        started.textContent =
+          "Mulai: " +
+          (item.waktu_mulai_penanganan
+            ? formatWIT(item.waktu_mulai_penanganan)
+            : "Belum tersedia");
+
+        const completed = document.createElement("small");
+
+        completed.textContent =
+          " | Selesai: " +
+          (item.waktu_selesai_penanganan
+            ? formatWIT(item.waktu_selesai_penanganan)
+            : "Belum selesai");
+
+        card.append(
+          officer,
+          action,
+          notes,
+          started,
+          completed
+        );
+
+        container.appendChild(card);
+      });
+    }
+
+    // ============================================================
+    // 14. RENDER RIWAYAT PERUBAHAN STATUS
+    // ============================================================
+
+    function renderStatusHistory(history) {
+
+      const container =
+        $("statusHistory") ||
+        $("historyStatus") ||
+        $("riwayatStatus");
+
+      if (!container) return;
+
+      container.replaceChildren();
+
+      if (!Array.isArray(history) || history.length === 0) {
+        const empty = document.createElement("p");
+
+        empty.textContent =
+          "Belum ada riwayat perubahan status.";
+
+        container.appendChild(empty);
+        return;
+      }
+
+      history.forEach(item => {
+
+        const card = document.createElement("div");
+        card.className = "history-status-item";
+
+        const user = document.createElement("strong");
+
+        user.textContent =
+          item.nama_pengguna || "Pengguna";
+
+        const change = document.createElement("p");
+
+        change.textContent =
+          `${item.status_sebelumnya || "Belum tersedia"} → ` +
+          `${item.status_baru || "Belum tersedia"}`;
+
+        const note = document.createElement("p");
+
+        note.textContent =
+          item.catatan || "Tidak ada catatan.";
+
+        const date = document.createElement("small");
+
+        date.textContent = item.tanggal_perubahan
+          ? formatWIT(item.tanggal_perubahan)
+          : "Belum tersedia";
+
+        card.append(
+          user,
+          change,
+          note,
+          date
+        );
+
+        container.appendChild(card);
+      });
+    }
+
+    // ============================================================
+    // 15. MENGUNCI FORMULIR
+    // ============================================================
+
+    function setFormLocked(locked) {
+
+      followUpInput.disabled = locked;
+      statusInput.disabled = locked;
+      notesInput.disabled = locked;
+      saveButton.disabled = locked;
+    }
+
+    // ============================================================
+    // 16. MEMUAT DETAIL PENANGANAN DARI DATABASE
+    // ============================================================
+
+    async function loadHandlingFromDB(options = {}) {
+
+      const showMessage = options.showMessage !== false;
+
       const code = getTargetCode();
 
       if (!code) {
+
         showToast(
-          "Kode laporan tidak ditemukan. Kembali ke daftar penanganan.",
+          "Kode laporan tidak ditemukan.",
           "error"
         );
+
+        saveButton.disabled = true;
         return;
       }
 
@@ -462,7 +698,10 @@
         pageCodeElement.textContent = code;
       }
 
+      saveButton.disabled = true;
+
       try {
+
         const url = new URL(
           API.detail,
           window.location.href
@@ -472,7 +711,19 @@
 
         const payload = await fetchJson(url.href);
 
-        const data = payload.data || payload.laporan;
+        /*
+         * STRUKTUR RESPONS PHP:
+         *
+         * payload.data.laporan
+         * payload.data.penanganan
+         * payload.data.petugas
+         * payload.data.riwayat_penanganan
+         * payload.data.riwayat_status
+         */
+
+        const result = payload.data || {};
+
+        const data = result.laporan;
 
         if (!data || typeof data !== "object") {
           throw new Error(
@@ -480,7 +731,16 @@
           );
         }
 
-        // Menolak laporan yang belum diverifikasi valid.
+        // Memastikan kode laporan sesuai.
+        if (
+          normalizeCode(data.kode_laporan) !== code
+        ) {
+          throw new Error(
+            "Kode laporan tidak sesuai dengan data database."
+          );
+        }
+
+        // Memeriksa status verifikasi.
         if (!isValidReport(data)) {
           throw new Error(
             "Laporan belum berstatus valid dan tidak dapat ditangani."
@@ -489,28 +749,43 @@
 
         currentReport = data;
 
-        const handling = payload.penanganan ||
-          data.penanganan ||
-          data;
+        const handling = result.penanganan || {};
 
+        const handlingHistory =
+          Array.isArray(result.riwayat_penanganan)
+            ? result.riwayat_penanganan
+            : [];
+
+        const statusHistory =
+          Array.isArray(result.riwayat_status)
+            ? result.riwayat_status
+            : [];
+
+        // Menampilkan informasi laporan.
         renderReportInformation(data);
 
-        // Mengambil data tindak lanjut terakhir.
-        followUpInput.value = firstValue(handling, [
-          "tindak_lanjut_perbaikan",
-          "tindak_lanjut"
-        ]);
+        // Mengisi tindak lanjut terakhir.
+        followUpInput.value = firstValue(
+          handling,
+          [
+            "tindak_lanjut_perbaikan",
+            "tindak_lanjut"
+          ]
+        );
 
-        // Catatan petugas bersifat opsional.
-        notesInput.value = firstValue(handling, [
-          "catatan_petugas"
-        ]);
+        // Mengisi catatan petugas.
+        notesInput.value = firstValue(
+          handling,
+          ["catatan_petugas"]
+        );
 
-        // Mengambil status penanganan dari laporan utama.
+        // Mengambil status dari laporan utama.
         const status = normalizeStatus(
-          firstValue(data, [
-            "status_penanganan"
-          ], "Menunggu")
+          firstValue(
+            data,
+            ["status_penanganan"],
+            "Menunggu"
+          )
         );
 
         if (!status) {
@@ -519,29 +794,38 @@
           );
         }
 
+        // Menyesuaikan pilihan status HTML.
         const option = Array.from(
           statusInput.options
-        ).find((item) => {
-          return normalizeStatus(item.value) === status;
-        });
+        ).find(item =>
+          normalizeStatus(item.value) === status
+        );
 
         if (option) {
           statusInput.value = option.value;
+        } else {
+          throw new Error(
+            "Pilihan status tidak sesuai dengan data database."
+          );
         }
 
         setHeaderStatus(status);
 
-        const updatedAt = firstValue(handling, [
-          "waktu_pembaruan"
-        ]);
+        // Menampilkan waktu penanganan.
+        const updatedAt = firstValue(
+          handling,
+          ["waktu_pembaruan"]
+        );
 
-        const startedAt = firstValue(handling, [
-          "waktu_mulai_penanganan"
-        ]);
+        const startedAt = firstValue(
+          handling,
+          ["waktu_mulai_penanganan"]
+        );
 
-        const completedAt = firstValue(handling, [
-          "waktu_selesai_penanganan"
-        ]);
+        const completedAt = firstValue(
+          handling,
+          ["waktu_selesai_penanganan"]
+        );
 
         if (updatedAtElement) {
           updatedAtElement.textContent = updatedAt
@@ -552,31 +836,49 @@
         setTimestampElement("startedAt", startedAt);
         setTimestampElement("completedAt", completedAt);
 
+        // Menampilkan seluruh riwayat.
+        renderHandlingHistory(handlingHistory);
+        renderStatusHistory(statusHistory);
+
+        // Mengambil identitas petugas.
+        await loadOfficerProfile(result.petugas);
+
+        // Memastikan status penyelesaian.
         alreadyCompleted = status === "Selesai";
 
-        // Menyimpan nilai awal agar perubahan dapat dideteksi.
+        // Menyimpan nilai awal formulir.
         originalFormData = {
           followUp: followUpInput.value.trim(),
           status,
           notes: notesInput.value.trim()
         };
 
-        // Mengambil identitas petugas yang sedang login.
-        await loadOfficerProfile();
+        // Mengunci formulir jika sudah selesai.
+        setFormLocked(alreadyCompleted);
 
         if (alreadyCompleted) {
-          showToast(
-            "Laporan ini sudah selesai ditangani.",
-            "info"
-          );
+
+          if (showMessage) {
+            showToast(
+              "Laporan ini sudah selesai ditangani.",
+              "info"
+            );
+          }
+
         } else {
-          showToast(
-            "Detail penanganan berhasil dimuat.",
-            "success"
-          );
+
+          saveButton.disabled = false;
+
+          if (showMessage) {
+            showToast(
+              "Detail penanganan berhasil dimuat.",
+              "success"
+            );
+          }
         }
 
       } catch (error) {
+
         console.error(
           "[SIPFAS] Gagal memuat detail penanganan:",
           error
@@ -588,8 +890,12 @@
       }
     }
 
-    // Memvalidasi data sebelum disimpan.
+    // ============================================================
+    // 17. VALIDASI DATA PENANGANAN
+    // ============================================================
+
     function validateHandling() {
+
       if (!currentReportCode) {
         return "Kode laporan tidak ditemukan.";
       }
@@ -635,8 +941,12 @@
       return "";
     }
 
-    // Menyimpan perubahan penanganan ke database.
+    // ============================================================
+    // 18. MENYIMPAN PENANGANAN KE DATABASE
+    // ============================================================
+
     async function saveHandlingToDB(event) {
+
       event?.preventDefault();
 
       if (saving) return;
@@ -649,19 +959,48 @@
       }
 
       const followUp = followUpInput.value.trim();
-      const status = normalizeStatus(statusInput.value);
+
       const officerNotes = notesInput.value.trim();
 
+      let status = normalizeStatus(statusInput.value);
+
+      // Status Menunggu otomatis berubah menjadi Diproses.
+      if (status === "Menunggu") {
+
+        status = "Diproses";
+
+        const processingOption = Array.from(
+          statusInput.options
+        ).find(item =>
+          normalizeStatus(item.value) === "Diproses"
+        );
+
+        if (!processingOption) {
+
+          showToast(
+            "Pilihan status Diproses tidak tersedia.",
+            "error"
+          );
+
+          return;
+        }
+
+        statusInput.value = processingOption.value;
+      }
+
+      // Memeriksa perubahan data.
       if (
         originalFormData &&
         originalFormData.followUp === followUp &&
         originalFormData.status === status &&
         originalFormData.notes === officerNotes
       ) {
+
         showToast(
           "Tidak ada perubahan data yang perlu disimpan.",
           "info"
         );
+
         return;
       }
 
@@ -669,14 +1008,23 @@
       saveButton.disabled = true;
 
       try {
-        // Mengirim perubahan ke API PHP.
+
+        /*
+         * Request POST otomatis memperoleh header
+         * X-CSRF-Token dari csrf.js.
+         *
+         * Pastikan csrf.js dimuat sebelum file JavaScript ini.
+         */
+
         const payload = await fetchJson(
           API.save,
           {
             method: "POST",
+
             headers: {
               "Content-Type": "application/json"
             },
+
             body: JSON.stringify({
               kode_laporan: currentReportCode,
               tindak_lanjut_perbaikan: followUp,
@@ -688,19 +1036,50 @@
 
         const saved = payload.data || {};
 
-        const updatedAt = firstValue(saved, [
-          "waktu_pembaruan"
-        ]);
+        // Memastikan server mengembalikan status valid.
+        const savedStatus = normalizeStatus(
+          firstValue(
+            saved,
+            ["status_penanganan"],
+            status
+          )
+        );
 
-        const startedAt = firstValue(saved, [
-          "waktu_mulai_penanganan"
-        ]);
+        if (!savedStatus) {
+          throw new Error(
+            "Server mengembalikan status penanganan yang tidak valid."
+          );
+        }
 
-        const completedAt = firstValue(saved, [
-          "waktu_selesai_penanganan"
-        ]);
+        status = savedStatus;
 
-        // Memperbarui tampilan setelah server mengonfirmasi.
+        // Memperbarui pilihan status.
+        const savedOption = Array.from(
+          statusInput.options
+        ).find(item =>
+          normalizeStatus(item.value) === savedStatus
+        );
+
+        if (savedOption) {
+          statusInput.value = savedOption.value;
+        }
+
+        // Memperbarui waktu berdasarkan respons server.
+        const updatedAt = firstValue(
+          saved,
+          ["waktu_pembaruan"]
+        );
+
+        const startedAt = firstValue(
+          saved,
+          ["waktu_mulai_penanganan"]
+        );
+
+        const completedAt = firstValue(
+          saved,
+          ["waktu_selesai_penanganan"]
+        );
+
         if (updatedAtElement) {
           updatedAtElement.textContent = updatedAt
             ? formatWIT(updatedAt)
@@ -709,8 +1088,10 @@
 
         setTimestampElement("startedAt", startedAt);
         setTimestampElement("completedAt", completedAt);
+
         setHeaderStatus(status);
 
+        // Memperbarui nilai awal formulir.
         originalFormData = {
           followUp,
           status,
@@ -719,14 +1100,21 @@
 
         alreadyCompleted = status === "Selesai";
 
-        // Mengunci formulir setelah status selesai.
-        if (alreadyCompleted) {
-          followUpInput.disabled = true;
-          statusInput.disabled = true;
-          notesInput.disabled = true;
+        // Memperbarui identitas petugas.
+        if (saved.nama_petugas && currentOfficer) {
+          currentOfficer.name = saved.nama_petugas;
         }
 
-        // Mengirim pemberitahuan pembaruan kepada halaman lain.
+        // Memperbarui data laporan lokal.
+        if (currentReport) {
+          currentReport.status_penanganan =
+            saved.status_penanganan;
+        }
+
+        // Mengunci formulir jika sudah selesai.
+        setFormLocked(alreadyCompleted);
+
+        // Memberitahukan perubahan kepada halaman lain.
         window.dispatchEvent(
           new CustomEvent("sipfas:handling-saved", {
             detail: {
@@ -739,7 +1127,6 @@
           })
         );
 
-        // Memperbarui daftar riwayat.
         window.dispatchEvent(
           new CustomEvent("sipfas:history-updated", {
             detail: {
@@ -756,7 +1143,14 @@
           "success"
         );
 
+        // Memuat ulang data dari database.
+        // Riwayat dan status mengikuti hasil server.
+        await loadHandlingFromDB({
+          showMessage: false
+        });
+
       } catch (error) {
+
         console.error(
           "[SIPFAS] Gagal menyimpan penanganan:",
           error
@@ -769,22 +1163,26 @@
         );
 
       } finally {
+
         saving = false;
 
-        if (!alreadyCompleted) {
+        if (!alreadyCompleted && currentReport) {
           saveButton.disabled = false;
         }
       }
     }
 
-    // Menangani pengiriman formulir.
+    // ============================================================
+    // 19. EVENT FORMULIR
+    // ============================================================
+
     form.addEventListener(
       "submit",
       saveHandlingToDB
     );
 
-    // Memperbarui badge status saat pilihan berubah.
     statusInput.addEventListener("change", () => {
+
       const status = normalizeStatus(statusInput.value);
 
       if (status) {
@@ -792,8 +1190,12 @@
       }
     });
 
-    // Mengembalikan pengguna ke daftar penanganan.
-    cancelButton?.addEventListener("click", (event) => {
+    // ============================================================
+    // 20. TOMBOL BATAL
+    // ============================================================
+
+    cancelButton?.addEventListener("click", event => {
+
       event.preventDefault();
 
       window.location.href = new URL(
@@ -802,13 +1204,18 @@
       ).href;
     });
 
-    // Menyalin kode laporan.
-    copyButton?.addEventListener("click", async (event) => {
+    // ============================================================
+    // 21. SALIN KODE LAPORAN
+    // ============================================================
+
+    copyButton?.addEventListener("click", async event => {
+
       event.preventDefault();
 
       if (!currentReportCode) return;
 
       try {
+
         await navigator.clipboard.writeText(
           currentReportCode
         );
@@ -818,7 +1225,13 @@
           "success"
         );
 
-      } catch {
+      } catch (error) {
+
+        console.error(
+          "[SIPFAS] Gagal menyalin kode:",
+          error
+        );
+
         showToast(
           "Gagal menyalin kode laporan.",
           "error"
@@ -826,8 +1239,12 @@
       }
     });
 
-    // Mengatur sidebar.
+    // ============================================================
+    // 22. SIDEBAR
+    // ============================================================
+
     function setSidebar(open) {
+
       sidebar?.classList.toggle("open", open);
 
       pageOverlay?.classList.toggle("show", open);
@@ -840,6 +1257,7 @@
     }
 
     menuToggle?.addEventListener("click", () => {
+
       setSidebar(
         !sidebar?.classList.contains("open")
       );
@@ -850,53 +1268,68 @@
       () => setSidebar(false)
     );
 
-    document.querySelectorAll(".nav-link").forEach(
-      (link) => {
-        link.addEventListener(
-          "click",
-          () => setSidebar(false)
-        );
-      }
-    );
+    document.querySelectorAll(".nav-link").forEach(link => {
 
-    document.addEventListener("keydown", (event) => {
+      link.addEventListener(
+        "click",
+        () => setSidebar(false)
+      );
+    });
+
+    document.addEventListener("keydown", event => {
+
       if (event.key === "Escape") {
         setSidebar(false);
       }
     });
 
-    // Menangani logout.
-    logoutLink?.addEventListener("click", async (event) => {
+    // ============================================================
+    // 23. LOGOUT
+    // ============================================================
+
+    logoutLink?.addEventListener("click", async event => {
+
       event.preventDefault();
 
-      if (!window.confirm(
-        "Apakah Anda yakin ingin keluar dari SIPFAS?"
-      )) {
+      if (
+        !window.confirm(
+          "Apakah Anda yakin ingin keluar dari SIPFAS?"
+        )
+      ) {
         return;
       }
 
       try {
-        await fetch(API.logout, {
-          method: "POST",
-          credentials: "same-origin",
-          cache: "no-store",
-          headers: {
-            Accept: "application/json"
+
+        await fetchJson(
+          API.logout,
+          {
+            method: "POST"
           }
-        });
+        );
 
       } catch (error) {
+
         console.error(
           "[SIPFAS] Logout error:",
           error
         );
 
       } finally {
+
         window.location.replace(LOGIN_URL);
       }
     });
 
-    // Memuat detail ketika halaman pertama kali dibuka.
-    loadHandlingFromDB();
+    // ============================================================
+    // 24. INISIALISASI HALAMAN
+    // ============================================================
+
+    // Mengambil detail laporan ketika halaman dibuka.
+    loadHandlingFromDB({
+      showMessage: true
+    });
+
   }
+
 })();

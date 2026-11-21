@@ -1,11 +1,16 @@
 <?php
 declare(strict_types=1);
-//revisi akhir
-// Memuat konfigurasi session dan koneksi database.
+
+// ============================================================
+// SIPFAS - DETAIL PENANGANAN LAPORAN
+// Mengambil detail laporan, identitas petugas, dan riwayat.
+// ============================================================
+
+// 01. Memuat konfigurasi session dan database.
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
-// Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
-require_once dirname(__DIR__, 2) . '/config/csrf.php';
-sipfas_csrf_require_valid();
+
+// Endpoint ini hanya membaca data (GET).
+// Validasi CSRF tidak diperlukan untuk request GET.
 
 header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
@@ -13,13 +18,17 @@ header('Pragma: no-cache');
 
 date_default_timezone_set('Asia/Jayapura');
 
-// Mengirim respons JSON.
+// ============================================================
+// 02. FUNGSI RESPONS JSON
+// ============================================================
+
 function detailPenangananResponse(
     int $status,
     bool $success,
     string $message,
     ?array $data = null
 ): never {
+
     http_response_code($status);
 
     echo json_encode([
@@ -33,8 +42,12 @@ function detailPenangananResponse(
 
 try {
 
-    // 01. Memastikan metode GET.
+    // ========================================================
+    // 03. VALIDASI METODE REQUEST
+    // ========================================================
+
     if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+
         header('Allow: GET');
 
         detailPenangananResponse(
@@ -44,7 +57,10 @@ try {
         );
     }
 
-    // 02. Memeriksa session pengguna.
+    // ========================================================
+    // 04. VALIDASI SESSION LOGIN
+    // ========================================================
+
     $userId = (int) (
         $_SESSION['id_pengguna']
         ?? $_SESSION['user']['id_pengguna']
@@ -56,6 +72,7 @@ try {
         $userId <= 0 ||
         ($_SESSION['login_terverifikasi'] ?? false) !== true
     ) {
+
         detailPenangananResponse(
             401,
             false,
@@ -63,16 +80,30 @@ try {
         );
     }
 
-    // 03. Memeriksa identitas dan hak akses.
+    // ========================================================
+    // 05. VALIDASI IDENTITAS DAN HAK AKSES PENGGUNA
+    // ========================================================
+
     $userStmt = $pdo->prepare("
         SELECT
             u.id_pengguna,
+            u.id_peran,
+            u.nama_lengkap,
+            u.nomor_identitas,
+            u.nama_pengguna,
+            u.email,
+            u.unit_kerja,
+            u.foto_profil,
             u.status_akun,
             p.nama_peran
+
         FROM pengguna u
+
         INNER JOIN peran p
             ON p.id_peran = u.id_peran
+
         WHERE u.id_pengguna = :id
+
         LIMIT 1
     ");
 
@@ -83,6 +114,7 @@ try {
     $user = $userStmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
+
         detailPenangananResponse(
             401,
             false,
@@ -90,7 +122,13 @@ try {
         );
     }
 
-    if (strcasecmp((string) $user['status_akun'], 'Aktif') !== 0) {
+    if (
+        strcasecmp(
+            trim((string) $user['status_akun']),
+            'Aktif'
+        ) !== 0
+    ) {
+
         detailPenangananResponse(
             403,
             false,
@@ -98,13 +136,16 @@ try {
         );
     }
 
+    $role = trim((string) $user['nama_peran']);
+
     if (
         !in_array(
-            (string) $user['nama_peran'],
+            $role,
             ['Petugas Sarpras', 'Administrator'],
             true
         )
     ) {
+
         detailPenangananResponse(
             403,
             false,
@@ -112,7 +153,10 @@ try {
         );
     }
 
-    // 04. Mengambil identitas laporan.
+    // ========================================================
+    // 06. MENGAMBIL IDENTITAS LAPORAN
+    // ========================================================
+
     $kode = trim((string) (
         $_GET['kode']
         ?? $_GET['kode_laporan']
@@ -124,7 +168,11 @@ try {
         FILTER_VALIDATE_INT
     );
 
-    if ($kode === '' && (!$idLaporan || $idLaporan <= 0)) {
+    if (
+        $kode === '' &&
+        (!$idLaporan || $idLaporan <= 0)
+    ) {
+
         detailPenangananResponse(
             400,
             false,
@@ -132,7 +180,11 @@ try {
         );
     }
 
-    if ($kode !== '' && mb_strlen($kode) > 30) {
+    if (
+        $kode !== '' &&
+        mb_strlen($kode) > 30
+    ) {
+
         detailPenangananResponse(
             422,
             false,
@@ -140,7 +192,10 @@ try {
         );
     }
 
-    // 05. Mengambil detail laporan.
+    // ========================================================
+    // 07. MENGAMBIL DETAIL LAPORAN DARI DATABASE
+    // ========================================================
+
     $where = $kode !== ''
         ? 'lk.kode_laporan = :kode'
         : 'lk.id_laporan = :id_laporan';
@@ -246,7 +301,9 @@ try {
         LEFT JOIN riwayat_verifikasi_laporan rv
             ON rv.id_riwayat_verifikasi = (
                 SELECT MAX(rv2.id_riwayat_verifikasi)
+
                 FROM riwayat_verifikasi_laporan rv2
+
                 WHERE rv2.id_laporan = lk.id_laporan
             )
 
@@ -258,10 +315,13 @@ try {
     $stmt = $pdo->prepare($sql);
 
     if ($kode !== '') {
+
         $stmt->execute([
             ':kode' => $kode
         ]);
+
     } else {
+
         $stmt->execute([
             ':id_laporan' => $idLaporan
         ]);
@@ -270,6 +330,7 @@ try {
     $laporan = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$laporan) {
+
         detailPenangananResponse(
             404,
             false,
@@ -277,7 +338,10 @@ try {
         );
     }
 
-    // 06. Memastikan laporan sudah lolos verifikasi.
+    // ========================================================
+    // 08. MEMASTIKAN LAPORAN SUDAH LOLOS VERIFIKASI
+    // ========================================================
+
     $statusVerifikasi = strtolower(
         trim((string) $laporan['status_verifikasi'])
     );
@@ -289,6 +353,7 @@ try {
             true
         )
     ) {
+
         detailPenangananResponse(
             409,
             false,
@@ -296,7 +361,10 @@ try {
         );
     }
 
-    // 07. Mengambil seluruh riwayat penanganan.
+    // ========================================================
+    // 09. MENGAMBIL SELURUH RIWAYAT PENANGANAN
+    // ========================================================
+
     $historyStmt = $pdo->prepare("
         SELECT
             rp.id_riwayat_penanganan,
@@ -327,9 +395,14 @@ try {
         ':id_laporan' => $laporan['id_laporan']
     ]);
 
-    $riwayatPenanganan = $historyStmt->fetchAll(PDO::FETCH_ASSOC);
+    $riwayatPenanganan = $historyStmt->fetchAll(
+        PDO::FETCH_ASSOC
+    );
 
-    // 08. Mengambil riwayat perubahan status.
+    // ========================================================
+    // 10. MENGAMBIL RIWAYAT PERUBAHAN STATUS
+    // ========================================================
+
     $statusStmt = $pdo->prepare("
         SELECT
             rs.id_riwayat,
@@ -359,9 +432,14 @@ try {
         ':id_laporan' => $laporan['id_laporan']
     ]);
 
-    $riwayatStatus = $statusStmt->fetchAll(PDO::FETCH_ASSOC);
+    $riwayatStatus = $statusStmt->fetchAll(
+        PDO::FETCH_ASSOC
+    );
 
-    // 09. Normalisasi data numerik.
+    // ========================================================
+    // 11. NORMALISASI DATA NUMERIK LAPORAN
+    // ========================================================
+
     $integerFields = [
         'id_laporan',
         'id_pelapor',
@@ -385,48 +463,168 @@ try {
     ];
 
     foreach ($integerFields as $field) {
+
         if (
             array_key_exists($field, $laporan) &&
             $laporan[$field] !== null
         ) {
+
             $laporan[$field] = (int) $laporan[$field];
         }
     }
 
+    // ========================================================
+    // 12. NORMALISASI RIWAYAT PENANGANAN
+    // ========================================================
+
     foreach ($riwayatPenanganan as &$item) {
+
         $item['id_riwayat_penanganan'] =
             (int) $item['id_riwayat_penanganan'];
 
-        $item['id_laporan'] = (int) $item['id_laporan'];
+        $item['id_laporan'] =
+            (int) $item['id_laporan'];
 
-        $item['id_petugas'] = (int) $item['id_petugas'];
+        $item['id_petugas'] =
+            (int) $item['id_petugas'];
     }
 
     unset($item);
+
+    // ========================================================
+    // 13. NORMALISASI RIWAYAT STATUS
+    // ========================================================
 
     foreach ($riwayatStatus as &$item) {
-        $item['id_riwayat'] = (int) $item['id_riwayat'];
-        $item['id_laporan'] = (int) $item['id_laporan'];
-        $item['id_pengguna'] = (int) $item['id_pengguna'];
+
+        $item['id_riwayat'] =
+            (int) $item['id_riwayat'];
+
+        $item['id_laporan'] =
+            (int) $item['id_laporan'];
+
+        $item['id_pengguna'] =
+            (int) $item['id_pengguna'];
     }
 
     unset($item);
 
-    // 10. Mengirim detail laporan dan seluruh riwayat.
+    // ========================================================
+    // 14. MENYUSUN RINGKASAN PENANGANAN TERAKHIR
+    // ========================================================
+
+    $penangananTerakhir = $riwayatPenanganan[0] ?? null;
+
+    $waktuMulaiAwal = null;
+
+    foreach ($riwayatPenanganan as $riwayat) {
+
+        if (
+            !empty($riwayat['waktu_mulai_penanganan']) &&
+            (
+                $waktuMulaiAwal === null ||
+                $riwayat['waktu_mulai_penanganan'] < $waktuMulaiAwal
+            )
+        ) {
+
+            $waktuMulaiAwal =
+                $riwayat['waktu_mulai_penanganan'];
+        }
+    }
+
+    $penanganan = [
+
+        'id_riwayat_penanganan' =>
+            $penangananTerakhir['id_riwayat_penanganan'] ?? null,
+
+        'id_petugas' =>
+            $penangananTerakhir['id_petugas'] ?? null,
+
+        'nama_petugas' =>
+            $penangananTerakhir['nama_petugas'] ?? null,
+
+        'tindak_lanjut_perbaikan' =>
+            $penangananTerakhir['tindak_lanjut_perbaikan'] ?? null,
+
+        'catatan_petugas' =>
+            $penangananTerakhir['catatan_petugas'] ?? null,
+
+        'waktu_mulai_penanganan' =>
+            $waktuMulaiAwal,
+
+        'waktu_selesai_penanganan' =>
+            $penangananTerakhir['waktu_selesai_penanganan'] ?? null,
+
+        'waktu_pembaruan' =>
+            $penangananTerakhir['waktu_pembaruan'] ?? null
+    ];
+
+    // ========================================================
+    // 15. IDENTITAS PETUGAS YANG SEDANG LOGIN
+    // ========================================================
+
+    $petugasLogin = [
+
+        'id_pengguna' =>
+            (int) $user['id_pengguna'],
+
+        'id_peran' =>
+            (int) $user['id_peran'],
+
+        'nama_lengkap' =>
+            (string) $user['nama_lengkap'],
+
+        'nomor_identitas' =>
+            (string) $user['nomor_identitas'],
+
+        'nama_pengguna' =>
+            (string) $user['nama_pengguna'],
+
+        'email' =>
+            (string) $user['email'],
+
+        'unit_kerja' =>
+            $user['unit_kerja'],
+
+        'foto_profil' =>
+            $user['foto_profil'],
+
+        'nama_peran' =>
+            (string) $user['nama_peran']
+    ];
+
+    // ========================================================
+    // 16. MENGIRIM DATA KE JAVASCRIPT
+    // ========================================================
+
     detailPenangananResponse(
         200,
         true,
         'Detail penanganan berhasil dimuat.',
         [
             'laporan' => $laporan,
+
+            'penanganan' => $penanganan,
+
+            'petugas' => $petugasLogin,
+
             'riwayat_penanganan' => $riwayatPenanganan,
+
             'riwayat_status' => $riwayatStatus,
-            'total_riwayat_penanganan' => count($riwayatPenanganan),
-            'total_riwayat_status' => count($riwayatStatus)
+
+            'total_riwayat_penanganan' =>
+                count($riwayatPenanganan),
+
+            'total_riwayat_status' =>
+                count($riwayatStatus)
         ]
     );
 
 } catch (Throwable $e) {
+
+    // ========================================================
+    // 17. PENANGANAN ERROR
+    // ========================================================
 
     error_log(
         '[SIPFAS DETAIL PENANGANAN ERROR] ' .

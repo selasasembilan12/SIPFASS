@@ -441,6 +441,41 @@ try {
         $item['riwayat_penanganan'] =
             $riwayatPenanganan[$id] ?? [];
 
+        // Meratakan ringkasan penanganan agar sama dengan halaman Detail Penanganan.
+        // Riwayat sudah diurutkan dari yang terbaru, sehingga indeks 0 adalah catatan terakhir.
+        $terakhir = $item['riwayat_penanganan'][0] ?? null;
+
+        $waktuMulaiAwal = null;
+
+        foreach ($item['riwayat_penanganan'] as $catatan) {
+            if (
+                !empty($catatan['waktu_mulai_penanganan']) &&
+                (
+                    $waktuMulaiAwal === null ||
+                    $catatan['waktu_mulai_penanganan'] < $waktuMulaiAwal
+                )
+            ) {
+                $waktuMulaiAwal = $catatan['waktu_mulai_penanganan'];
+            }
+        }
+
+        $item['id_petugas_penanganan'] =
+            $terakhir['id_petugas'] ?? null;
+        $item['tindak_lanjut_perbaikan'] =
+            $terakhir['tindak_lanjut_perbaikan'] ?? null;
+        $item['catatan_petugas'] =
+            $terakhir['catatan_petugas'] ?? null;
+        $item['waktu_mulai_penanganan'] = $waktuMulaiAwal;
+        $item['waktu_selesai_penanganan'] =
+            $terakhir['waktu_selesai_penanganan'] ?? null;
+        $item['waktu_pembaruan'] =
+            $terakhir['waktu_pembaruan'] ?? null;
+
+        // Jika petugas penanggung jawab belum tercatat, pakai petugas pada catatan terakhir.
+        if (empty($item['nama_petugas']) && $terakhir !== null) {
+            $item['nama_petugas'] = $terakhir['nama_petugas'];
+        }
+
         $item['riwayat_status'] =
             $riwayatStatus[$id] ?? [];
 
