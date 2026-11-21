@@ -8,7 +8,7 @@ require_once dirname(__DIR__, 2) . '/services/OtpService.php';
 require_once dirname(__DIR__, 2) . '/services/MailService.php';
 require_once __DIR__ . '/riwayat-login-helper.php';
 // Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
-require_once dirname(_DIR_, 2) . '/config/csrf.php';
+require_once dirname(__DIR__, 2) . '/config/csrf.php';
 sipfas_csrf_require_valid();
 
 header('Content-Type: application/json; charset=utf-8');

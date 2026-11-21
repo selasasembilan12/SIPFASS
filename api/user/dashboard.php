@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__, 2) . '/config/bootstrap.php';
 // Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
-require_once dirname(_DIR_, 2) . '/config/csrf.php';
+require_once dirname(__DIR__, 2) . '/config/csrf.php';
 sipfas_csrf_require_valid();
 
 header('Content-Type: application/json; charset=utf-8');

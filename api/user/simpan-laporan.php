@@ -8,7 +8,7 @@ ini_set('display_errors', '0');
 require_once dirname(__DIR__, 2) . '/config/auth-check.php';
 require_once dirname(__DIR__, 2) . '/services/C45/C45Service.php';
 // Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
-require_once dirname(_DIR_, 2) . '/config/csrf.php';
+require_once dirname(__DIR__, 2) . '/config/csrf.php';
 sipfas_csrf_require_valid();
 
 header('Content-Type: application/json; charset=utf-8');

@@ -6,7 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/_admin-common.php';
 require_once dirname(__DIR__, 2) . '/services/C45/C45Service.php';
 // Perlindungan CSRF: wajib token valid untuk POST/PUT/PATCH/DELETE.
-require_once dirname(_DIR_, 2) . '/config/csrf.php';
+require_once dirname(__DIR__, 2) . '/config/csrf.php';
 sipfas_csrf_require_valid();
 
 use SIPFAS\Services\C45\C45Service;
